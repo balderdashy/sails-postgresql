@@ -23,6 +23,9 @@
     "mocha": "*",
     "should": "*"
   },
+  "scripts": {
+    "test": "mocha test"
+  },
   "main": "lib/adapter",
   "license": "MIT"
 }
