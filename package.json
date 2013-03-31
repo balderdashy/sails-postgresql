@@ -1,0 +1,28 @@
+{
+  "name": "sails-postgresql",
+  "description": "postgresql adapter for Sails.js",
+  "version": "0.0.1",
+  "author": "Cody Stoltman <particlebanana@gmail.com>",
+  "url": "http://github.com/particlebanana/sails-postgresql",
+  "keywords": [
+    "postgresql",
+    "orm",
+    "waterline",
+    "sails"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/particlebanana/sails-postgresql.git"
+  },
+  "dependencies": {
+    "pg": "0.14.x",
+    "underscore": "1.4.x",
+    "async": "0.2.x"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "should": "*"
+  },
+  "main": "lib/adapter",
+  "license": "MIT"
+}
