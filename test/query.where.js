@@ -86,10 +86,10 @@ describe('query', function() {
         }
       };
 
-      it('should build a SELECT statement with LIKE', function() {
+      it('should build a SELECT statement with ILIKE', function() {
         var query = new Query().find('test', criteria);
 
-        query.query.should.eql('SELECT * FROM test WHERE "type" ILIKE $1 AND "name" ILIKE $2');
+        query.query.should.eql('SELECT * FROM test WHERE LOWER(CAST("type" AS TEXT)) ILIKE $1 AND LOWER(CAST("name" AS TEXT)) ILIKE $2');
         query.values.length.should.eql(2);
       });
 
@@ -110,7 +110,7 @@ describe('query', function() {
       it('should build a SELECT statement with multiple like statements', function() {
         var query = new Query().find('test', criteria);
 
-        query.query.should.eql('SELECT * FROM test WHERE "foo" ILIKE $1 OR "bar" ILIKE $2');
+        query.query.should.eql('SELECT * FROM test WHERE LOWER(CAST("foo" AS TEXT)) ILIKE $1 OR LOWER(CAST("bar" AS TEXT)) ILIKE $2');
         query.values.length.should.eql(2);
       });
 
