@@ -21,7 +21,8 @@
   },
   "devDependencies": {
     "mocha": "*",
-    "should": "*"
+    "should": "*",
+    "waterline-adapter-tests": "0.9.0"
   },
   "scripts": {
     "test": "mocha test"
