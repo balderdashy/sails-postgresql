@@ -15,22 +15,20 @@ describe('adapter', function() {
 
   // Attributes for the test table
   var definition = {
-    attributes: {
-      id    : {
-        type: 'serial',
-        autoIncrement: true
-      },
-      name  : 'string',
-      email : 'string',
-      title : 'string',
-      phone : 'string',
-      type  : 'string',
-      favoriteFruit : {
-        defaultsTo: 'blueberry',
-        type: 'string'
-      },
-      age   : 'integer'
-    }
+    id    : {
+      type: 'serial',
+      autoIncrement: true
+    },
+    name  : 'string',
+    email : 'string',
+    title : 'string',
+    phone : 'string',
+    type  : 'string',
+    favoriteFruit : {
+      defaultsTo: 'blueberry',
+      type: 'string'
+    },
+    age   : 'integer'
   };
 
   /**
