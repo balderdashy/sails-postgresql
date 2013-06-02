@@ -9,7 +9,7 @@ describe('query', function() {
    * Adds an ORDER BY parameter to a sql statement
    */
 
-  describe('.skip()', function() {
+  describe('.sort()', function() {
 
     it('should append the ORDER BY clause to the query', function() {
 
@@ -23,7 +23,7 @@ describe('query', function() {
         }
       };
 
-      var query = new Query().find('test', criteria);
+      var query = new Query({ name: { type: 'text' }}).find('test', criteria);
       query.query.should.eql('SELECT * FROM test WHERE LOWER("name") = $1 ORDER BY "name" ASC');
 
     });
@@ -41,7 +41,7 @@ describe('query', function() {
         }
       };
 
-      var query = new Query().find('test', criteria);
+      var query = new Query({ name: { type: 'text' }}).find('test', criteria);
       query.query.should.eql('SELECT * FROM test WHERE LOWER("name") = $1 ORDER BY "name" ASC, "age" ASC');
 
     });
@@ -59,7 +59,7 @@ describe('query', function() {
         }
       };
 
-      var query = new Query().find('test', criteria);
+      var query = new Query({ name: { type: 'text' }}).find('test', criteria);
       query.query.should.eql('SELECT * FROM test WHERE LOWER("name") = $1 ORDER BY "name" ASC, "age" DESC');
 
     });

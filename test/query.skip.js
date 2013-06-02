@@ -20,7 +20,7 @@ describe('query', function() {
     };
 
     it('should append the SKIP clause to the query', function() {
-      var query = new Query().find('test', criteria);
+      var query = new Query({ name: { type: 'text' }}).find('test', criteria);
       query.query.should.eql('SELECT * FROM test WHERE LOWER("name") = $1 OFFSET 1');
     });
 

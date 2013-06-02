@@ -24,7 +24,7 @@ describe('query', function() {
         };
 
         it('should build a SELECT statement using LOWER() on strings', function() {
-          var query = new Query().find('test', criteria);
+          var query = new Query({ name: { type: 'text' }, age: { type: 'integer'}}).find('test', criteria);
 
           query.query.should.eql('SELECT * FROM test WHERE LOWER("name") = $1 AND "age" = $2');
           query.values[0].should.eql('foo');
@@ -42,7 +42,7 @@ describe('query', function() {
         };
 
         it('should build a simple SELECT statement', function() {
-          var query = new Query().find('test', criteria);
+          var query = new Query({ name: { type: 'text' }, age: { type: 'integer'}}).find('test', criteria);
 
           query.query.should.eql('SELECT * FROM test WHERE LOWER("name") = $1 AND "age" = $2');
           query.values.length.should.eql(2);
@@ -64,7 +64,7 @@ describe('query', function() {
         };
 
         it('should build a SELECT statement with comparators', function() {
-          var query = new Query().find('test', criteria);
+          var query = new Query({ name: { type: 'text' }, age: { type: 'integer'}}).find('test', criteria);
 
           query.query.should.eql('SELECT * FROM test WHERE LOWER("name") = $1 AND "age" > $2 AND "age" < $3');
           query.values.length.should.eql(3);
@@ -87,9 +87,9 @@ describe('query', function() {
       };
 
       it('should build a SELECT statement with ILIKE', function() {
-        var query = new Query().find('test', criteria);
+        var query = new Query({ type: { type: 'text' }, name: { type: 'text'}}).find('test', criteria);
 
-        query.query.should.eql('SELECT * FROM test WHERE LOWER(CAST("type" AS TEXT)) ILIKE $1 AND LOWER(CAST("name" AS TEXT)) ILIKE $2');
+        query.query.should.eql('SELECT * FROM test WHERE LOWER("type") ILIKE $1 AND LOWER("name") ILIKE $2');
         query.values.length.should.eql(2);
       });
 
@@ -108,9 +108,9 @@ describe('query', function() {
       };
 
       it('should build a SELECT statement with multiple like statements', function() {
-        var query = new Query().find('test', criteria);
+        var query = new Query({ foo: { type: 'text' }, bar: { type: 'text'}}).find('test', criteria);
 
-        query.query.should.eql('SELECT * FROM test WHERE LOWER(CAST("foo" AS TEXT)) ILIKE $1 OR LOWER(CAST("bar" AS TEXT)) ILIKE $2');
+        query.query.should.eql('SELECT * FROM test WHERE LOWER("foo") ILIKE $1 OR LOWER("bar") ILIKE $2');
         query.values.length.should.eql(2);
       });
 
@@ -130,7 +130,7 @@ describe('query', function() {
       };
 
       it('should build a SELECT statement with an IN array', function() {
-        var query = new Query().find('test', criteria);
+        var query = new Query({ name: { type: 'text' }}).find('test', criteria);
 
         query.query.should.eql('SELECT * FROM test WHERE LOWER("name") IN ($1, $2, $3)');
         query.values.length.should.eql(3);
@@ -150,7 +150,7 @@ describe('query', function() {
       };
 
       it('should build a SELECT statement with an NOT clause', function() {
-        var query = new Query().find('test', criteria);
+        var query = new Query({age: { type: 'integer'}}).find('test', criteria);
 
         query.query.should.eql('SELECT * FROM test WHERE "age" <> $1');
         query.values.length.should.eql(1);
