@@ -25,7 +25,7 @@
     "waterline-adapter-tests": "0.9.0"
   },
   "scripts": {
-    "test": "mocha test"
+    "test": "make test"
   },
   "main": "lib/adapter",
   "license": "MIT"
