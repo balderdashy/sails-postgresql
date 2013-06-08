@@ -28,7 +28,7 @@ describe('adapter', function() {
 
     // Register the collection
     before(function(done) {
-      var collection = _.extend(support.Config, {
+      var collection = _.extend({ config: support.Config }, {
         identity: 'test_describe'
       });
 
