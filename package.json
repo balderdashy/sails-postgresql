@@ -1,6 +1,6 @@
 {
   "name": "sails-postgresql",
-  "description": "postgresql adapter for Sails.js",
+  "description": "a postgreSQL adapter for Waterline and Sails.js",
   "version": "0.1.0",
   "author": "Cody Stoltman <particlebanana@gmail.com>",
   "url": "http://github.com/particlebanana/sails-postgresql",
@@ -28,5 +28,9 @@
     "test": "make test"
   },
   "main": "lib/adapter",
-  "license": "MIT"
+  "directories": {
+    "lib": "./lib"
+  },
+  "license": "MIT",
+  "bugs": "https://github.com/particlebanana/sails-postgresql/issues"
 }

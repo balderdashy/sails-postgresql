@@ -1,18 +1,43 @@
 ![image_squidhome@2x.png](http://i.imgur.com/RIvu9.png)
 
-# Postgresql Adapter
+# PostgreSQL Sails/Waterline Adapter
 
-Adds Postgresql support for Sails.
+A [Waterline](https://github.com/balderdashy/waterline) adapter for PostgreSQL. May be used in a [Sails](https://github.com/balderdashy/sails) app or anything using Waterline for the ORM.
 
+## Install
 
-# Sails.js Repo
-http://SailsJs.org
+Install is through NPM.
 
+```bash
+$ npm install sails-postgresql
+```
+
+## Configuration
+
+The following config options are available along with their default values:
+
+```javascript
+config: {
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  port: 5432,
+  pool: false
+};
+```
+
+## Testing
+
+Test are written with mocha. Integration tests are handled by the [waterline-adapter-tests](https://github.com/balderdashy/waterline-adapter-tests) project, which tests adapter methods against the latest Waterline API.
+
+To run tests:
+
+```bash
+$ npm test
+```
 
 ## About Waterline
+
 Waterline is a new kind of storage and retrieval engine.  It provides a uniform API for accessing stuff from different kinds of databases, protocols, and 3rd party APIs.  That means you write the same code to get users, whether they live in mySQL, LDAP, MongoDB, or Facebook.
-Waterline also comes with built-in transaction support, as well as a configurable environment setting.
 
-
-## Writing your own adapters
-It's easy to add your own adapters for integrating with proprietary systems or existing open APIs.  For most things, it's as easy as `require('some-module')` and mapping the appropriate methods to match waterline semantics.
+To learn more visit the project on GitHub at [Waterline](https://github.com/balderdashy/waterline).
