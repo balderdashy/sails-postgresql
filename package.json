@@ -15,8 +15,7 @@
     "url": "git://github.com/particlebanana/sails-postgresql.git"
   },
   "dependencies": {
-    "pg": "0.14.x",
-    "pg-parse-float": "0.0.x",
+    "pg": "2.0.x",
     "underscore": "1.4.x",
     "async": "0.2.x"
   },
