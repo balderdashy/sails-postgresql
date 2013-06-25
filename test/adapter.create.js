@@ -1,5 +1,4 @@
 var adapter = require('../lib/adapter'),
-    _ = require('underscore'),
     should = require('should'),
     support = require('./support/bootstrap');
 
@@ -31,25 +30,19 @@ describe('adapter', function() {
 
   describe('.create()', function() {
 
-    // Register the collection
-    before(function(done) {
-      var collection = _.extend({ config: support.Config }, {
-        identity: 'test_create'
-      });
-
-      adapter.registerCollection(collection, done);
-    });
-
     // Insert a record
     it('should insert a single record', function(done) {
       adapter.create('test_create', attributes, function(err, result) {
 
         // Check record was actually inserted
-        support.Client(function(err, client) {
+        support.Client(function(err, client, close) {
           client.query('SELECT * FROM "test_create"', function(err, result) {
 
             // Test 1 row is returned
             result.rows.length.should.eql(1);
+
+            // close client
+            close();
 
             done();
           });

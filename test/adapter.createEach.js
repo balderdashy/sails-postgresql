@@ -1,5 +1,4 @@
 var adapter = require('../lib/adapter'),
-    _ = require('underscore'),
     should = require('should'),
     support = require('./support/bootstrap');
 
@@ -31,25 +30,19 @@ describe('adapter', function() {
 
   describe('.createEach()', function() {
 
-    // Register the collection
-    before(function(done) {
-      var collection = _.extend({ config: support.Config }, {
-        identity: 'test_createEach'
-      });
-
-      adapter.registerCollection(collection, done);
-    });
-
     // Insert multiple records
     it('should insert multiple records', function(done) {
       adapter.createEach('test_createEach', [attributes, attributes], function(err, result) {
 
         // Check records were actually inserted
-        support.Client(function(err, client) {
+        support.Client(function(err, client, close) {
           client.query('SELECT * FROM "test_createEach"', function(err, result) {
 
             // Test 2 rows are returned
             result.rows.length.should.eql(2);
+
+            // close client
+            close();
 
             done();
           });

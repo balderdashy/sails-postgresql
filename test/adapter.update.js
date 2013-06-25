@@ -1,5 +1,4 @@
 var adapter = require('../lib/adapter'),
-    _ = require('underscore'),
     should = require('should'),
     support = require('./support/bootstrap');
 
@@ -24,16 +23,6 @@ describe('adapter', function() {
    */
 
   describe('.update()', function() {
-
-    // Register the collection
-    before(function(done) {
-      var collection = _.extend({ config: support.Config }, {
-        identity: 'test_update'
-      });
-
-      adapter.registerCollection(collection, done);
-    });
-
 
     describe('with options', function() {
 

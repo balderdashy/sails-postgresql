@@ -1,5 +1,4 @@
 var adapter = require('../lib/adapter'),
-    _ = require('underscore'),
     should = require('should'),
     support = require('./support/bootstrap');
 
@@ -25,15 +24,6 @@ describe('adapter', function() {
    */
 
   describe('.describe()', function() {
-
-    // Register the collection
-    before(function(done) {
-      var collection = _.extend({ config: support.Config }, {
-        identity: 'test_describe'
-      });
-
-      adapter.registerCollection(collection, done);
-    });
 
     // Output Column Names
     it('should output the column names', function(done) {

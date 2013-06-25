@@ -1,5 +1,4 @@
 var adapter = require('../lib/adapter'),
-    _ = require('underscore'),
     should = require('should'),
     support = require('./support/bootstrap');
 
@@ -24,15 +23,6 @@ describe('adapter', function() {
    */
 
   describe('.removeAttribute()', function() {
-
-    // Register the collection
-    before(function(done) {
-      var collection = _.extend({ config: support.Config }, {
-        identity: 'test_removeAttribute'
-      });
-
-      adapter.registerCollection(collection, done);
-    });
 
     // Remove a column to a table
     it('should remove column field_2 from the table', function(done) {

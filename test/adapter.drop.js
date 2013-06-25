@@ -1,5 +1,4 @@
 var adapter = require('../lib/adapter'),
-    _ = require('underscore'),
     should = require('should'),
     support = require('./support/bootstrap');
 
@@ -20,15 +19,6 @@ describe('adapter', function() {
    */
 
   describe('.drop()', function() {
-
-    // Register the collection
-    before(function(done) {
-      var collection = _.extend({ config: support.Config }, {
-        identity: 'test_drop'
-      });
-
-      adapter.registerCollection(collection, done);
-    });
 
     // Drop the Test table
     it('should drop the table', function(done) {

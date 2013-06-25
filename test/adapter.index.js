@@ -38,7 +38,10 @@ describe('adapter', function() {
         identity: 'test_index'
       });
 
-      adapter.registerCollection(collection, done);
+      adapter.registerCollection(collection, function(err) {
+        if(err) return cb(err);
+        adapter.define('test_index', definition, done);
+      });
     });
 
     // Build Indicies from definition

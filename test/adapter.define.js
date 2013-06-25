@@ -76,9 +76,15 @@ describe('adapter', function() {
       });
 
       after(function(done) {
-        support.Client(function(err, client) {
+        support.Client(function(err, client, close) {
           var query = 'DROP TABLE "user";';
-          client.query(query, done);
+          client.query(query, function(err) {
+
+            // close client
+            close();
+
+            done();
+          });
         });
       });
 

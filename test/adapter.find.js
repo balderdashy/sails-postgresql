@@ -1,5 +1,4 @@
 var adapter = require('../lib/adapter'),
-    _ = require('underscore'),
     should = require('should'),
     support = require('./support/bootstrap');
 
@@ -24,15 +23,6 @@ describe('adapter', function() {
    */
 
   describe('.find()', function() {
-
-    // Register the collection
-    before(function(done) {
-      var collection = _.extend({ config: support.Config }, {
-        identity: 'test_find'
-      });
-
-      adapter.registerCollection(collection, done);
-    });
 
     describe('WHERE clause', function() {
 
@@ -61,8 +51,14 @@ describe('adapter', function() {
             "values ('foobar', 'AR)H$daxx');"
           ].join('');
 
-          support.Client(function(err, client) {
-            client.query(query, done);
+          support.Client(function(err, client, close) {
+            client.query(query, function() {
+
+              // close client
+              close();
+
+              done();
+            });
           });
         });
 
