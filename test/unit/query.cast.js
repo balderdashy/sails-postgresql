@@ -1,4 +1,4 @@
-var Query = require('../lib/query'),
+var Query = require('../../lib/query'),
     assert = require('assert');
 
 describe('query', function() {

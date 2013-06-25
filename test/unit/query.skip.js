@@ -1,4 +1,4 @@
-var Query = require('../lib/query'),
+var Query = require('../../lib/query'),
     should = require('should');
 
 describe('query', function() {

@@ -3,7 +3,7 @@
  */
 
 var pg = require('pg'),
-    adapter = require('../../lib/adapter');
+    adapter = require('../../../lib/adapter');
 
 var Support = module.exports = {};
 

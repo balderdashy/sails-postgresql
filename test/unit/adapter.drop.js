@@ -1,4 +1,4 @@
-var adapter = require('../lib/adapter'),
+var adapter = require('../../lib/adapter'),
     should = require('should'),
     support = require('./support/bootstrap');
 
