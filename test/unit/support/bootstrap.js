@@ -19,7 +19,8 @@ Support.Config = {
 Support.Collection = function(name) {
   return {
     identity: name,
-    config: Support.Config
+    config: Support.Config,
+    definition: Support.Definition
   };
 };
 
