@@ -4,12 +4,12 @@ var Query = require('../../lib/query'),
 describe('query', function() {
 
   /**
-   * SUM
+   * groupBy
    *
-   * Adds a SUM select parameter to a sql statement
+   * Adds a Group By statement to a sql statement
    */
 
-  describe('.sum()', function() {
+  describe('.groupBy()', function() {
 
     describe('with array', function() {
 
@@ -18,12 +18,12 @@ describe('query', function() {
         where: {
           name: 'foo'
         },
-        sum: ['age']
+        groupBy: ['name']
       };
 
-      it('should use the SUM aggregate option in the select statement', function() {
+      it('should append a Group By clause to the select statement', function() {
         var query = new Query({ name: { type: 'text' }}).find('test', criteria);
-        query.query.should.eql('SELECT CAST(SUM(age) AS float) AS age FROM test WHERE LOWER("name") = $1');
+        query.query.should.eql('SELECT name FROM test WHERE LOWER("name") = $1 GROUP BY name');
       });
     });
 
@@ -34,12 +34,12 @@ describe('query', function() {
         where: {
           name: 'foo'
         },
-        sum: 'age'
+        groupBy: 'name'
       };
 
-      it('should use the SUM aggregate option in the select statement', function() {
+      it('should use the MAX aggregate option in the select statement', function() {
         var query = new Query({ name: { type: 'text' }}).find('test', criteria);
-        query.query.should.eql('SELECT CAST(SUM(age) AS float) AS age FROM test WHERE LOWER("name") = $1');
+        query.query.should.eql('SELECT name FROM test WHERE LOWER("name") = $1 GROUP BY name');
       });
     });
 
