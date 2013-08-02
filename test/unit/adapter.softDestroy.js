@@ -36,8 +36,7 @@ describe('adapter', function() {
         adapter.destroy('test_softdestroy', { where: { id: 1 }}, function(err, result) {
           // Check record was actually removed
           support.Client(function(err, client, close) {
-            //client.query('SELECT * FROM "test_destroy"', function(err, result) {
-            adapter.find('test_softdestroy', null, function(err, result) {
+            adapter.find('test_softdestroy', { where: { id: 1 }}, function(err, result) {
               // Test no rows are returned
               result.length.should.eql(0);
 
