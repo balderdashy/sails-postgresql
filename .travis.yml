@@ -9,3 +9,6 @@ env:
   - DB_USER=postgres DB_PASS=''
 before_script:
   - psql -c 'create database sailspg;' -U postgres
+notifications:
+  email:
+    - particlebanana@gmail.com
