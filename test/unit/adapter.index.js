@@ -1,5 +1,5 @@
 var adapter = require('../../lib/adapter'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     should = require('should'),
     support = require('./support/bootstrap');
 
