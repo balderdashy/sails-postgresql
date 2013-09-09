@@ -19,10 +19,17 @@ describe('query', function() {
       limit: 1
     };
 
-    it('should append the LIMIT clause to the query', function() {
-      var query = new Query({ name: { type: 'text' }}).find('test', criteria);
+    var schema = {
+      test: {
+        definition: { name: { type: 'text' }},
+        schema: { name: { type: 'text' }}
+      }
+    };
 
-      query.query.should.eql('SELECT * FROM test WHERE LOWER("name") = $1 LIMIT 1');
+    it('should append the LIMIT clause to the query', function() {
+      var query = new Query({ name: { type: 'text' }}, schema).find('test', criteria);
+      var sql = 'SELECT "test"."name" FROM "test" WHERE LOWER("test"."name") = $1 LIMIT 1';
+      query.query.should.eql(sql);
     });
 
   });
