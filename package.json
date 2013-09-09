@@ -22,7 +22,7 @@
   "devDependencies": {
     "mocha": "*",
     "should": "*",
-    "waterline-adapter-tests": "~0.9.3"
+    "waterline-adapter-tests": "git://github.com/balderdashy/waterline-adapter-tests.git#associations"
   },
   "scripts": {
     "test": "make test"
