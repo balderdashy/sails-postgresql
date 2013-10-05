@@ -97,7 +97,7 @@ describe('query', function() {
                       .find('test', criteria);
 
           var sql = 'SELECT "test"."name" FROM "test" WHERE LOWER("test"."name") = $1 ' +
-                    'AND "test"."age" > $2 AND "test"."age" < $3';
+                    'AND "test"."age" > $2 AND "test"."age" < $3 ';
 
           query.query.should.eql(sql);
           query.values.length.should.eql(3);
@@ -220,7 +220,7 @@ describe('query', function() {
       it('should build a SELECT statement with an NOT clause', function() {
         var query = new Query({age: { type: 'integer'}}, schema).find('test', criteria);
 
-        query.query.should.eql('SELECT "test"."name" FROM "test" WHERE "test"."age" <> $1');
+        query.query.should.eql('SELECT "test"."name" FROM "test" WHERE "test"."age" <> $1 ');
         query.values.length.should.eql(1);
       });
 
