@@ -129,10 +129,27 @@ describe('query', function() {
         }
       };
 
+      var camelCaseCriteria = {
+        where: {
+          myId: [
+            1,
+            2,
+            3
+          ]
+        }
+      };
+
       it('should build a SELECT statement with an IN array', function() {
         var query = new Query({ name: { type: 'text' }}).find('test', criteria);
 
         query.query.should.eql('SELECT * FROM test WHERE LOWER("name") IN ($1, $2, $3)');
+        query.values.length.should.eql(3);
+      });
+
+      it('should build a SELECT statememnt with an IN array and camel case column', function() {
+        var query = new Query({ myId: { type: 'integer' }}).find('test', camelCaseCriteria);
+
+        query.query.should.eql('SELECT * FROM test WHERE "myId" IN ($1, $2, $3)');
         query.values.length.should.eql(3);
       });
 
