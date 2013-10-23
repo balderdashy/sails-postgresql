@@ -161,8 +161,8 @@ describe('query', function() {
         var query = new Query({ foo: { type: 'text' }, bar: { type: 'text'}}, schema)
                     .find('test', criteria);
 
-        var sql = 'SELECT "test"."name" FROM "test" WHERE LOWER("test"."foo") ILIKE $1 ' +
-                  'OR LOWER("test"."bar") ILIKE $2';
+        var sql = 'SELECT "test"."name" FROM "test" WHERE ((LOWER("test"."foo") ILIKE $1) ' +
+                  'OR (LOWER("test"."bar") ILIKE $2))';
 
         query.query.should.eql(sql);
         query.values.length.should.eql(2);
