@@ -15,14 +15,14 @@
     "url": "git://github.com/balderdashy/sails-postgresql.git"
   },
   "dependencies": {
-    "pg": "~2.6.2",
+    "pg": "~2.8.2",
     "underscore": "~1.5.2",
     "async": "~0.2.9"
   },
   "devDependencies": {
     "mocha": "*",
     "should": "*",
-    "waterline-adapter-tests": "~0.9.3"
+    "waterline-adapter-tests": "~0.9.4"
   },
   "scripts": {
     "test": "make test"
