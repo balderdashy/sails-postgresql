@@ -20,6 +20,7 @@ The following config options are available along with their default values:
 
 ```javascript
 config: {
+  database: 'databaseName',
   host: 'localhost',
   user: 'root',
   password: '',
