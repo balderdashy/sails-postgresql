@@ -2,6 +2,8 @@
 
 # PostgreSQL Sails/Waterline Adapter
 
+[![Build Status](https://travis-ci.org/balderdashy/sails-postgresql.png?branch=master)](https://travis-ci.org/balderdashy/sails-postgresql) [![NPM version](https://badge.fury.io/js/sails-postgresql.png)](http://badge.fury.io/js/sails-postgresql) [![Dependency Status](https://gemnasium.com/balderdashy/sails-postgresql.png)](https://gemnasium.com/balderdashy/sails-postgresql)
+
 A [Waterline](https://github.com/balderdashy/waterline) adapter for PostgreSQL. May be used in a [Sails](https://github.com/balderdashy/sails) app or anything using Waterline for the ORM.
 
 ## Install
@@ -18,6 +20,7 @@ The following config options are available along with their default values:
 
 ```javascript
 config: {
+  database: 'databaseName',
   host: 'localhost',
   user: 'root',
   password: '',
