@@ -23,7 +23,7 @@ describe('query', function() {
 
       it('should use the SUM aggregate option in the select statement', function() {
         var query = new Query({ name: { type: 'text' }}).find('test', criteria);
-        query.query.should.eql('SELECT CAST(SUM(age) AS float) AS age FROM test WHERE LOWER("name") = $1');
+        query.query.should.eql('SELECT CAST(SUM(\"age\") AS float) AS \"age\" FROM test WHERE LOWER(\"name\") = $1');
       });
     });
 
@@ -39,7 +39,7 @@ describe('query', function() {
 
       it('should use the SUM aggregate option in the select statement', function() {
         var query = new Query({ name: { type: 'text' }}).find('test', criteria);
-        query.query.should.eql('SELECT CAST(SUM(age) AS float) AS age FROM test WHERE LOWER("name") = $1');
+        query.query.should.eql('SELECT CAST(SUM(\"age\") AS float) AS \"age\" FROM test WHERE LOWER(\"name\") = $1');
       });
     });
 
