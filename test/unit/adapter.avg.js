@@ -23,8 +23,8 @@ describe('query', function() {
 
       it('should use the AVG aggregate option in the select statement', function() {
         var query = new Query({ name: { type: 'text' }}).find('test', criteria);
-        var sql = 'SELECT CAST(AVG("test"."age") AS float) AS age FROM "test" WHERE ' +
-                  'LOWER("test"."name") = $1';
+        var sql = 'SELECT CAST(AVG(\"test\".\"age\") AS float) AS age FROM \"test\" WHERE ' +
+                  'LOWER(\"test\".\"name\") = $1';
 
         query.query.should.eql(sql);
       });
@@ -42,8 +42,8 @@ describe('query', function() {
 
       it('should use the AVG aggregate option in the select statement', function() {
         var query = new Query({ name: { type: 'text' }}).find('test', criteria);
-        var sql = 'SELECT CAST(AVG("test"."age") AS float) AS age FROM "test" WHERE ' +
-                  'LOWER("test"."name") = $1';
+        var sql = 'SELECT CAST(AVG(\"test\".\"age\") AS float) AS age FROM \"test\" WHERE ' +
+                  'LOWER(\"test\".\"name\") = $1';
 
         query.query.should.eql(sql);
       });
