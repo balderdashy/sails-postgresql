@@ -19,7 +19,9 @@ var config = {
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASS || '',
   database: 'sailspg',
-  port: 5432
+  port: 5432,
+  schema: true,
+  ssl: false
 };
 
 /**
