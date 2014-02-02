@@ -17,7 +17,8 @@
   "dependencies": {
     "pg": "~2.11.0",
     "underscore": "~1.5.2",
-    "async": "~0.2.9"
+    "async": "~0.2.9",
+    "waterline-errors": "~0.9.0"
   },
   "devDependencies": {
     "mocha": "*",
