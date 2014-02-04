@@ -17,7 +17,8 @@
   "dependencies": {
     "pg": "~2.11.0",
     "lodash": "~2.2.1",
-    "async": "~0.2.9"
+    "async": "~0.2.9",
+    "waterline-errors": "~0.10.0"
   },
   "devDependencies": {
     "mocha": "*",
