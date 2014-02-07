@@ -1,5 +1,4 @@
 var adapter = require('../../lib/adapter'),
-    _ = require('lodash'),
     should = require('should'),
     support = require('./support/bootstrap');
 
@@ -8,6 +7,10 @@ describe('adapter', function() {
   /**
    * Setup and Teardown
    */
+
+  before(function(done) {
+    support.registerConnection(['test_define', 'user'], done);
+  });
 
   after(function(done) {
     support.Teardown('test_define', done);
@@ -41,20 +44,11 @@ describe('adapter', function() {
 
     describe('basic usage', function() {
 
-      // Register the collection
-      before(function(done) {
-        var collection = _.extend({ config: support.Config }, {
-          identity: 'test_define'
-        });
-
-        adapter.registerCollection(collection, done);
-      });
-
       // Build Table from attributes
       it('should build the table', function(done) {
 
-        adapter.define('test_define', definition, function(err) {
-          adapter.describe('test_define', function(err, result) {
+        adapter.define('test', 'test_define', definition, function(err) {
+          adapter.describe('test', 'test_define', function(err, result) {
             Object.keys(result).length.should.eql(8);
             done();
           });
@@ -65,15 +59,6 @@ describe('adapter', function() {
     });
 
     describe('reserved words', function() {
-
-      // Register the collection
-      before(function(done) {
-        var collection = _.extend({ config: support.Config }, {
-          identity: 'user'
-        });
-
-        adapter.registerCollection(collection, done);
-      });
 
       after(function(done) {
         support.Client(function(err, client, close) {
@@ -91,8 +76,8 @@ describe('adapter', function() {
       // Build Table from attributes
       it('should escape reserved words', function(done) {
 
-        adapter.define('user', definition, function(err) {
-          adapter.describe('user', function(err, result) {
+        adapter.define('test', 'user', definition, function(err) {
+          adapter.describe('test', 'user', function(err, result) {
             Object.keys(result).length.should.eql(8);
             done();
           });

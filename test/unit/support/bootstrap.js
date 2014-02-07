@@ -3,6 +3,7 @@
  */
 
 var pg = require('pg'),
+    _ = require('lodash'),
     adapter = require('../../../lib/adapter');
 
 var Support = module.exports = {};
@@ -19,7 +20,7 @@ Support.Config = {
 Support.Collection = function(name) {
   return {
     identity: name,
-    config: Support.Config,
+    connection: 'test',
     definition: Support.Definition
   };
 };
@@ -38,10 +39,37 @@ Support.Definition = {
 
 // Register and Define a Collection
 Support.Setup = function(tableName, cb) {
-  adapter.registerCollection(Support.Collection(tableName), function(err) {
+
+  var collection = Support.Collection(tableName);
+
+  var collections = {};
+  collections[tableName] = collection;
+
+  var connection = _.cloneDeep(Support.Config);
+  connection.identity = 'test';
+
+  adapter.registerConnection(connection, collections, function(err) {
     if(err) return cb(err);
-    adapter.define(tableName, Support.Definition, cb);
+    adapter.define('test', tableName, Support.Definition, function(err) {
+      if(err) return cb(err);
+      cb();
+    });
   });
+};
+
+// Just register a connection
+Support.registerConnection = function(tableNames, cb) {
+  var collections = {};
+
+  tableNames.forEach(function(name) {
+    var collection = Support.Collection(name);
+    collections[name] = collection;
+  });
+
+  var connection = _.cloneDeep(Support.Config);
+  connection.identity = 'test';
+
+  adapter.registerConnection(connection, collections, cb);
 };
 
 // Remove a table
@@ -53,8 +81,11 @@ Support.Teardown = function(tableName, cb) {
         return cb(err);
       }
 
-      done();
-      cb();
+      adapter.teardown('test', function(err) {
+        done();
+        cb();
+      });
+
     });
   });
 };

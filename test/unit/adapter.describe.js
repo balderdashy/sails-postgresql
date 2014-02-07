@@ -27,7 +27,7 @@ describe('adapter', function() {
 
     // Output Column Names
     it('should output the column names', function(done) {
-      adapter.describe('test_describe', function(err, results) {
+      adapter.describe('test', 'test_describe', function(err, results) {
         Object.keys(results).length.should.eql(3);
 
         should.exist(results.id);

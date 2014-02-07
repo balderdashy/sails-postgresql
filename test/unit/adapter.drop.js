@@ -12,6 +12,10 @@ describe('adapter', function() {
     support.Setup('test_drop', done);
   });
 
+  after(function(done) {
+    adapter.teardown('test', done);
+  });
+
   /**
    * DROP
    *
@@ -23,8 +27,8 @@ describe('adapter', function() {
     // Drop the Test table
     it('should drop the table', function(done) {
 
-      adapter.drop('test_drop', function(err, result) {
-        adapter.describe('test_drop', function(err, result) {
+      adapter.drop('test', 'test_drop', function(err, result) {
+        adapter.describe('test', 'test_drop', function(err, result) {
           should.not.exist(result);
           done();
         });

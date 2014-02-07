@@ -32,7 +32,7 @@ describe('adapter', function() {
 
       it('should update the record', function(done) {
 
-        adapter.update('test_update', { where: { id: 1 }}, { field_1: 'foobar' }, function(err, result) {
+        adapter.update('test', 'test_update', { where: { id: 1 }}, { field_1: 'foobar' }, function(err, result) {
           result[0].field_1.should.eql('foobar');
           done();
         });
@@ -41,7 +41,7 @@ describe('adapter', function() {
 
       it('should keep case', function(done) {
 
-        adapter.update('test_update', { where: { id: 1 }}, { field_1: 'FooBar' }, function(err, result) {
+        adapter.update('test', 'test_update', { where: { id: 1 }}, { field_1: 'FooBar' }, function(err, result) {
           result[0].field_1.should.eql('FooBar');
           done();
         });

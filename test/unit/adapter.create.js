@@ -32,7 +32,7 @@ describe('adapter', function() {
 
     // Insert a record
     it('should insert a single record', function(done) {
-      adapter.create('test_create', attributes, function(err, result) {
+      adapter.create('test', 'test_create', attributes, function(err, result) {
 
         // Check record was actually inserted
         support.Client(function(err, client, close) {
@@ -52,7 +52,7 @@ describe('adapter', function() {
 
     // Create Auto-Incremented ID
     it('should create an auto-incremented ID field', function(done) {
-      adapter.create('test_create', attributes, function(err, result) {
+      adapter.create('test', 'test_create', attributes, function(err, result) {
 
         // Should have an ID of 2
         result.id.should.eql(2);
@@ -67,7 +67,7 @@ describe('adapter', function() {
         field_2: 'bAr'
       };
 
-      adapter.create('test_create', attributes, function(err, result) {
+      adapter.create('test', 'test_create', attributes, function(err, result) {
 
         result.field_1.should.eql('Foo');
         result.field_2.should.eql('bAr');

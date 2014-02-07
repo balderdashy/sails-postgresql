@@ -1,5 +1,4 @@
 var adapter = require('../../lib/adapter'),
-    _ = require('lodash'),
     should = require('should'),
     support = require('./support/bootstrap');
 
@@ -8,6 +7,10 @@ describe('adapter', function() {
   /**
    * Teardown
    */
+
+  before(function(done) {
+    support.registerConnection(['test_index'], done);
+  });
 
   after(function(done) {
     support.Teardown('test_index', done);
@@ -33,22 +36,11 @@ describe('adapter', function() {
 
   describe('Index Attributes', function() {
 
-    before(function(done) {
-      var collection = _.extend({ config: support.Config }, {
-        identity: 'test_index'
-      });
-
-      adapter.registerCollection(collection, function(err) {
-        if(err) return cb(err);
-        adapter.define('test_index', definition, done);
-      });
-    });
-
     // Build Indicies from definition
     it('should add indicies', function(done) {
 
-      adapter.define('test_index', definition, function(err) {
-        adapter.describe('test_index', function(err, result) {
+      adapter.define('test', 'test_index', definition, function(err) {
+        adapter.describe('test', 'test_index', function(err, result) {
           result.name.indexed.should.eql(true);
           done();
         });

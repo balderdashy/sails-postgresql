@@ -33,7 +33,7 @@ describe('adapter', function() {
       describe('key/value attributes', function() {
 
         it('should return the record set', function(done) {
-          adapter.find('test_find', { where: { field_1: 'foo' } }, function(err, results) {
+          adapter.find('test', 'test_find', { where: { field_1: 'foo' } }, function(err, results) {
             results.length.should.eql(1);
             results[0].id.should.eql(1);
             done();
@@ -72,7 +72,7 @@ describe('adapter', function() {
             }
           };
 
-          adapter.find('test_find', criteria, function(err, results) {
+          adapter.find('test', 'test_find', criteria, function(err, results) {
             results.length.should.eql(1);
             results[0].field_2.should.eql('AR)H$daxx');
             done();

@@ -25,8 +25,7 @@ describe('query', function() {
 
       var schema = {
         test: {
-          definition: { name: { type: 'text' }},
-          schema: { name: { type: 'text' }}
+          name: { type: 'text' }
         }
       };
 
@@ -52,8 +51,7 @@ describe('query', function() {
 
       var schema = {
         test: {
-          definition: { name: { type: 'text' }},
-          schema: { name: { type: 'text' }}
+          name: { type: 'text' }
         }
       };
 
@@ -79,8 +77,7 @@ describe('query', function() {
 
       var schema = {
         test: {
-          definition: { name: { type: 'text' }},
-          schema: { name: { type: 'text' }}
+          name: { type: 'text' }
         }
       };
 
