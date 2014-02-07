@@ -23,7 +23,8 @@
   "devDependencies": {
     "mocha": "*",
     "should": "*",
-    "waterline-adapter-tests": "git://github.com/balderdashy/waterline-adapter-tests.git#v0.10"
+    "waterline-adapter-tests": "git://github.com/balderdashy/waterline-adapter-tests.git#v0.10",
+    "captains-log": "~0.11.1"
   },
   "scripts": {
     "test": "make test"
@@ -33,5 +34,14 @@
     "lib": "./lib"
   },
   "license": "MIT",
-  "bugs": "https://github.com/balderdashy/sails-postgresql/issues"
+  "bugs": "https://github.com/balderdashy/sails-postgresql/issues",
+  "waterlineAdapter": {
+    "waterlineVersion": "~0.10.0",
+    "interfaces": [
+      "semantic",
+      "queryable",
+      "migratable",
+      "associations"
+    ]
+  }
 }
