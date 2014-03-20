@@ -15,8 +15,8 @@
     "url": "git://github.com/balderdashy/sails-postgresql.git"
   },
   "dependencies": {
-    "pg": "~2.11.0",
-    "lodash": "~2.2.1",
+    "pg": "~2.11.1",
+    "lodash": "~2.4.1",
     "async": "~0.2.9",
     "waterline-errors": "~0.10.0"
   },
