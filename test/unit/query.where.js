@@ -110,7 +110,7 @@ describe('query', function() {
       it('should build a SELECT statement with multiple like statements', function() {
         var query = new Query({ foo: { type: 'text' }, bar: { type: 'text'}}).find('test', criteria);
 
-        query.query.should.eql('SELECT * FROM test WHERE LOWER("foo") ILIKE $1 OR LOWER("bar") ILIKE $2');
+        query.query.should.eql('SELECT * FROM test WHERE (LOWER("foo") ILIKE $1 OR LOWER("bar") ILIKE $2)');
         query.values.length.should.eql(2);
       });
 
