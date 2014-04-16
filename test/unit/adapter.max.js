@@ -9,7 +9,7 @@ describe('query', function() {
    * Adds a MAX select parameter to a sql statement
    */
 
-  describe('.min()', function() {
+  describe('.max()', function() {
 
     describe('with array', function() {
 
