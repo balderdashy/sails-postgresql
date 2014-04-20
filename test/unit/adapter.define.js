@@ -68,6 +68,7 @@ describe('adapter', function() {
             
             client.query(query, function(err, result) {
               result.rows[0].attnotnull.should.eql(true);
+              close();
               done();
             });
           });
