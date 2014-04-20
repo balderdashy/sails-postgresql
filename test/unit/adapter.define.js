@@ -22,7 +22,10 @@ describe('adapter', function() {
       type: 'serial',
       autoIncrement: true
     },
-    name  : 'string',
+    name  : {
+      type: 'string',
+      notNull: true
+    },
     email : 'string',
     title : 'string',
     phone : 'string',
@@ -54,6 +57,21 @@ describe('adapter', function() {
           });
         });
 
+      });
+
+      // notNull constraint
+      it('should add a notNull constraint', function(done) {
+        adapter.define('test', 'test_define', definition, function(err) {
+          support.Client(function(err, client, close) {
+            var query = "SELECT attnotnull FROM pg_attribute WHERE " +
+              "attrelid = 'test_define'::regclass AND attname = 'name'";
+            
+            client.query(query, function(err, result) {
+              result.rows[0].attnotnull.should.eql(true);
+              done();
+            });
+          });
+        });
       });
 
     });
