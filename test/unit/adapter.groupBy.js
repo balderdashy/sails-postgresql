@@ -23,7 +23,10 @@ describe('query', function() {
 
       it('should append a Group By clause to the select statement', function() {
         var query = new Query({ name: { type: 'text' }}).find('test', criteria);
-        query.query.should.eql('SELECT name FROM test WHERE LOWER("name") = $1 GROUP BY name');
+        var sql = 'SELECT \"test\".\"name\" FROM \"test\" WHERE LOWER(\"test\".\"name\") = $1 ' +
+                  'GROUP BY \"test\".\"name\"';
+
+        query.query.should.eql(sql);
       });
     });
 
@@ -39,7 +42,10 @@ describe('query', function() {
 
       it('should use the MAX aggregate option in the select statement', function() {
         var query = new Query({ name: { type: 'text' }}).find('test', criteria);
-        query.query.should.eql('SELECT name FROM test WHERE LOWER("name") = $1 GROUP BY name');
+        var sql = 'SELECT \"test\".\"name\" FROM \"test\" WHERE LOWER(\"test\".\"name\") = $1 ' +
+                  'GROUP BY \"test\".\"name\"';
+
+        query.query.should.eql(sql);
       });
     });
 

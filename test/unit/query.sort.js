@@ -23,9 +23,17 @@ describe('query', function() {
         }
       };
 
-      var query = new Query({ name: { type: 'text' }}).find('test', criteria);
-      query.query.should.eql('SELECT * FROM test WHERE LOWER("name") = $1 ORDER BY "name" ASC');
+      var schema = {
+        test: {
+          name: { type: 'text' }
+        }
+      };
 
+      var query = new Query({ name: { type: 'text' }}, schema).find('test', criteria);
+      var sql = 'SELECT "test"."name" FROM "test" WHERE LOWER("test"."name") = $1 ' +
+                'ORDER BY "test"."name" ASC';
+
+      query.query.should.eql(sql);
     });
 
     it('should sort by multiple columns', function() {
@@ -41,9 +49,17 @@ describe('query', function() {
         }
       };
 
-      var query = new Query({ name: { type: 'text' }}).find('test', criteria);
-      query.query.should.eql('SELECT * FROM test WHERE LOWER("name") = $1 ORDER BY "name" ASC, "age" ASC');
+      var schema = {
+        test: {
+          name: { type: 'text' }
+        }
+      };
 
+      var query = new Query({ name: { type: 'text' }}, schema).find('test', criteria);
+      var sql = 'SELECT "test"."name" FROM "test" WHERE LOWER("test"."name") = $1 ' +
+                'ORDER BY "test"."name" ASC, "test"."age" ASC';
+
+      query.query.should.eql(sql);
     });
 
     it('should allow desc and asc ordering', function() {
@@ -59,11 +75,18 @@ describe('query', function() {
         }
       };
 
-      var query = new Query({ name: { type: 'text' }}).find('test', criteria);
-      query.query.should.eql('SELECT * FROM test WHERE LOWER("name") = $1 ORDER BY "name" ASC, "age" DESC');
+      var schema = {
+        test: {
+          name: { type: 'text' }
+        }
+      };
 
+      var query = new Query({ name: { type: 'text' }}, schema).find('test', criteria);
+      var sql = 'SELECT "test"."name" FROM "test" WHERE LOWER("test"."name") = $1 ' +
+                'ORDER BY "test"."name" ASC, "test"."age" DESC';
+
+      query.query.should.eql(sql);
     });
 
   });
-
 });

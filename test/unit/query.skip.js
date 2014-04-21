@@ -19,9 +19,16 @@ describe('query', function() {
       skip: 1
     };
 
+    var schema = {
+      test: {
+        name: { type: 'text' }
+      }
+    };
+
     it('should append the SKIP clause to the query', function() {
-      var query = new Query({ name: { type: 'text' }}).find('test', criteria);
-      query.query.should.eql('SELECT * FROM test WHERE LOWER("name") = $1 OFFSET 1');
+      var query = new Query({ name: { type: 'text' }}, schema).find('test', criteria);
+      var sql = 'SELECT "test"."name" FROM "test" WHERE LOWER("test"."name") = $1 OFFSET 1';
+      query.query.should.eql(sql);
     });
 
   });

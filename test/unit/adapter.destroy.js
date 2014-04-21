@@ -31,7 +31,7 @@ describe('adapter', function() {
       });
 
       it('should destroy the record', function(done) {
-        adapter.destroy('test_destroy', { where: { id: 1 }}, function(err, result) {
+        adapter.destroy('test', 'test_destroy', { where: { id: 1 }}, function(err, result) {
 
           // Check record was actually removed
           support.Client(function(err, client, close) {

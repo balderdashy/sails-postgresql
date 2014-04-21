@@ -9,7 +9,7 @@ describe('query', function() {
    * Adds a MAX select parameter to a sql statement
    */
 
-  describe('.min()', function() {
+  describe('.max()', function() {
 
     describe('with array', function() {
 
@@ -23,7 +23,8 @@ describe('query', function() {
 
       it('should use the max aggregate option in the select statement', function() {
         var query = new Query({ name: { type: 'text' }}).find('test', criteria);
-        query.query.should.eql('SELECT MAX(age) AS age FROM test WHERE LOWER("name") = $1');
+        var sql = 'SELECT MAX(\"test\".\"age\") AS age FROM \"test\" WHERE LOWER(\"test\".\"name\") = $1';
+        query.query.should.eql(sql);
       });
     });
 
@@ -39,7 +40,8 @@ describe('query', function() {
 
       it('should use the MAX aggregate option in the select statement', function() {
         var query = new Query({ name: { type: 'text' }}).find('test', criteria);
-        query.query.should.eql('SELECT MAX(age) AS age FROM test WHERE LOWER("name") = $1');
+        var sql = 'SELECT MAX(\"test\".\"age\") AS age FROM \"test\" WHERE LOWER(\"test\".\"name\") = $1';
+        query.query.should.eql(sql);
       });
     });
 

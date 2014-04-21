@@ -32,7 +32,7 @@ describe('adapter', function() {
 
     // Insert multiple records
     it('should insert multiple records', function(done) {
-      adapter.createEach('test_createEach', [attributes, attributes], function(err, result) {
+      adapter.createEach('test', 'test_createEach', [attributes, attributes], function(err, result) {
 
         // Check records were actually inserted
         support.Client(function(err, client, close) {
