@@ -25,7 +25,16 @@ config: {
   user: 'root',
   password: '',
   port: 5432,
-  pool: false
+  pool: false,
+  ssl: false
+};
+```
+Alternatively, you can supply the connection information in URL format:
+```javascript
+config: {
+  url: 'postgres://username:password@hostname:port/database',
+  pool: false,
+  ssl: false
 };
 ```
 
