@@ -28,7 +28,10 @@ describe('adapter', function() {
     },
     email : 'string',
     title : 'string',
-    phone : 'string',
+    phone : {
+      type: 'string',
+      maxLength: 10
+    },
     type  : 'string',
     favoriteFruit : {
       defaultsTo: 'blueberry',
@@ -54,6 +57,8 @@ describe('adapter', function() {
           adapter.describe('test', 'test_define', function(err, result) {
             Object.keys(result).length.should.eql(8);
             done();
+            result.email.type.should.eql('character varying(255)');
+            result.phone.type.should.eql('character varying(10)');
           });
         });
 
