@@ -20,7 +20,7 @@
     "async": "~0.9.0",
     "waterline-errors": "~0.10.0",
     "waterline-sequel": "git://github.com/balderdashy/waterline-sequel.git#master",
-    "waterline-cursor": "git://github.com/particlebanana/waterline-cursor.git#rework"
+    "waterline-cursor": "git://github.com/balderdashy/waterline-cursor.git#master"
   },
   "devDependencies": {
     "mocha": "*",
