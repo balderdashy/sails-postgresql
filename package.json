@@ -20,7 +20,7 @@
     "async": "~0.9.0",
     "waterline-errors": "~0.10.0",
     "waterline-sequel": "git://github.com/AnalogJ/waterline-sequel.git",
-    "waterline-cursor": "~0.0.3"
+    "waterline-cursor": "0.0.3"
   },
   "devDependencies": {
     "mocha": "*",
