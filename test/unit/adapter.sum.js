@@ -1,5 +1,6 @@
-var Query = require('../../lib/query'),
-    should = require('should');
+var Sequel = require('waterline-sequel'), 
+    should = require('should'),
+    Support = require('./support/bootstrap');
 
 describe('query', function() {
 
@@ -21,12 +22,14 @@ describe('query', function() {
         sum: ['age']
       };
 
-      it('should use the SUM aggregate option in the select statement', function() {
-        var query = new Query({ name: { type: 'text' }}).find('test', criteria);
-        var sql = 'SELECT CAST(SUM(\"test\".\"age\") AS float) AS age FROM \"test\" WHERE ' +
-                  'LOWER(\"test\".\"name\") = $1';
+      var schema = {'test': Support.Schema('test', { name: { type: 'text' }, age: { type: 'integer'} })};
 
-        query.query.should.eql(sql);
+      it('should use the SUM aggregate option in the select statement', function() {
+        var query = new Sequel(schema).find('test', criteria);
+        var sql = 'SELECT SUM("test"."age") AS age FROM "test" AS "test"  WHERE ' +
+                  'LOWER("test"."name") = $1 ';
+
+        query.query[0].should.eql(sql);
       });
     });
 
@@ -40,12 +43,14 @@ describe('query', function() {
         sum: 'age'
       };
 
-      it('should use the SUM aggregate option in the select statement', function() {
-        var query = new Query({ name: { type: 'text' }}).find('test', criteria);
-        var sql = 'SELECT CAST(SUM(\"test\".\"age\") AS float) AS age FROM \"test\" WHERE ' +
-                  'LOWER(\"test\".\"name\") = $1';
+      var schema = {'test': Support.Schema('test', { name: { type: 'text' }, age: { type: 'integer'} })};
 
-        query.query.should.eql(sql);
+      it('should use the SUM aggregate option in the select statement', function() {
+        var query = new Sequel(schema).find('test', criteria);
+        var sql = 'SELECT SUM("test"."age") AS age FROM "test" AS "test"  WHERE ' +
+                  'LOWER("test"."name") = $1 ';
+
+        query.query[0].should.eql(sql);
       });
     });
 

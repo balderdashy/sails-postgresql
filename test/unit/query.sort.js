@@ -1,5 +1,6 @@
-var Query = require('../../lib/query'),
-    should = require('should');
+var Sequel = require('waterline-sequel'), 
+    should = require('should'),
+    Support = require('./support/bootstrap');
 
 describe('query', function() {
 
@@ -23,17 +24,13 @@ describe('query', function() {
         }
       };
 
-      var schema = {
-        test: {
-          name: { type: 'text' }
-        }
-      };
+      var schema = {'test': Support.Schema('test', { name: { type: 'text' } })};
 
-      var query = new Query({ name: { type: 'text' }}, schema).find('test', criteria);
-      var sql = 'SELECT "test"."name" FROM "test" WHERE LOWER("test"."name") = $1 ' +
+      var query = new Sequel(schema).find('test', criteria);
+      var sql = 'SELECT "test"."name" FROM "test" AS "test"  WHERE LOWER("test"."name") = $1  ' +
                 'ORDER BY "test"."name" ASC';
 
-      query.query.should.eql(sql);
+      query.query[0].should.eql(sql);
     });
 
     it('should sort by multiple columns', function() {
@@ -49,17 +46,13 @@ describe('query', function() {
         }
       };
 
-      var schema = {
-        test: {
-          name: { type: 'text' }
-        }
-      };
+      var schema = {'test': Support.Schema('test', { name: { type: 'text' }, age: { type: 'integer'} })};
 
-      var query = new Query({ name: { type: 'text' }}, schema).find('test', criteria);
-      var sql = 'SELECT "test"."name" FROM "test" WHERE LOWER("test"."name") = $1 ' +
+      var query = new Sequel(schema).find('test', criteria);
+      var sql = 'SELECT "test"."name", "test"."age" FROM "test" AS "test"  WHERE LOWER("test"."name") = $1  ' +
                 'ORDER BY "test"."name" ASC, "test"."age" ASC';
 
-      query.query.should.eql(sql);
+      query.query[0].should.eql(sql);
     });
 
     it('should allow desc and asc ordering', function() {
@@ -75,17 +68,13 @@ describe('query', function() {
         }
       };
 
-      var schema = {
-        test: {
-          name: { type: 'text' }
-        }
-      };
+      var schema = {'test': Support.Schema('test', { name: { type: 'text' }, age: { type: 'integer'} })};
 
-      var query = new Query({ name: { type: 'text' }}, schema).find('test', criteria);
-      var sql = 'SELECT "test"."name" FROM "test" WHERE LOWER("test"."name") = $1 ' +
+      var query = new Sequel(schema).find('test', criteria);
+      var sql = 'SELECT "test"."name", "test"."age" FROM "test" AS "test"  WHERE LOWER("test"."name") = $1  ' +
                 'ORDER BY "test"."name" ASC, "test"."age" DESC';
 
-      query.query.should.eql(sql);
+      query.query[0].should.eql(sql);
     });
 
   });

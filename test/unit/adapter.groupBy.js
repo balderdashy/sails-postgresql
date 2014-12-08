@@ -1,5 +1,6 @@
-var Query = require('../../lib/query'),
-    should = require('should');
+var Sequel = require('waterline-sequel'), 
+    should = require('should'),
+    Support = require('./support/bootstrap');
 
 describe('query', function() {
 
@@ -22,11 +23,11 @@ describe('query', function() {
       };
 
       it('should append a Group By clause to the select statement', function() {
-        var query = new Query({ name: { type: 'text' }}).find('test', criteria);
-        var sql = 'SELECT \"test\".\"name\" FROM \"test\" WHERE LOWER(\"test\".\"name\") = $1 ' +
-                  'GROUP BY \"test\".\"name\"';
+        var query = new Sequel(Support.Collection("test").waterline.schema).find('test', criteria);
+        var sql = 'SELECT "test"."name" FROM "test" AS "test"  WHERE "test"."name" = $1  ' +
+                  'GROUP BY "test"."name"';
 
-        query.query.should.eql(sql);
+        query.query[0].should.eql(sql);
       });
     });
 
@@ -41,11 +42,11 @@ describe('query', function() {
       };
 
       it('should use the MAX aggregate option in the select statement', function() {
-        var query = new Query({ name: { type: 'text' }}).find('test', criteria);
-        var sql = 'SELECT \"test\".\"name\" FROM \"test\" WHERE LOWER(\"test\".\"name\") = $1 ' +
-                  'GROUP BY \"test\".\"name\"';
+        var query = new Sequel(Support.Collection("test").waterline.schema).find('test', criteria);
+        var sql = 'SELECT "test"."name" FROM "test" AS "test"  WHERE "test"."name" = $1  ' +
+                  'GROUP BY "test"."name"';
 
-        query.query.should.eql(sql);
+        query.query[0].should.eql(sql);
       });
     });
 
