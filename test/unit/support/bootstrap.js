@@ -8,6 +8,16 @@ var pg = require('pg.js'),
 
 var Support = module.exports = {};
 
+Support.SqlOptions = {
+  parameterized: true,
+  caseSensitive: true,
+  escapeCharacter: '"',
+  casting: true,
+  canReturnValues: true,
+  escapeInserts: true,
+  declareDeleteAlias: false
+};
+
 Support.Config = {
   host: 'localhost',
   user: process.env.DB_USER || 'root',

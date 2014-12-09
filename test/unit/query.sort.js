@@ -26,7 +26,7 @@ describe('query', function() {
 
       var schema = {'test': Support.Schema('test', { name: { type: 'text' } })};
 
-      var query = new Sequel(schema).find('test', criteria);
+      var query = new Sequel(schema, Support.SqlOptions).find('test', criteria);
       var sql = 'SELECT "test"."name" FROM "test" AS "test"  WHERE LOWER("test"."name") = $1  ' +
                 'ORDER BY "test"."name" ASC';
 
@@ -48,7 +48,7 @@ describe('query', function() {
 
       var schema = {'test': Support.Schema('test', { name: { type: 'text' }, age: { type: 'integer'} })};
 
-      var query = new Sequel(schema).find('test', criteria);
+      var query = new Sequel(schema, Support.SqlOptions).find('test', criteria);
       var sql = 'SELECT "test"."name", "test"."age" FROM "test" AS "test"  WHERE LOWER("test"."name") = $1  ' +
                 'ORDER BY "test"."name" ASC, "test"."age" ASC';
 
@@ -70,7 +70,7 @@ describe('query', function() {
 
       var schema = {'test': Support.Schema('test', { name: { type: 'text' }, age: { type: 'integer'} })};
 
-      var query = new Sequel(schema).find('test', criteria);
+      var query = new Sequel(schema, Support.SqlOptions).find('test', criteria);
       var sql = 'SELECT "test"."name", "test"."age" FROM "test" AS "test"  WHERE LOWER("test"."name") = $1  ' +
                 'ORDER BY "test"."name" ASC, "test"."age" DESC';
 

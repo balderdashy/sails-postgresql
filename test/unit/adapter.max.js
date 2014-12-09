@@ -25,7 +25,7 @@ describe('query', function() {
       var schema = {'test': Support.Schema('test', { name: { type: 'text' }, age: { type: 'integer'} })};
 
       it('should use the max aggregate option in the select statement', function() {
-        var query = new Sequel(schema).find('test', criteria);
+        var query = new Sequel(schema, Support.SqlOptions).find('test', criteria);
         var sql = 'SELECT MAX("test"."age") AS age FROM "test" AS "test"  WHERE LOWER("test"."name") = $1 ';
         query.query[0].should.eql(sql);
       });
@@ -44,7 +44,7 @@ describe('query', function() {
       var schema = {'test': Support.Schema('test', { name: { type: 'text' }, age: { type: 'integer'} })};
 
       it('should use the MAX aggregate option in the select statement', function() {
-        var query = new Sequel(schema).find('test', criteria);
+        var query = new Sequel(schema, Support.SqlOptions).find('test', criteria);
         var sql = 'SELECT MAX("test"."age") AS age FROM "test" AS "test"  WHERE LOWER("test"."name") = $1 ';
         query.query[0].should.eql(sql);
       });

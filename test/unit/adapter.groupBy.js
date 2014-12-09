@@ -22,8 +22,10 @@ describe('query', function() {
         groupBy: ['name']
       };
 
+      var schema = {'test': Support.Schema('test', { name: { type: 'text' }, age: { type: 'integer'} })};
+
       it('should append a Group By clause to the select statement', function() {
-        var query = new Sequel(Support.Collection("test").waterline.schema).find('test', criteria);
+        var query = new Sequel(schema, Support.SqlOptions).find('test', criteria);
         var sql = 'SELECT "test"."name" FROM "test" AS "test"  WHERE "test"."name" = $1  ' +
                   'GROUP BY "test"."name"';
 
@@ -41,8 +43,10 @@ describe('query', function() {
         groupBy: 'name'
       };
 
+      var schema = {'test': Support.Schema('test', { name: { type: 'text' }, age: { type: 'integer'} })};
+
       it('should use the MAX aggregate option in the select statement', function() {
-        var query = new Sequel(Support.Collection("test").waterline.schema).find('test', criteria);
+        var query = new Sequel(schema, Support.SqlOptions).find('test', criteria);
         var sql = 'SELECT "test"."name" FROM "test" AS "test"  WHERE "test"."name" = $1  ' +
                   'GROUP BY "test"."name"';
 

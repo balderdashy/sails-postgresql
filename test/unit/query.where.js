@@ -27,7 +27,7 @@ describe('query', function() {
         var schema = {'test': Support.Schema('test', { name: { type: 'text' }, age: { type: 'integer'} })};
 
         it('should build a SELECT statement using LOWER() on strings', function() {
-          var query = new Sequel(schema).find('test', criteria);
+          var query = new Sequel(schema, Support.SqlOptions).find('test', criteria);
 
           var sql = 'SELECT "test"."name", "test"."age" FROM "test" AS "test"  ' +
                     'WHERE LOWER("test"."name") = $1 AND "test"."age" = $2 ';
@@ -51,7 +51,7 @@ describe('query', function() {
         var schema = {'test': Support.Schema('test', { name: { type: 'text' }, age: { type: 'integer'} })};
 
         it('should build a simple SELECT statement', function() {
-          var query = new Sequel(schema).find('test', criteria);
+          var query = new Sequel(schema, Support.SqlOptions).find('test', criteria);
 
           var sql = 'SELECT "test"."name", "test"."age" FROM "test" AS "test"  ' +
                     'WHERE LOWER("test"."name") = $1 AND "test"."age" = $2 ';
@@ -78,7 +78,7 @@ describe('query', function() {
         var schema = {'test': Support.Schema('test', { name: { type: 'text' }, age: { type: 'integer'} })};
 
         it('should build a SELECT statement with comparators', function() {
-          var query = new Sequel(schema).find('test', criteria);
+          var query = new Sequel(schema, Support.SqlOptions).find('test', criteria);
 
           var sql = 'SELECT "test"."name", "test"."age" FROM "test" AS "test"  ' +
                     'WHERE LOWER("test"."name") = $1 AND "test"."age" > $2 AND "test"."age" < $3  ';
@@ -105,8 +105,7 @@ describe('query', function() {
       var schema = {'test': Support.Schema('test', { type: { type: 'text' }, name: { type: 'text' } })};
 
       it('should build a SELECT statement with ILIKE', function() {
-        var query = new Sequel(schema)
-                    .find('test', criteria);
+        var query = new Sequel(schema, Support.SqlOptions).find('test', criteria);
 
         var sql = 'SELECT "test"."name", "test"."type" FROM "test" AS "test"  WHERE LOWER("test"."type") ILIKE $1 ' +
                   'AND LOWER("test"."name") ILIKE $2';
@@ -132,8 +131,7 @@ describe('query', function() {
       var schema = {'test': Support.Schema('test', { foo: { type: 'text' }, bar: { type: 'text'} })};
 
       it('should build a SELECT statement with multiple like statements', function() {
-        var query = new Sequel(schema)
-                    .find('test', criteria);
+        var query = new Sequel(schema, Support.SqlOptions).find('test', criteria);
 
         var sql = 'SELECT "test"."foo", "test"."bar" FROM "test" AS "test"  WHERE ((LOWER("test"."foo") ILIKE $1) ' +
                   'OR (LOWER("test"."bar") ILIKE $2))';
@@ -169,7 +167,7 @@ describe('query', function() {
       };
 
       it('should build a SELECT statement with an IN array', function() {
-        var query = new Sequel(schema).find('test', criteria);
+        var query = new Sequel(schema, Support.SqlOptions).find('test', criteria);
         var sql = 'SELECT "test"."name", "test"."myId" FROM "test" AS "test"  WHERE LOWER("test"."name") IN ($1,$2,$3) ';
 
         query.query[0].should.eql(sql);
@@ -177,7 +175,7 @@ describe('query', function() {
       });
 
       it('should build a SELECT statememnt with an IN array and camel case column', function() {
-        var query = new Sequel(schema).find('test', camelCaseCriteria);
+        var query = new Sequel(schema, Support.SqlOptions).find('test', camelCaseCriteria);
 
         query.query[0].should.eql('SELECT "test"."name", "test"."myId" FROM "test" AS "test"  WHERE "test"."myId" IN ($1,$2,$3) ');
         query.values[0].length.should.eql(3);
@@ -199,7 +197,7 @@ describe('query', function() {
       var schema = {'test': Support.Schema('test', { name: { type: 'text' }, age: { type: 'integer'} })};
 
       it('should build a SELECT statement with an NOT clause', function() {
-        var query = new Sequel(schema).find('test', criteria);
+        var query = new Sequel(schema, Support.SqlOptions).find('test', criteria);
 
         query.query[0].should.eql('SELECT "test"."name", "test"."age" FROM "test" AS "test"  WHERE "test"."age" <> $1  ');
         query.values[0].length.should.eql(1);

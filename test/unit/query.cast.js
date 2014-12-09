@@ -1,5 +1,4 @@
-var Sequel = require('waterline-sequel'), 
-    assert = require('assert'),
+var assert = require('assert'),
     Support = require('./support/bootstrap'),
     Processor = require('../../lib/processor');
 

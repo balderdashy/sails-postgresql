@@ -23,7 +23,7 @@ describe('query', function() {
     var schema = {'test': Support.Schema('test', { name: { type: 'text' } })};
 
     it('should append the SKIP clause to the query', function() {
-      var query = new Sequel(schema).find('test', criteria);
+      var query = new Sequel(schema, Support.SqlOptions).find('test', criteria);
       var sql = 'SELECT "test"."name" FROM "test" AS "test"  WHERE LOWER("test"."name") = $1  OFFSET 1';
       query.query[0].should.eql(sql);
     });
