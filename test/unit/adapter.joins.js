@@ -1,6 +1,7 @@
-var Query = require('../../lib/query');
-var _ = require('lodash');
-var should = require('should');
+var Sequel = require('waterline-sequel'),
+    _ = require('lodash'),
+    should = require('should'),
+    Support = require('./support/bootstrap');
 
 describe('query', function() {
 
@@ -12,43 +13,42 @@ describe('query', function() {
 
   describe('.joins()', function() {
 
-    var schema = {
-      pet: {
-        name: 'string',
-        id: {
-          type: 'integer',
-          autoIncrement: true,
-          primaryKey: true,
-          unique: true
-        },
-        createdAt: { type: 'datetime', default: 'NOW' },
-        updatedAt: { type: 'datetime', default: 'NOW' },
-        owner: {
-          columnName: 'owner',
-          type: 'integer',
-          foreignKey: true,
-          references: 'user',
-          on: 'id',
-          onKey: 'id'
-        }
+    var petSchema = {
+      name: 'string',
+      id: {
+        type: 'integer',
+        autoIncrement: true,
+        primaryKey: true,
+        unique: true
       },
-      user: {
-        name: 'string',
-        // pets: {
-        //   collection: 'pet',
-        //   via: 'owner',
-        //   references: 'pet',
-        //   on: 'owner',
-        //   onKey: 'owner'
-        // },
-        id: {
-          type: 'integer',
-          autoIncrement: true,
-          primaryKey: true,
-          unique: true
-        },
-        createdAt: { type: 'datetime', default: 'NOW' },
-        updatedAt: { type: 'datetime', default: 'NOW' }
+      createdAt: { type: 'datetime', default: 'NOW' },
+      updatedAt: { type: 'datetime', default: 'NOW' },
+      owner: {
+        columnName: 'owner_id',
+        type: 'integer',
+        foreignKey: true,
+        references: 'user',
+        on: 'id',
+        onKey: 'id'
+      }
+    };
+
+    var userSchema = {
+      name: 'string',
+      id: {
+        type: 'integer',
+        autoIncrement: true,
+        primaryKey: true,
+        unique: true
+      },
+      createdAt: { type: 'datetime', default: 'NOW' },
+      updatedAt: { type: 'datetime', default: 'NOW' },
+      pets: {
+        collection: 'pet',
+        via: 'user',
+        references: 'pet',
+        on: 'owner_id',
+        onKey: 'user'
       }
     };
 
@@ -57,38 +57,39 @@ describe('query', function() {
 
       // Lookup criteria
       var criteria =  {
+        instructions: {
+          pet: {
+            strategy: {strategy: 1, meta: { parentFK: 'id' }},
+            instructions: [
+             { parent: 'user',
+               parentKey: 'id',
+               child: 'pet',
+               childKey: 'owner',
+               select: [ 'name', 'id', 'createdAt', 'updatedAt', 'owner' ],
+               alias: 'pet',
+               removeParentKey: true,
+               model: true,
+               collection: false,
+               criteria: {}
+              }
+            ]
+          }
+        },
         where: null,
         limit: 30,
-        skip: 0,
-        joins: [
-          {
-            parent: 'user',
-            parentKey: 'id',
-            child: 'pet',
-            childKey: 'owner',
-            select: [ 'name', 'id', 'createdAt', 'updatedAt', 'owner' ],
-            alias: 'pets',
-            removeParentKey: false,
-            model: false,
-            collection: true,
-            criteria: {
-              where: {},
-              limit: 30
-            }
-          }
-        ]
+        skip: 0
       };
 
-      it('should build a query using inner joins', function() {
-        var query = new Query(schema.user, schema).find('user', criteria);
-        var sql = 'SELECT "user"."name", "user"."id", "user"."createdAt", "user"."updatedAt", ' +
-                  '"pets_pet"."name" AS "pets_pet__name", "pets_pet"."id" AS "pets_pet__id", ' +
-                  '"pets_pet"."createdAt" AS "pets_pet__createdAt", "pets_pet"."updatedAt" AS ' +
-                  '"pets_pet__updatedAt", "pets_pet"."owner" AS "pets_pet__owner" FROM "user" ' +
-                  'LEFT JOIN "pet" AS "pets_pet" ON "user"."id" = "pets_pet"."owner" WHERE "user"."id" ' +
-                  'IN (SELECT "user"."id" FROM "user"  LIMIT 30 OFFSET 0)';
+      var schemaDef = {'user': Support.Schema('user', userSchema), 'pet': Support.Schema('pet', petSchema)};
 
-        query.query.should.eql(sql);
+      it('should build a query using inner joins', function() {
+        var query = new Sequel(schemaDef, Support.SqlOptions).find('user', criteria);
+        var sql = 'SELECT "user"."name", "user"."id", "user"."createdAt", "user"."updatedAt", '+
+                  '"__pet"."name" AS "id___name", "__pet"."id" AS "id___id", "__pet"."createdAt" ' +
+                  'AS "id___createdAt", "__pet"."updatedAt" AS "id___updatedAt", "__pet"."owner_id" ' + 
+                  'AS "id___owner_id" FROM "user" AS "user"  LEFT OUTER JOIN "pet" AS "__pet" ON ' +
+                  '"user".\"id\" = \"__pet\".\"owner\"  LIMIT 30 OFFSET 0';
+        query.query[0].should.eql(sql);
       });
     });
 
