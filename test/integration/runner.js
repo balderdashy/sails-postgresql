@@ -59,7 +59,7 @@ new TestRunner({
 
   // Mocha opts
   mocha: {
-    bail: true
+    bail: false
   },
 
   // Load the adapter module.
