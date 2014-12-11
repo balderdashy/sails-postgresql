@@ -1,7 +1,8 @@
-var Query = require('../../lib/query'),
-    should = require('should');
+var Sequel = require('waterline-sequel'), 
+    should = require('should'),
+    Support = require('./support/bootstrap');
 
-describe('query', function() {
+xdescribe('query', function() {
 
   /**
    * SKIP
@@ -19,16 +20,12 @@ describe('query', function() {
       skip: 1
     };
 
-    var schema = {
-      test: {
-        name: { type: 'text' }
-      }
-    };
+    var schema = {'test': Support.Schema('test', { name: { type: 'text' } })};
 
     it('should append the SKIP clause to the query', function() {
-      var query = new Query({ name: { type: 'text' }}, schema).find('test', criteria);
-      var sql = 'SELECT "test"."name" FROM "test" WHERE LOWER("test"."name") = $1 OFFSET 1';
-      query.query.should.eql(sql);
+      var query = new Sequel(schema, Support.SqlOptions).find('test', criteria);
+      var sql = 'SELECT "test"."name" FROM "test" AS "test"  WHERE LOWER("test"."name") = $1  LIMIT 184467440737095516  OFFSET 1';
+      query.query[0].should.eql(sql);
     });
 
   });

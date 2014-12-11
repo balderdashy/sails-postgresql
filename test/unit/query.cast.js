@@ -1,5 +1,6 @@
-var Query = require('../../lib/query'),
-    assert = require('assert');
+var assert = require('assert'),
+    Support = require('./support/bootstrap'),
+    Processor = require('../../lib/processor');
 
 describe('query', function() {
 
@@ -14,7 +15,8 @@ describe('query', function() {
     describe('Array', function() {
 
       it('should cast to values to array', function() {
-        var values = new Query({ list: { type: 'array' }}).cast({ list: "[0,1,2,3]" });
+        var schema = {'test': Support.Schema('test', { list: { type: 'array' } })};
+        var values = new Processor(schema).cast('test', { list: "[0,1,2,3]" });
         assert(Array.isArray(values.list));
         assert(values.list.length === 4);
       });

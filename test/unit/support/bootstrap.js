@@ -8,6 +8,16 @@ var pg = require('pg.js'),
 
 var Support = module.exports = {};
 
+Support.SqlOptions = {
+  parameterized: true,
+  caseSensitive: true,
+  escapeCharacter: '"',
+  casting: true,
+  canReturnValues: true,
+  escapeInserts: true,
+  declareDeleteAlias: false
+};
+
 Support.Config = {
   host: 'localhost',
   user: process.env.DB_USER || 'root',
@@ -17,11 +27,15 @@ Support.Config = {
 };
 
 // Fixture Collection Def
-Support.Collection = function(name) {
+Support.Collection = function(name, def) {
+  var schemaDef = {};
+  schemaDef[name] = Support.Schema(name, def);
   return {
     identity: name,
+    tableName: name,
     connection: 'test',
-    definition: Support.Definition
+    definition: def || Support.Definition,
+    waterline: { schema: schemaDef }
   };
 };
 
@@ -36,6 +50,15 @@ Support.Definition = {
     primaryKey: true
   }
 };
+
+Support.Schema = function(name, def) {
+  return {
+    connection: 'test',
+    identity: name,
+    tableName: name,
+    attributes: def || Support.Definition
+  };
+}
 
 // Register and Define a Collection
 Support.Setup = function(tableName, cb) {

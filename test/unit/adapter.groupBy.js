@@ -1,5 +1,6 @@
-var Query = require('../../lib/query'),
-    should = require('should');
+var Sequel = require('waterline-sequel'), 
+    should = require('should'),
+    Support = require('./support/bootstrap');
 
 describe('query', function() {
 
@@ -9,7 +10,7 @@ describe('query', function() {
    * Adds a Group By statement to a sql statement
    */
 
-  describe('.groupBy()', function() {
+  xdescribe('.groupBy()', function() {
 
     describe('with array', function() {
 
@@ -18,15 +19,18 @@ describe('query', function() {
         where: {
           name: 'foo'
         },
-        groupBy: ['name']
+        groupBy: ['name'],
+        average: ['age']
       };
 
-      it('should append a Group By clause to the select statement', function() {
-        var query = new Query({ name: { type: 'text' }}).find('test', criteria);
-        var sql = 'SELECT \"test\".\"name\" FROM \"test\" WHERE LOWER(\"test\".\"name\") = $1 ' +
-                  'GROUP BY \"test\".\"name\"';
+      var schema = {'test': Support.Schema('test', { name: { type: 'text' }, age: { type: 'integer'} })};
 
-        query.query.should.eql(sql);
+      it('should append a Group By clause to the select statement', function() {
+        var query = new Sequel(schema, Support.SqlOptions).find('test', criteria);
+        var sql = 'SELECT "test"."name", CAST( AVG("test"."age") AS float) AS age ' + 
+                  'FROM "test" AS "test"  WHERE LOWER("test"."name") = $1  GROUP BY "test"."name"';
+
+        query.query[0].should.eql(sql);
       });
     });
 
@@ -37,15 +41,18 @@ describe('query', function() {
         where: {
           name: 'foo'
         },
-        groupBy: 'name'
+        groupBy: 'name',
+        average: 'age'
       };
 
-      it('should use the MAX aggregate option in the select statement', function() {
-        var query = new Query({ name: { type: 'text' }}).find('test', criteria);
-        var sql = 'SELECT \"test\".\"name\" FROM \"test\" WHERE LOWER(\"test\".\"name\") = $1 ' +
-                  'GROUP BY \"test\".\"name\"';
+      var schema = {'test': Support.Schema('test', { name: { type: 'text' }, age: { type: 'integer'} })};
 
-        query.query.should.eql(sql);
+      it('should use the MAX aggregate option in the select statement', function() {
+        var query = new Sequel(schema, Support.SqlOptions).find('test', criteria);
+        var sql = 'SELECT "test"."name", CAST( AVG("test"."age") AS float) AS age ' +
+                  'FROM "test" AS "test"  WHERE LOWER("test"."name") = $1  GROUP BY "test"."name"'
+
+        query.query[0].should.eql(sql);
       });
     });
 
