@@ -1,8 +1,8 @@
-var Sequel = require('waterline-sequel'), 
+var Sequel = require('waterline-sequel'),
     should = require('should'),
     Support = require('./support/bootstrap');
 
-xdescribe('query', function() {
+describe('query', function() {
 
   /**
    * SKIP

@@ -1,4 +1,4 @@
-var Sequel = require('waterline-sequel'), 
+var Sequel = require('waterline-sequel'),
     should = require('should'),
     Support = require('./support/bootstrap');
 
@@ -10,7 +10,7 @@ describe('query', function() {
    * Adds a Group By statement to a sql statement
    */
 
-  xdescribe('.groupBy()', function() {
+  describe('.groupBy()', function() {
 
     describe('with array', function() {
 
@@ -27,7 +27,7 @@ describe('query', function() {
 
       it('should append a Group By clause to the select statement', function() {
         var query = new Sequel(schema, Support.SqlOptions).find('test', criteria);
-        var sql = 'SELECT "test"."name", CAST( AVG("test"."age") AS float) AS age ' + 
+        var sql = 'SELECT "test"."name", CAST( AVG("test"."age") AS float) AS age ' +
                   'FROM "test" AS "test"  WHERE LOWER("test"."name") = $1  GROUP BY "test"."name"';
 
         query.query[0].should.eql(sql);
