@@ -38,6 +38,17 @@ config: {
 };
 ```
 
+We are also testing features for future versions of waterline in postgresql. One of these is case sensitive string searching. In order to enable this feature today you can add the following config flag:
+
+```javascript
+postgresql: {
+  url: 'postgres://username:password@hostname:port/database',
+  wlNext: {
+    caseSensitive: true
+  }
+}
+```
+
 ## Testing
 
 Test are written with mocha. Integration tests are handled by the [waterline-adapter-tests](https://github.com/balderdashy/waterline-adapter-tests) project, which tests adapter methods against the latest Waterline API.
