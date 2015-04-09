@@ -43,7 +43,8 @@
       "semantic",
       "queryable",
       "migratable",
-      "associations"
+      "associations",
+      "sql"
     ]
   }
 }
