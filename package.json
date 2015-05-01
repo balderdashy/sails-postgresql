@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "pg": "~4.2.0",
-    "lodash": "~2.4.1",
+    "lodash": "~3.8.0",
     "async": "~0.9.0",
     "waterline-errors": "~0.10.0",
     "waterline-sequel": "~0.4.0",
