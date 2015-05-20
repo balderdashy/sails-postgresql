@@ -45,6 +45,9 @@
       "migratable",
       "associations",
       "sql"
+    ],
+    "features": [
+      "cross-adapter"
     ]
   }
 }
