@@ -8,7 +8,7 @@ A [Waterline](https://github.com/balderdashy/waterline) adapter for PostgreSQL. 
 
 ## Install
 
-Install is through NPM.
+Install is via NPM.
 
 ```bash
 $ npm install sails-postgresql
