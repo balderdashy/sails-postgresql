@@ -20,6 +20,7 @@ The following config options are available along with their default values:
 
 ```javascript
 config: {
+  module: 'sails-postgresql', // required if using multiple databases
   database: 'databaseName',
   host: 'localhost',
   user: 'root',
