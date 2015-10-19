@@ -42,7 +42,7 @@ Support.Collection = function(name, def) {
 // Fixture Table Definition
 Support.Definition = {
   field_1: { type: 'string' },
-  field_2: { type: 'string' },
+  field_2: { type: 'string', comment: 'This is field_2.' },
   id: {
     type: 'integer',
     autoIncrement: true,
