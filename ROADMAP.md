@@ -29,3 +29,4 @@ The backlog consists of features which are not currently in the immediate-term r
  Feature                                         | Owner                                                           | Details
  :---------------------------------------------- | :-------------------------------------------------------------- | :------
  Support canceling queries                       | [@kevinburkeshyp](https://github.com/kevinburkeshyp)            | See issue [198](https://github.com/balderdashy/sails-postgresql/issues/198)
+ Support Array type                              | [@kevinburkeshyp](https://github.com/kevinburkeshyp)            | See issue [195](https://github.com/balderdashy/sails-postgresql/issues/195)
