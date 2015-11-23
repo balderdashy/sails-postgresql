@@ -26,5 +26,6 @@ _(feel free to suggest things)_
 
 The backlog consists of features which are not currently in the immediate-term roadmap above, but are useful.  We would exuberantly accept a pull request implementing any of the items below, so long as it was accompanied with reasonable tests that prove it, and it doesn't break other core functionality.
 
- Feature                                         | Owner                                              | Details
- :---------------------------------------------- | :------------------------------------------------- | :------
+ Feature                                         | Owner                                                           | Details
+ :---------------------------------------------- | :-------------------------------------------------------------- | :------
+ Support canceling queries                       | [@kevinburkeshyp](https://github.com/kevinburkeshyp)            | See issue [198](https://github.com/balderdashy/sails-postgresql/issues/198)
