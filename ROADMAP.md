@@ -19,7 +19,7 @@ _(feel free to suggest things)_
 
  Feature                                                  | Owner                                                                            | Details
  :------------------------------------------------------- | :------------------------------------------------------------------------------- | :------
-
+ Batch insert for create queries                          | [@kevinburke](https://github.com/kevinburke)                                     | See issue [201](https://github.com/balderdashy/sails-postgresql/issues/201)
 
 
 #### Backlog
