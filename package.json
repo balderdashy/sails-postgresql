@@ -19,7 +19,7 @@
     "lodash": "~3.10.0",
     "async": "~1.3.0",
     "waterline-errors": "~0.10.0",
-    "waterline-sequel": "~0.5.1",
+    "waterline-sequel": "~0.5.2",
     "waterline-cursor": "~0.0.6"
   },
   "devDependencies": {
