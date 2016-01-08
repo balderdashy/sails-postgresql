@@ -81,7 +81,7 @@ describe('adapter', function() {
 
       after(function(done) {
         support.Client(function(err, client, close) {
-          var query = 'DROP TABLE "user";';
+          var query = 'DROP TABLE "user" CASCADE;';
           client.query(query, function(err) {
 
             // close client

@@ -136,7 +136,7 @@ Support.Seed = function(tableName, cb) {
 function dropTable(table, client, cb) {
   table = '"' + table + '"';
 
-  var query = "DROP TABLE " + table + ';';
+  var query = "DROP TABLE " + table + ' CASCADE;';
   client.query(query, cb);
 }
 
