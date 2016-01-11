@@ -32,7 +32,8 @@ describe('adapter', function() {
     type  : 'string',
     favoriteFruit : {
       defaultsTo: 'blueberry',
-      type: 'string'
+      type: 'string',
+      comment: 'The users favorite fruit.'
     },
     age   : 'integer'
   };
@@ -65,9 +66,30 @@ describe('adapter', function() {
           support.Client(function(err, client, close) {
             var query = "SELECT attnotnull FROM pg_attribute WHERE " +
               "attrelid = 'test_define'::regclass AND attname = 'name'";
-            
+
             client.query(query, function(err, result) {
               result.rows[0].attnotnull.should.eql(true);
+              close();
+              done();
+            });
+          });
+        });
+      });
+
+      it('should add a column comment', function(done) {
+        adapter.define('test', 'test_define', definition, function(err) {
+          support.Client(function(err, client, close) {
+            var query = "SELECT ( " +
+              "SELECT pg_catalog.col_description(c.oid, cols.ordinal_position::int) " +
+              "FROM pg_catalog.pg_class c " +
+              "WHERE c.oid = (SELECT cols.table_name::regclass::oid) " +
+              "AND c.relname = cols.table_name ) as comment " +
+              "FROM information_schema.columns cols " +
+              "WHERE cols.table_name = 'test_define' " +
+              "AND cols.column_name = 'favoriteFruit';"
+
+            client.query(query, function(err, result) {
+              result.rows[0].comment.should.eql('The users favorite fruit.');
               close();
               done();
             });
