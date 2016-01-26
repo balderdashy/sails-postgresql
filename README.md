@@ -36,6 +36,13 @@ config: {
   ssl: false
 };
 ```
+Optionally, *postConnectionQuery* can be used to specify any SQL that should be run after opening a connection, prior to running any other query. This is intended for setting [client connection defaults](http://www.postgresql.org/docs/9.4/static/runtime-config-client.html). For example:
+```javascript
+config: {
+  url: 'postgres://username:password@hostname:port/database',
+  postConnectionQuery: 'SET extra_float_digits = 3;'
+};
+```
 
 
 We are also testing features for future versions of waterline in postgresql. One of these is case sensitive string searching. In order to enable this feature today you can add the following config flag:
