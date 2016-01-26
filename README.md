@@ -49,6 +49,26 @@ postgresql: {
 }
 ```
 
+## Model Level Config
+
+You can use model level config options to specify a `schema` to use. This is done by adding the `meta` key `schemaName`.
+
+```javascript
+module.exports = Waterline.Collection.extend({
+  tableName: 'user',
+  meta: {
+    schemaName: 'foo'
+  },
+
+  identity: 'user',
+  connection: 'myAwesomeConnection',
+
+  attributes: {
+    name: 'string'
+  }
+});
+```
+
 ## Testing
 
 Test are written with mocha. Integration tests are handled by the [waterline-adapter-tests](https://github.com/balderdashy/waterline-adapter-tests) project, which tests adapter methods against the latest Waterline API.
