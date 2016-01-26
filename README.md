@@ -33,12 +33,9 @@ Alternatively, you can supply the connection information in URL format:
 ```javascript
 config: {
   url: 'postgres://username:password@hostname:port/database',
-  poolSize: 10,
   ssl: false
 };
 ```
-
-**NOTE:** To disable connection pooling set `poolSize` to `0`.
 
 
 We are also testing features for future versions of waterline in postgresql. One of these is case sensitive string searching. In order to enable this feature today you can add the following config flag:
@@ -50,6 +47,26 @@ postgresql: {
     caseSensitive: true
   }
 }
+```
+
+## Model Level Config
+
+You can use model level config options to specify a `schema` to use. This is done by adding the `meta` key `schemaName`.
+
+```javascript
+module.exports = Waterline.Collection.extend({
+  tableName: 'user',
+  meta: {
+    schemaName: 'foo'
+  },
+
+  identity: 'user',
+  connection: 'myAwesomeConnection',
+
+  attributes: {
+    name: 'string'
+  }
+});
 ```
 
 ## Testing
