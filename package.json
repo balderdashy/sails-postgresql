@@ -29,7 +29,8 @@
     "waterline-adapter-tests": "0.10.18"
   },
   "scripts": {
-    "test": "make test"
+    "test": "make test",
+    "docker": "docker-compose run adapter bash"
   },
   "main": "lib/adapter",
   "directories": {

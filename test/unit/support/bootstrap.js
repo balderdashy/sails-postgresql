@@ -19,11 +19,11 @@ Support.SqlOptions = {
 };
 
 Support.Config = {
-  host: 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASS || '',
-  database: 'sailspg',
-  port: 5432
+  host: process.env.POSTGRES_1_PORT_5432_TCP_ADDR || process.env.WATERLINE_ADAPTER_TESTS_HOST || 'localhost',
+  user: process.env.WATERLINE_ADAPTER_TESTS_USER || 'sails',
+  password: process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || 'sails',
+  database: process.env.WATERLINE_ADAPTER_TESTS_DATABASE || 'sailspg',
+  port: process.env.WATERLINE_ADAPTER_TESTS_PORT || 5432
 };
 
 // Fixture Collection Def
