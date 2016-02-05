@@ -1,5 +1,9 @@
 # Sails PostgreSQL Changelog
 
+### 0.11.2
+
+* [BUG] Updates [Waterline-Sequel](https://github.com/balderdashy/waterline-sequel) dependency to gain support for querying dates when they are represented as a string in the criteria.
+
 ### 0.11.1
 
 * [DOCS] Added an example of using the `schema` meta key to the readme. See [#223](https://github.com/balderdashy/sails-postgresql/pull/223) for more details.
