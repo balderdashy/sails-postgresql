@@ -1,0 +1,13 @@
+adapter:
+  build: .
+  volumes:
+   - .:/usr/src/app
+  links:
+   - postgres
+
+postgres:
+  image: postgres:9.4
+  environment:
+   - POSTGRES_PASSWORD=sails
+   - POSTGRES_USER=sails
+   - POSTGRES_DB=sailspg
