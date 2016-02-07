@@ -20,10 +20,10 @@ Support.SqlOptions = {
 
 Support.Config = {
   host: process.env.POSTGRES_1_PORT_5432_TCP_ADDR || process.env.WATERLINE_ADAPTER_TESTS_HOST || 'localhost',
-  user: process.env.WATERLINE_ADAPTER_TESTS_USER || 'sails',
-  password: process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || 'sails',
-  database: process.env.WATERLINE_ADAPTER_TESTS_DATABASE || 'sailspg',
-  port: process.env.WATERLINE_ADAPTER_TESTS_PORT || 5432
+  user: process.env.POSTGRES_ENV_POSTGRES_USER || process.env.WATERLINE_ADAPTER_TESTS_USER || 'sails',
+  password: process.env.POSTGRES_ENV_POSTGRES_PASSWORD || process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || 'sails',
+  database: process.env.POSTGRES_ENV_POSTGRES_DB || process.env.WATERLINE_ADAPTER_TESTS_DATABASE || 'sailspg',
+  port: process.env.POSTGRES_PORT_5432_TCP_PORT || process.env.WATERLINE_ADAPTER_TESTS_PORT || 5432
 };
 
 // Fixture Collection Def
