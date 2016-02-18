@@ -1,5 +1,9 @@
 # Sails PostgreSQL Changelog
 
+### 0.11.3
+
+* [BUG] Updates [Waterline-Sequel](https://github.com/balderdashy/waterline-sequel) dependency to actually fix the previous date issue.
+
 ### 0.11.2
 
 * [BUG] Updates [Waterline-Sequel](https://github.com/balderdashy/waterline-sequel) dependency to gain support for querying dates when they are represented as a string in the criteria.
