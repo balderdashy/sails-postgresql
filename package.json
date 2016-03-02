@@ -17,6 +17,7 @@
   "dependencies": {
     "async": "1.5.2",
     "lodash": "3.10.1",
+    "machinepack-postgresql": "particlebanana/machinepack-postgresql",
     "pg": "4.4.4",
     "waterline-cursor": "0.0.6",
     "waterline-errors": "0.10.1",
