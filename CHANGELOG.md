@@ -1,5 +1,13 @@
 # Sails PostgreSQL Changelog
 
+### 0.12.2
+
+* [ENHANCEMENT] Update the PG module to work with newer versions of Node. Thanks to [@joaosa](https://github.com/joaosa) for the patch!
+
+* [ENHANCEMENT] Updates the dependencies to the latest versions which should remove any warning messages when installing.
+
+* [BUG] Fixes issues with backwards compatibility to Waterline `0.11.x` and older.
+
 ### 0.12.1
 
 * [BUG] Fixes issue with populates due to changes in projections queries coming from Waterline-Sequel. Updated the waterline-sequel dependency to 0.6.2 to fix.
