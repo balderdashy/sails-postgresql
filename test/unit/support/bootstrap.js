@@ -2,21 +2,21 @@
  * Support functions for helping with Postgres tests
  */
 
-var pg = require('pg'),
-    _ = require('lodash'),
-    adapter = require('../../../lib/adapter');
+var _ = require('lodash');
+var PG = require('machinepack-postgresql');
+var adapter = require('../../../lib/adapter');
 
 var Support = module.exports = {};
 
-Support.SqlOptions = {
-  parameterized: true,
-  caseSensitive: true,
-  escapeCharacter: '"',
-  casting: true,
-  canReturnValues: true,
-  escapeInserts: true,
-  declareDeleteAlias: false
-};
+// Support.SqlOptions = {
+//   parameterized: true,
+//   caseSensitive: true,
+//   escapeCharacter: '"',
+//   casting: true,
+//   canReturnValues: true,
+//   escapeInserts: true,
+//   declareDeleteAlias: false
+// };
 
 Support.Config = {
   host: process.env.POSTGRES_1_PORT_5432_TCP_ADDR || process.env.WATERLINE_ADAPTER_TESTS_HOST || 'localhost',
@@ -27,7 +27,7 @@ Support.Config = {
 };
 
 // Fixture Collection Def
-Support.Collection = function(name, def) {
+Support.Collection = function collection(name, def) {
   var schemaDef = {};
   schemaDef[name] = Support.Schema(name, def);
   return {
@@ -41,8 +41,8 @@ Support.Collection = function(name, def) {
 
 // Fixture Table Definition
 Support.Definition = {
-  field_1: { type: 'string' },
-  field_2: { type: 'string' },
+  fieldA: { type: 'string' },
+  fieldB: { type: 'string' },
   id: {
     type: 'integer',
     autoIncrement: true,
@@ -51,40 +51,38 @@ Support.Definition = {
   }
 };
 
-Support.Schema = function(name, def) {
+Support.Schema = function schema(name, def) {
   return {
     connection: 'test',
     identity: name,
     tableName: name,
     attributes: def || Support.Definition
   };
-}
+};
 
 // Register and Define a Collection
-Support.Setup = function(tableName, cb) {
-
+Support.Setup = function setup(tableName, cb) {
   var collection = Support.Collection(tableName);
-
   var collections = {};
   collections[tableName] = collection;
 
   var connection = _.cloneDeep(Support.Config);
   connection.identity = 'test';
 
-  adapter.registerConnection(connection, collections, function(err) {
-    if(err) return cb(err);
-    adapter.define('test', tableName, Support.Definition, function(err) {
-      if(err) return cb(err);
-      cb();
-    });
+  adapter.registerConnection(connection, collections, function registerCb(err) {
+    if (err) {
+      return cb(err);
+    }
+
+    adapter.define('test', tableName, Support.Definition, cb);
   });
 };
 
 // Just register a connection
-Support.registerConnection = function(tableNames, cb) {
+Support.registerConnection = function registerConnection(tableNames, cb) {
   var collections = {};
 
-  tableNames.forEach(function(name) {
+  _.each(tableNames, function processTable(name) {
     var collection = Support.Collection(name);
     collections[name] = collection;
   });
@@ -95,58 +93,67 @@ Support.registerConnection = function(tableNames, cb) {
   adapter.registerConnection(connection, collections, cb);
 };
 
-// Remove a table
-Support.Teardown = function(tableName, cb) {
-  pg.connect(Support.Config, function(err, client, done) {
-    dropTable(tableName, client, function(err) {
-      if(err) {
-        done();
+// Remove a table and destroy the manager
+Support.Teardown = function teardown(tableName, cb) {
+  var manager = adapter._datastores[_.first(_.keys(adapter._datastores))].manager;
+  PG.getConnection({
+    manager: manager,
+    meta: Support.Config
+  }).exec(function getConnectionCb(err, report) {
+    if (err) {
+      return cb(err);
+    }
+
+    var query = 'DROP TABLE \"' + tableName + '";';
+    PG.sendNativeQuery({
+      connection: report.connection,
+      nativeQuery: query
+    }).exec(function dropTableCb(err) {
+      if (err) {
         return cb(err);
       }
 
-      adapter.teardown('test', function(err) {
-        done();
-        cb();
-      });
+      PG.releaseConnection({
+        connection: report.connection
+      }).exec(function releaseConnectionCb(err) {
+        if (err) {
+          return cb(err);
+        }
 
+        adapter._datastores = {};
+        return cb();
+      });
     });
   });
-};
-
-// Return a client used for testing
-Support.Client = function(cb) {
-  pg.connect(Support.Config, cb);
 };
 
 // Seed a record to use for testing
-Support.Seed = function(tableName, cb) {
-  pg.connect(Support.Config, function(err, client, done) {
-    createRecord(tableName, client, function(err) {
-      if(err) {
-        done();
+Support.Seed = function seed(tableName, cb) {
+  var manager = adapter._datastores[_.first(_.keys(adapter._datastores))].manager;
+  PG.getConnection({
+    manager: manager,
+    meta: Support.Config
+  }).exec(function getConnectionCb(err, report) {
+    if (err) {
+      return cb(err);
+    }
+
+    var query = [
+      'INSERT INTO "' + tableName + '" (fieldA, fieldB)',
+      'values (\'foo\', \'bar\');'
+    ].join('');
+
+    PG.sendNativeQuery({
+      connection: report.connection,
+      nativeQuery: query
+    }).exec(function dropTableCb(err) {
+      if (err) {
         return cb(err);
       }
 
-      done();
-      cb();
+      PG.releaseConnection({
+        connection: report.connection
+      }).exec(cb);
     });
   });
 };
-
-function dropTable(table, client, cb) {
-  table = '"' + table + '"';
-
-  var query = "DROP TABLE " + table + ';';
-  client.query(query, cb);
-}
-
-function createRecord(table, client, cb) {
-  table = '"' + table + '"';
-
-  var query = [
-  "INSERT INTO " + table + ' (field_1, field_2)',
-  "values ('foo', 'bar');"
-  ].join('');
-
-  client.query(query, cb);
-}
