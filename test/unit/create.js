@@ -31,5 +31,29 @@ describe('Unit Tests ::', function() {
         done();
       });
     });
+
+    // Create Auto-Incremented ID
+    it('should create an auto-incremented id field', function(done) {
+      Adapter.create('test', 'test_create', attributes, function(err, result) {
+        assert(!err);
+        assert(_.isPlainObject(result));
+        assert(result.id);
+        done();
+      });
+    });
+
+    it('should keep case', function(done) {
+      var attributes = {
+        fieldA: 'Foo',
+        fieldB: 'bAr'
+      };
+
+      Adapter.create('test', 'test_create', attributes, function(err, result) {
+        assert(!err);
+        assert.equal(result.fieldA, 'Foo');
+        assert.equal(result.fieldB, 'bAr');
+        done();
+      });
+    });
   });
 });
