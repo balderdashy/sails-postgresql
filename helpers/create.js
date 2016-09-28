@@ -206,7 +206,7 @@ module.exports = require('machine').build({
                 //  ╔═╗╦╔╗╔╔╦╗  ┬┌┐┌┌─┐┌─┐┬─┐┌┬┐┌─┐┌┬┐  ┬─┐┌─┐┌─┐┌─┐┬─┐┌┬┐┌─┐
                 //  ╠╣ ║║║║ ║║  ││││└─┐├┤ ├┬┘ │ ├┤  ││  ├┬┘├┤ │  │ │├┬┘ ││└─┐
                 //  ╚  ╩╝╚╝═╩╝  ┴┘└┘└─┘└─┘┴└─ ┴ └─┘─┴┘  ┴└─└─┘└─┘└─┘┴└──┴┘└─┘
-                success: function success(insertResults) {
+                success: function success(insertReport) {
                   // Build an IN query from the results of the insert
                   PG.compileStatement({
                     statement: {
@@ -214,7 +214,7 @@ module.exports = require('machine').build({
                       from: inputs.tableName,
                       where: {
                         id: {
-                          in: insertResults.inserted
+                          in: insertReport.result.inserted
                         }
                       }
                     }
