@@ -120,7 +120,7 @@ Support.Teardown = function teardown(tableName, cb) {
           return cb(err);
         }
 
-        adapter._datastores = {};
+        delete adapter._datastores[_.first(_.keys(adapter._datastores))];
         return cb();
       });
     });
@@ -139,14 +139,14 @@ Support.Seed = function seed(tableName, cb) {
     }
 
     var query = [
-      'INSERT INTO "' + tableName + '" (fieldA, fieldB)',
-      'values (\'foo\', \'bar\');'
+      'INSERT INTO "' + tableName + '" ("fieldA", "fieldB") ',
+      'values (\'foo\', \'bar\'), (\'foo_2\', \'bAr_2\');'
     ].join('');
 
     PG.sendNativeQuery({
       connection: report.connection,
       nativeQuery: query
-    }).exec(function dropTableCb(err) {
+    }).exec(function seedCb(err) {
       if (err) {
         return cb(err);
       }
