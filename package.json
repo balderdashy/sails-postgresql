@@ -29,7 +29,10 @@
     "mocha": "3.0.2"
   },
   "scripts": {
-    "test": "make test",
+    "test": "node ./node_modules/mocha/bin/mocha --recursive",
+    "fasttest": "node ./node_modules/mocha/bin/mocha --recursive",
+    "pretest": "npm run lint",
+    "lint": "eslint machines test",
     "docker": "docker-compose run adapter bash"
   },
   "main": "lib/adapter",
