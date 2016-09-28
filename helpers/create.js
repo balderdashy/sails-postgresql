@@ -277,17 +277,30 @@ module.exports = require('machine').build({
     //  ╠╣ ║║║║ ║║  ││││└─┐├┤ ├┬┘ │ ├┤  ││  ├┬┘├┤ │  │ │├┬┘ ││└─┐
     //  ╚  ╩╝╚╝═╩╝  ┴┘└┘└─┘└─┘┴└─ ┴ └─┘─┴┘  ┴└─└─┘└─┘└─┘┴└──┴┘└─┘
     var runFindQuery = function runFindQuery(connection, insertResults, done) {
+      // Find the Primary Key field in the collection
+      var primaryKey;
+      try {
+        primaryKey = Helpers.findPrimaryKey({
+          collection: collection
+        }).execSync();
+      } catch (e) {
+        return done(new Error('Error determining Primary Key to use.'));
+      }
+      // Build up a criteria statement to run
+      var criteriaStatement = {
+        select: ['*'],
+        from: inputs.tableName,
+        where: {}
+      };
+
+      // Insert dynamic primary key value into query
+      criteriaStatement.where[primaryKey] = {
+        in: insertResults.inserted
+      };
+
       // Build an IN query from the results of the insert query
       PG.compileStatement({
-        statement: {
-          select: ['*'],
-          from: inputs.tableName,
-          where: {
-            id: {
-              in: insertResults.inserted
-            }
-          }
-        }
+        statement: criteriaStatement
       }).exec({
         error: function error(err) {
           return done(err);
