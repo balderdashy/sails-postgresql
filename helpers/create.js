@@ -66,11 +66,7 @@ module.exports = require('machine').build({
     var async = require('async');
     var PG = require('machinepack-postgresql');
     var Converter = require('machinepack-waterline-query-converter');
-    var spawnConnection = require('./private/spawn-connection');
-    var runQuery = require('./private/run-query');
-    var rollbackAndRelease = require('./private/rollback-and-release');
-    var commitAndRelease = require('./private/commit-and-release');
-    var normalizeValues = require('./private/normalize-values');
+    var Helpers = require('./private');
 
 
     // Ensure that a collection can be found on the datastore.
@@ -140,176 +136,332 @@ module.exports = require('machine').build({
     }
 
 
+    //  ███╗   ██╗ █████╗ ███╗   ███╗███████╗██████╗
+    //  ████╗  ██║██╔══██╗████╗ ████║██╔════╝██╔══██╗
+    //  ██╔██╗ ██║███████║██╔████╔██║█████╗  ██║  ██║
+    //  ██║╚██╗██║██╔══██║██║╚██╔╝██║██╔══╝  ██║  ██║
+    //  ██║ ╚████║██║  ██║██║ ╚═╝ ██║███████╗██████╔╝
+    //  ╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚═════╝
+    //
+    //  ███████╗██╗   ██╗███╗   ██╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
+    //  ██╔════╝██║   ██║████╗  ██║██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║██╔════╝
+    //  █████╗  ██║   ██║██╔██╗ ██║██║        ██║   ██║██║   ██║██╔██╗ ██║███████╗
+    //  ██╔══╝  ██║   ██║██║╚██╗██║██║        ██║   ██║██║   ██║██║╚██╗██║╚════██║
+    //  ██║     ╚██████╔╝██║ ╚████║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║███████║
+    //  ╚═╝      ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
+    //
+    // Prevent Callback Hell and such.
+
+
     //  ╔═╗╔═╗╔╦╗╔═╗╦╦  ╔═╗  ┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┐┌┌┬┐
     //  ║  ║ ║║║║╠═╝║║  ║╣   └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │
     //  ╚═╝╚═╝╩ ╩╩  ╩╩═╝╚═╝  └─┘ ┴ ┴ ┴ ┴ └─┘┴ ┴└─┘┘└┘ ┴
     // Transform the Waterline Query Statement into a SQL query.
-    PG.compileStatement({
-      statement: statement
-    })
-    .exec({
-      error: function error(err) {
-        return exits.error(err);
-      },
+    var compileStatement = function compileStatement(done) {
+      PG.compileStatement({
+        statement: statement
+      })
+      .exec({
+        error: function error(err) {
+          return done(err);
+        },
+        success: function success(report) {
+          return done(null, report.nativeQuery);
+        }
+      });
+    };
 
-      //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
-      //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
-      //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-      success: function success(report) {
-        var query = report.nativeQuery;
 
-        spawnConnection({
-          datastore: inputs.datastore
+    //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
+    //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
+    //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
+    var spawnConnection = function spawnConnection(done) {
+      Helpers.spawnConnection({
+        datastore: inputs.datastore
+      })
+      .exec({
+        error: function error(err) {
+          return done(err);
+        },
+        success: function success(connection) {
+          return done(null, connection);
+        }
+      });
+    };
+
+
+    //  ╔╗ ╔═╗╔═╗╦╔╗╔  ┌┬┐┬─┐┌─┐┌┐┌┌─┐┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
+    //  ╠╩╗║╣ ║ ╦║║║║   │ ├┬┘├─┤│││└─┐├─┤│   │ ││ ││││
+    //  ╚═╝╚═╝╚═╝╩╝╚╝   ┴ ┴└─┴ ┴┘└┘└─┘┴ ┴└─┘ ┴ ┴└─┘┘└┘
+    var beginTransaction = function beginTransaction(connection, done) {
+      PG.beginTransaction({
+        connection: connection
+      })
+      .exec({
+        // If there was an error opening a transaction, release the connection.
+        // After releasing the connection always return the original error.
+        error: function error(err) {
+          PG.releaseConnection({
+            connection: connection
+          }).exec({
+            error: function error() {
+              return done(err);
+            },
+            success: function success() {
+              return done(err);
+            }
+          });
+        },
+        success: function success() {
+          return done();
+        }
+      });
+    };
+
+
+    //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
+    //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
+    //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
+    //   ┬   ╔═╗╔╦╗╔═╗╦═╗╔╦╗  ┌┬┐┬─┐┌─┐┌┐┌┌─┐┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
+    //  ┌┼─  ╚═╗ ║ ╠═╣╠╦╝ ║    │ ├┬┘├─┤│││└─┐├─┤│   │ ││ ││││
+    //  └┘   ╚═╝ ╩ ╩ ╩╩╚═ ╩    ┴ ┴└─┴ ┴┘└┘└─┘┴ ┴└─┘ ┴ ┴└─┘┘└┘
+    var spawnTransaction = function spawnTransaction(done) {
+      spawnConnection(function cb(err, connection) {
+        if (err) {
+          return done(err);
+        }
+
+        beginTransaction(connection, function cb(err) {
+          if (err) {
+            return done(err);
+          }
+
+          return done(null, connection);
+        });
+      });
+    };
+
+
+    //  ╦═╗╦ ╦╔╗╔  ┬┌┐┌┌─┐┌─┐┬─┐┌┬┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
+    //  ╠╦╝║ ║║║║  ││││└─┐├┤ ├┬┘ │   │─┼┐│ │├┤ ├┬┘└┬┘
+    //  ╩╚═╚═╝╝╚╝  ┴┘└┘└─┘└─┘┴└─ ┴   └─┘└└─┘└─┘┴└─ ┴
+    var runInsertQuery = function runInsertQuery(connection, query, done) {
+      Helpers.runQuery({
+        connection: connection,
+        nativeQuery: query,
+        queryType: 'insert',
+        disconnectOnError: false
+      })
+      .exec({
+        // Rollback the transaction and release the connection on error.
+        error: function error(err) {
+          Helpers.rollbackAndRelease({
+            connection: connection
+          }).exec({
+            error: function error() {
+              return done(err);
+            },
+            success: function success() {
+              return done(err);
+            }
+          });
+        },
+        success: function success(report) {
+          return done(null, report.result);
+        }
+      });
+    };
+
+
+    //  ╔═╗╦╔╗╔╔╦╗  ┬┌┐┌┌─┐┌─┐┬─┐┌┬┐┌─┐┌┬┐  ┬─┐┌─┐┌─┐┌─┐┬─┐┌┬┐┌─┐
+    //  ╠╣ ║║║║ ║║  ││││└─┐├┤ ├┬┘ │ ├┤  ││  ├┬┘├┤ │  │ │├┬┘ ││└─┐
+    //  ╚  ╩╝╚╝═╩╝  ┴┘└┘└─┘└─┘┴└─ ┴ └─┘─┴┘  ┴└─└─┘└─┘└─┘┴└──┴┘└─┘
+    var runFindQuery = function runFindQuery(connection, insertResults, done) {
+      // Build an IN query from the results of the insert query
+      PG.compileStatement({
+        statement: {
+          select: ['*'],
+          from: inputs.tableName,
+          where: {
+            id: {
+              in: insertResults.inserted
+            }
+          }
+        }
+      }).exec({
+        error: function error(err) {
+          return done(err);
+        },
+        success: function success(report) {
+          // Run the FIND query
+          Helpers.runQuery({
+            connection: connection,
+            nativeQuery: report.nativeQuery,
+            queryType: 'select',
+            disconnectOnError: false
+          }).exec({
+            // Rollback the transaction and release the connection on error.
+            error: function error(err) {
+              Helpers.rollbackAndRelease({
+                connection: connection
+              }).exec({
+                error: function error() {
+                  return done(err);
+                },
+                success: function success() {
+                  return done(err);
+                }
+              });
+            },
+            success: function success(report) {
+              return done(null, report.result);
+            }
+          });
+        }
+      });
+    };
+
+
+    //  ╦╔╗╔╔═╗╔═╗╦═╗╔╦╗  ┌─┐┌┐┌┌┬┐  ┌─┐┬┌┐┌┌┬┐
+    //  ║║║║╚═╗║╣ ╠╦╝ ║   ├─┤│││ ││  ├┤ ││││ ││
+    //  ╩╝╚╝╚═╝╚═╝╩╚═ ╩   ┴ ┴┘└┘─┴┘  └  ┴┘└┘─┴┘
+    var insertAndFind = function insertAndFind(connection, query, done) {
+      runInsertQuery(connection, query, function cb(err, insertResults) {
+        if (err) {
+          return done(err);
+        }
+
+        runFindQuery(connection, insertResults, function cb(err, findResults) {
+          if (err) {
+            return done(err);
+          }
+
+          return done(null, findResults);
+        });
+      });
+    };
+
+
+    //  ╔═╗╔═╗╔╦╗  ┌─┐┌─┐┌─┐ ┬ ┬┌─┐┌┐┌┌─┐┌─┐┌─┐  ┬  ┬┌─┐┬  ┬ ┬┌─┐┌─┐
+    //  ╚═╗║╣  ║   └─┐├┤ │─┼┐│ │├┤ │││├┤ │  ├┤   └┐┌┘├─┤│  │ │├┤ └─┐
+    //  ╚═╝╚═╝ ╩   └─┘└─┘└─┘└└─┘└─┘┘└┘└─┘└─┘└─┘   └┘ ┴ ┴┴─┘└─┘└─┘└─┘
+    var setSequenceValues = function setSequenceValues(connection, done) {
+      // Build a function for handling sequence queries on a single sequence.
+      var setSequence = function setSequence(item, next) {
+        var sequenceName = "'\"" + schemaName + '\".\"' + inputs.tableName + '_' + item + '_seq' + "\"'";
+        var sequenceValue = inputs.record[item];
+        var sequenceQuery = 'SELECT setval(' + sequenceName + ', ' + sequenceValue + ', true)';
+
+        // Run Sequence Query
+        Helpers.runQuery({
+          connection: connection,
+          nativeQuery: sequenceQuery,
+          disconnectOnError: false
         })
-        .exec({
-          error: function error(err) {
+        .exec(next);
+      };
+
+      async.each(incrementSequences, setSequence, function doneWithSequences(err) {
+        if (err) {
+          Helpers.rollbackAndRelease({
+            connection: connection
+          }).exec({
+            error: function error() {
+              return done(err);
+            },
+            success: function success() {
+              return done(err);
+            }
+          });
+        }
+
+        return done();
+      });
+    };
+
+
+    //  ╔═╗╔═╗╔╦╗╔╦╗╦╔╦╗  ┌┬┐┬─┐┌─┐┌┐┌┌─┐┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
+    //  ║  ║ ║║║║║║║║ ║    │ ├┬┘├─┤│││└─┐├─┤│   │ ││ ││││
+    //  ╚═╝╚═╝╩ ╩╩ ╩╩ ╩    ┴ ┴└─┴ ┴┘└┘└─┘┴ ┴└─┘ ┴ ┴└─┘┘└┘
+    // Commit the transaction and release the connection.
+    var commitTransaction = function commitTransaction(connection, done) {
+      Helpers.commitAndRelease({
+        connection: connection
+      })
+      .exec({
+        error: function error(err) {
+          return done(err);
+        },
+        success: function success() {
+          return done();
+        }
+      });
+    };
+
+
+    //   █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗
+    //  ██╔══██╗██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
+    //  ███████║██║        ██║   ██║██║   ██║██╔██╗ ██║
+    //  ██╔══██║██║        ██║   ██║██║   ██║██║╚██╗██║
+    //  ██║  ██║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║
+    //  ╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+    //
+    //  ██╗      ██████╗  ██████╗ ██╗ ██████╗
+    //  ██║     ██╔═══██╗██╔════╝ ██║██╔════╝
+    //  ██║     ██║   ██║██║  ███╗██║██║
+    //  ██║     ██║   ██║██║   ██║██║██║
+    //  ███████╗╚██████╔╝╚██████╔╝██║╚██████╗
+    //  ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝ ╚═════╝
+    //
+
+    // Compile the original Waterline Query
+    compileStatement(function cb(err, query) {
+      if (err) {
+        return exits.error(err);
+      }
+
+      // Spawn a new connection and open a transaction for running queries on.
+      spawnTransaction(function cb(err, connection) {
+        if (err) {
+          return exits.badConnection(err);
+        }
+
+        // Insert the new record and if successfully look it up again to get any
+        // inferred values. This should be updated in the future to use the PG
+        // "returning *" query clause but that isn't currently supported by the
+        // query builder.
+        insertAndFind(connection, query, function cb(err, insertedRecords) {
+          if (err) {
             return exits.badConnection(err);
-          },
+          }
 
+          // Update any sequences that may have been used
+          setSequenceValues(connection, function cb(err) {
+            if (err) {
+              return exits.error(err);
+            }
 
-          //  ╔╗ ╔═╗╔═╗╦╔╗╔  ┌┬┐┬─┐┌─┐┌┐┌┌─┐┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
-          //  ╠╩╗║╣ ║ ╦║║║║   │ ├┬┘├─┤│││└─┐├─┤│   │ ││ ││││
-          //  ╚═╝╚═╝╚═╝╩╝╚╝   ┴ ┴└─┴ ┴┘└┘└─┘┴ ┴└─┘ ┴ ┴└─┘┘└┘
-          success: function success(connection) {
-            PG.beginTransaction({
-              connection: connection
-            })
-            .exec(function beginTransactionCb(err) {
-              // If there was an error, release the transaction
+            // Commit the transaction
+            commitTransaction(connection, function cb(err) {
               if (err) {
-                PG.releaseConnection({
-                  connection: connection
-                }).exec(function releaseCb() {
-                  return exits.error(err);
-                });
+                return exits.error(err);
               }
 
-              //  ╦═╗╦ ╦╔╗╔  ┬┌┐┌┌─┐┌─┐┬─┐┌┬┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
-              //  ╠╦╝║ ║║║║  ││││└─┐├┤ ├┬┘ │   │─┼┐│ │├┤ ├┬┘└┬┘
-              //  ╩╚═╚═╝╝╚╝  ┴┘└┘└─┘└─┘┴└─ ┴   └─┘└└─┘└─┘┴└─ ┴
-              runQuery({
-                connection: connection,
-                nativeQuery: query,
-                queryType: 'insert',
-                disconnectOnError: false
-              })
-              .exec({
-                error: function error(err) {
-                  // Rollback the transaction and release the connection
-                  rollbackAndRelease({
-                    connection: connection
-                  }).exec(function releaseCb() {
-                    return exits.error(err);
-                  });
-                },
+              //  ╔═╗╔═╗╔═╗╔╦╗  ┬  ┬┌─┐┬  ┬ ┬┌─┐┌─┐
+              //  ║  ╠═╣╚═╗ ║   └┐┌┘├─┤│  │ │├┤ └─┐
+              //  ╚═╝╩ ╩╚═╝ ╩    └┘ ┴ ┴┴─┘└─┘└─┘└─┘
+              var castResults = Helpers.normalizeValues({
+                schema: collection.dbSchema,
+                records: insertedRecords
+              }).execSync();
 
-                //  ╔═╗╦╔╗╔╔╦╗  ┬┌┐┌┌─┐┌─┐┬─┐┌┬┐┌─┐┌┬┐  ┬─┐┌─┐┌─┐┌─┐┬─┐┌┬┐┌─┐
-                //  ╠╣ ║║║║ ║║  ││││└─┐├┤ ├┬┘ │ ├┤  ││  ├┬┘├┤ │  │ │├┬┘ ││└─┐
-                //  ╚  ╩╝╚╝═╩╝  ┴┘└┘└─┘└─┘┴└─ ┴ └─┘─┴┘  ┴└─└─┘└─┘└─┘┴└──┴┘└─┘
-                success: function success(insertReport) {
-                  // Build an IN query from the results of the insert
-                  PG.compileStatement({
-                    statement: {
-                      select: ['*'],
-                      from: inputs.tableName,
-                      where: {
-                        id: {
-                          in: insertReport.result.inserted
-                        }
-                      }
-                    }
-                  })
-                  .exec({
-                    error: function error(err) {
-                      return exits.error(err);
-                    },
-                    success: function success(report) {
-                      var query = report.nativeQuery;
-
-                      // Run the FIND query
-                      runQuery({
-                        connection: connection,
-                        nativeQuery: query,
-                        queryType: 'select',
-                        disconnectOnError: false
-                      })
-                      .exec({
-                        error: function error(err) {
-                          // Rollback the transaction and release the connection
-                          rollbackAndRelease({
-                            connection: connection
-                          }).exec(function releaseCb() {
-                            return exits.error(err);
-                          });
-                        },
-
-
-                        //  ╔═╗╔═╗╔╦╗  ┌─┐┌─┐┌─┐ ┬ ┬┌─┐┌┐┌┌─┐┌─┐┌─┐  ┬  ┬┌─┐┬  ┬ ┬┌─┐┌─┐
-                        //  ╚═╗║╣  ║   └─┐├┤ │─┼┐│ │├┤ │││├┤ │  ├┤   └┐┌┘├─┤│  │ │├┤ └─┐
-                        //  ╚═╝╚═╝ ╩   └─┘└─┘└─┘└└─┘└─┘┘└┘└─┘└─┘└─┘   └┘ ┴ ┴┴─┘└─┘└─┘└─┘
-                        success: function success(selectReport) {
-                          var setSequence = function setSequence(item, next) {
-                            var sequenceName = "'\"" + schemaName + '\".\"' + inputs.tableName + '_' + item + '_seq' + "\"'";
-                            var sequenceValue = inputs.record[item];
-                            var sequenceQuery = 'SELECT setval(' + sequenceName + ', ' + sequenceValue + ', true)';
-
-                            // Run Sequence Query
-                            runQuery({
-                              connection: connection,
-                              nativeQuery: sequenceQuery,
-                              disconnectOnError: false
-                            })
-                            .exec(next);
-                          };
-
-                          async.each(incrementSequences, setSequence, function doneWithSequences(err) {
-                            if (err) {
-                              // Rollback the transaction and release the connection
-                              rollbackAndRelease({
-                                connection: connection
-                              }).exec(function releaseCb() {
-                                return exits.error(err);
-                              });
-                            }
-
-                            //  ╔═╗╔═╗╔╦╗╔╦╗╦╔╦╗  ┌┬┐┬─┐┌─┐┌┐┌┌─┐┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
-                            //  ║  ║ ║║║║║║║║ ║    │ ├┬┘├─┤│││└─┐├─┤│   │ ││ ││││
-                            //  ╚═╝╚═╝╩ ╩╩ ╩╩ ╩    ┴ ┴└─┴ ┴┘└┘└─┘┴ ┴└─┘ ┴ ┴└─┘┘└┘
-                            // Commit the transaction and release the connection
-                            commitAndRelease({
-                              connection: connection
-                            })
-                            .exec(function commitCb(err) {
-                              if (err) {
-                                return exits.error(err);
-                              }
-
-
-                              //  ╔═╗╔═╗╔═╗╔╦╗  ┬  ┬┌─┐┬  ┬ ┬┌─┐┌─┐
-                              //  ║  ╠═╣╚═╗ ║   └┐┌┘├─┤│  │ │├┤ └─┐
-                              //  ╚═╝╩ ╩╚═╝ ╩    └┘ ┴ ┴┴─┘└─┘└─┘└─┘
-                              var queryResults = normalizeValues({
-                                schema: collection.dbSchema,
-                                records: selectReport.result
-                              }).execSync();
-
-                              return exits.success({
-                                record: _.first(queryResults)
-                              });
-                            }); // </ commitAndRelease >
-                          }); // </ async.each >
-                        } // </ setSequenceValues >
-                      }); // </ Find Query >
-                    } // </ Compile Inserted Statement - success >
-                  }); // </ Compile Inserted Statement >
-                } // </ Find Inserted Records >
-              }); // </ Run Insert Query >
-            }); // </ PG Begin Transaction >
-          } // </ begin transaction >
-        }); // </ spawnConnection >
-      } // </ Compile Statement success >
-    }); // </ Compile Statement >
+              // Only return the first record (there should only ever be one)
+              return exits.success({ record: _.first(castResults) });
+            }); // </ .commitTransaction(); >
+          }); // </ .setSequenceValues(); >
+        }); // </ .insertAndFind(); >
+      }); // </ .spawnTransaction(); >
+    }); // </ .compileStatement(); >
   }
-
 
 });
