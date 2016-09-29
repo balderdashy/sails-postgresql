@@ -1,4 +1,5 @@
 module.exports = {
   create: require('./create'),
-  select: require('./select')
+  select: require('./select'),
+  update: require('./update')
 };
