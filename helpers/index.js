@@ -3,5 +3,6 @@ module.exports = {
   select: require('./select'),
   update: require('./update'),
   destroy: require('./destroy'),
-  registerDataStore: require('./register-data-store')
+  registerDataStore: require('./register-data-store'),
+  teardown: require('./teardown')
 };
