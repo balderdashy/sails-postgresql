@@ -19,7 +19,7 @@ module.exports = require('machine').build({
   friendlyName: 'Normalize Values',
 
 
-  description: 'Based on the collection schema, normalize and cast the values.',
+  description: 'Based on the model schema, normalize and cast the values.',
 
 
   cacheable: true,
@@ -31,7 +31,7 @@ module.exports = require('machine').build({
   inputs: {
 
     schema: {
-      description: 'The collection schema from Waterline',
+      description: 'The model schema from Waterline',
       required: true,
       readOnly: true,
       example: '==='

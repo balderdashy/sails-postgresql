@@ -19,7 +19,7 @@ module.exports = require('machine').build({
   friendlyName: 'Find Primary Key',
 
 
-  description: 'Given a collection schema, return the primary key field.',
+  description: 'Given a model schema, return the primary key field.',
 
 
   cacheable: true,
@@ -30,8 +30,8 @@ module.exports = require('machine').build({
 
   inputs: {
 
-    collection: {
-      description: 'The Waterline collection for a table.',
+    model: {
+      description: 'The Waterline model for a table.',
       required: true,
       readOnly: true,
       example: '==='
@@ -53,9 +53,9 @@ module.exports = require('machine').build({
   fn: function findPrimaryKey(inputs, exits) {
     var _ = require('lodash');
 
-    var definition = inputs.collection.definition;
+    var definition = inputs.model.definition;
     if (!definition) {
-      return exits.error(new Error('Invalid Collection, missing definition object.'));
+      return exits.error(new Error('Invalid Model, missing definition object.'));
     }
 
     // Look for an attribute that has a primaryKey flag on it

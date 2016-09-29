@@ -68,9 +68,9 @@ module.exports = require('machine').build({
     var Helpers = require('./private');
 
 
-    // Ensure that a collection can be found on the datastore.
-    var collection = inputs.datastore.collections && inputs.datastore.collections[inputs.tableName];
-    if (!collection) {
+    // Ensure that a model can be found on the datastore.
+    var model = inputs.datastore.models && inputs.datastore.models[inputs.tableName];
+    if (!model) {
       return exits.invalidDatastore();
     }
 
@@ -78,8 +78,8 @@ module.exports = require('machine').build({
     var schemaName = 'public';
 
     // Check if a schemaName was manually defined
-    if (collection.meta && collection.meta.schemaName) {
-      schemaName = collection.meta.schemaName;
+    if (model.meta && model.meta.schemaName) {
+      schemaName = model.meta.schemaName;
     }
 
 
@@ -216,7 +216,7 @@ module.exports = require('machine').build({
           //  ║  ╠═╣╚═╗ ║   └┐┌┘├─┤│  │ │├┤ └─┐
           //  ╚═╝╩ ╩╚═╝ ╩    └┘ ┴ ┴┴─┘└─┘└─┘└─┘
           var castResults = Helpers.normalizeValues({
-            schema: collection.dbSchema,
+            schema: model.dbSchema,
             records: foundRecords
           }).execSync();
 
