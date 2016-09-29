@@ -45,7 +45,7 @@ module.exports = require('machine').build({
   },
 
 
-  fn: function registerDataStore(inputs, exits) {
+  fn: function teardown(inputs, exits) {
     var PG = require('machinepack-postgresql');
 
     var datastore = inputs.datastores[inputs.identity];

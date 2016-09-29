@@ -57,7 +57,7 @@ module.exports = require('machine').build({
   },
 
 
-  fn: function spawnConnection(inputs, exits) {
+  fn: function normalizeValues(inputs, exits) {
     var _ = require('lodash');
 
     // Ensure the records are an array

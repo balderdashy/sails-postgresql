@@ -51,7 +51,7 @@ module.exports = require('machine').build({
   },
 
 
-  fn: function create(inputs, exits) {
+  fn: function describe(inputs, exits) {
     var _ = require('lodash');
     var PG = require('machinepack-postgresql');
     var Helpers = require('./private');

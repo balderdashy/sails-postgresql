@@ -46,7 +46,7 @@ module.exports = require('machine').build({
   },
 
 
-  fn: function spawnConnection(inputs, exits) {
+  fn: function commitAndRelease(inputs, exits) {
     var PG = require('machinepack-postgresql');
 
     // Commit the transaction

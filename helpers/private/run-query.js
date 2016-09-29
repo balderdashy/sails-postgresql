@@ -73,7 +73,7 @@ module.exports = require('machine').build({
   },
 
 
-  fn: function spawnConnection(inputs, exits) {
+  fn: function runQuery(inputs, exits) {
     var PG = require('machinepack-postgresql');
 
     PG.sendNativeQuery({

@@ -48,7 +48,7 @@ module.exports = require('machine').build({
   },
 
 
-  fn: function spawnConnection(inputs, exits) {
+  fn: function rollbackAndRelease(inputs, exits) {
     var PG = require('machinepack-postgresql');
 
     // Rollback the transaction

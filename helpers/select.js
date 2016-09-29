@@ -62,7 +62,7 @@ module.exports = require('machine').build({
   },
 
 
-  fn: function create(inputs, exits) {
+  fn: function select(inputs, exits) {
     var PG = require('machinepack-postgresql');
     var Converter = require('machinepack-waterline-query-converter');
     var Helpers = require('./private');
