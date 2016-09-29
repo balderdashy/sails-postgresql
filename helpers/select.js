@@ -26,7 +26,7 @@ module.exports = require('machine').build({
     },
 
     tableName: {
-      description: 'The name of the table to insert the record into.',
+      description: 'The name of the table to search in.',
       required: true,
       example: 'users'
     },
