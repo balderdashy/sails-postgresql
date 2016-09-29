@@ -33,12 +33,14 @@ module.exports = require('machine').build({
     schema: {
       description: 'The collection schema from Waterline',
       required: true,
+      readOnly: true,
       example: '==='
     },
 
     records: {
       description: 'The database records that are being cast.',
       required: true,
+      readOnly: true,
       example: '==='
     }
 

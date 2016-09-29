@@ -33,6 +33,7 @@ module.exports = require('machine').build({
     collection: {
       description: 'The Waterline collection for a table.',
       required: true,
+      readOnly: true,
       example: '==='
     }
 

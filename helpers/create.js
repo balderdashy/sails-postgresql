@@ -21,6 +21,7 @@ module.exports = require('machine').build({
       description: 'The datastore to use for connections.',
       extendedDescription: 'Datastores represent the config and manager required to obtain an active database connection.',
       required: true,
+      readOnly: true,
       example: '==='
     },
 
@@ -33,7 +34,8 @@ module.exports = require('machine').build({
     record: {
       description: 'The record to insert into the table. It should match the schema used to build the table.',
       required: true,
-      example: {}
+      readOnly: true,
+      example: '==='
     }
 
   },
