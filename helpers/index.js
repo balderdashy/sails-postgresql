@@ -4,5 +4,6 @@ module.exports = {
   update: require('./update'),
   destroy: require('./destroy'),
   registerDataStore: require('./register-data-store'),
-  teardown: require('./teardown')
+  teardown: require('./teardown'),
+  describe: require('./describe')
 };
