@@ -22,7 +22,7 @@ describe('Unit Tests ::', function() {
     });
 
 
-    it('should select the correct record ', function(done) {
+    it('should select the correct record', function(done) {
       var wlQuery = {
         where: {
           fieldA: 'foo'
@@ -40,7 +40,7 @@ describe('Unit Tests ::', function() {
       });
     });
 
-    it('should return all the records ', function(done) {
+    it('should return all the records', function(done) {
       Adapter.find('test', 'test_find', {}, function(err, results) {
         assert(!err);
         assert(_.isArray(results));
