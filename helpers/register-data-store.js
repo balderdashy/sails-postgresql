@@ -33,7 +33,6 @@ module.exports = require('machine').build({
     models: {
       description: 'The Waterline models that will be used with this data store.',
       required: true,
-      readOnly: true,
       example: '==='
     },
 
