@@ -85,6 +85,11 @@ module.exports = require('machine').build({
       schemaName = model.meta.schemaName;
     }
 
+    var dbSchema = inputs.datastore.dbSchema && inputs.datastore.dbSchema[inputs.tableName];
+    if (!dbSchema) {
+      return exits.invalidDatastore();
+    }
+
 
     //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ┌─┐┌─┐┬─┐  ┌─┐┌─┐┌─┐ ┬ ┬┌─┐┌┐┌┌─┐┌─┐┌─┐
     //  ║  ╠═╣║╣ ║  ╠╩╗  ├┤ │ │├┬┘  └─┐├┤ │─┼┐│ │├┤ ││││  ├┤ └─┐
@@ -105,8 +110,8 @@ module.exports = require('machine').build({
     // To prevent this the sequence is updated manually whenever a record is
     // created that has any of the sequence values defined.
     var incrementSequences = [];
-    _.each(_.keys(model.dbSchema), function checkSequences(schemaKey) {
-      if (!_.has(model.dbSchema[schemaKey], 'autoIncrement')) {
+    _.each(_.keys(dbSchema), function checkSequences(schemaKey) {
+      if (!_.has(dbSchema[schemaKey], 'autoIncrement')) {
         return;
       }
 
@@ -466,7 +471,7 @@ module.exports = require('machine').build({
               //  ║  ╠═╣╚═╗ ║   └┐┌┘├─┤│  │ │├┤ └─┐
               //  ╚═╝╩ ╩╚═╝ ╩    └┘ ┴ ┴┴─┘└─┘└─┘└─┘
               var castResults = Helpers.normalizeValues({
-                schema: model.dbSchema,
+                schema: dbSchema,
                 records: insertedRecords
               }).execSync();
 

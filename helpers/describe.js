@@ -62,6 +62,9 @@ module.exports = require('machine').build({
     // Determine a schema name
     var schemaName = model.meta && model.meta.schemaName || 'public';
 
+    // Build an object for holding information about the schema
+    var dbSchema = {};
+
 
     //   ██████╗ ██╗   ██╗███████╗██████╗ ██╗███████╗███████╗
     //  ██╔═══██╗██║   ██║██╔════╝██╔══██╗██║██╔════╝██╔════╝
@@ -222,7 +225,7 @@ module.exports = require('machine').build({
       });
 
       // Set Internal Schema Mapping
-      model.dbSchema = schema;
+      dbSchema = schema;
     };
 
 
@@ -268,7 +271,7 @@ module.exports = require('machine').build({
             processQueryResults(describeResults, incrementResults, indiciesResults);
 
             // Return the model schema
-            return exits.success({ schema: model.dbSchema });
+            return exits.success({ schema: dbSchema });
           });
         });
       });

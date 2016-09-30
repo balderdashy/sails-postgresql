@@ -90,6 +90,11 @@ module.exports = require('machine').build({
       schemaName = model.meta.schemaName;
     }
 
+    var dbSchema = inputs.datastore.dbSchema && inputs.datastore.dbSchema[inputs.tableName];
+    if (!dbSchema) {
+      return exits.invalidDatastore();
+    }
+
 
     //  ╔═╗╔═╗╔╗╔╦  ╦╔═╗╦═╗╔╦╗  ┌┬┐┌─┐  ┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┐┌┌┬┐
     //  ║  ║ ║║║║╚╗╔╝║╣ ╠╦╝ ║    │ │ │  └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │
@@ -463,7 +468,7 @@ module.exports = require('machine').build({
           //  ║  ╠═╣╚═╗ ║   └┐┌┘├─┤│  │ │├┤ └─┐
           //  ╚═╝╩ ╩╚═╝ ╩    └┘ ┴ ┴┴─┘└─┘└─┘└─┘
           var castResults = Helpers.normalizeValues({
-            schema: model.dbSchema,
+            schema: dbSchema,
             records: updatedRecords
           }).execSync();
 
