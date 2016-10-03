@@ -162,6 +162,26 @@ module.exports = require('machine').build({
     };
 
 
+    //  ╦═╗╔═╗╦  ╔═╗╔═╗╔═╗╔═╗  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
+    //  ╠╦╝║╣ ║  ║╣ ╠═╣╚═╗║╣   │  │ │││││││├┤ │   │ ││ ││││
+    //  ╩╚═╚═╝╩═╝╚═╝╩ ╩╚═╝╚═╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
+    var releaseConnection = function releaseConnection(connection, done) {
+      PG.releaseConnection({
+        connection: connection
+      }).exec({
+        error: function error(err) {
+          return done(err);
+        },
+        badConnection: function badConnection() {
+          return done(new Error('Bad connection when trying to release an active connection.'));
+        },
+        success: function success() {
+          return done();
+        }
+      });
+    };
+
+
     //  ╦═╗╦ ╦╔╗╔  ┌─┐┌─┐┬  ┌─┐┌─┐┌┬┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
     //  ╠╦╝║ ║║║║  └─┐├┤ │  ├┤ │   │   │─┼┐│ │├┤ ├┬┘└┬┘
     //  ╩╚═╚═╝╝╚╝  └─┘└─┘┴─┘└─┘└─┘ ┴   └─┘└└─┘└─┘┴└─ ┴
@@ -178,7 +198,9 @@ module.exports = require('machine').build({
           done(err);
         },
         success: function success(report) {
-          return done(null, report.result);
+          releaseConnection(connection, function cb() {
+            return done(null, report.result);
+          });
         }
       });
     };

@@ -160,6 +160,26 @@ module.exports = require('machine').build({
     };
 
 
+    //  ╦═╗╔═╗╦  ╔═╗╔═╗╔═╗╔═╗  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
+    //  ╠╦╝║╣ ║  ║╣ ╠═╣╚═╗║╣   │  │ │││││││├┤ │   │ ││ ││││
+    //  ╩╚═╚═╝╩═╝╚═╝╩ ╩╚═╝╚═╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
+    var releaseConnection = function releaseConnection(connection, done) {
+      PG.releaseConnection({
+        connection: connection
+      }).exec({
+        error: function error(err) {
+          return done(err);
+        },
+        badConnection: function badConnection() {
+          return done(new Error('Bad connection when trying to release an active connection.'));
+        },
+        success: function success() {
+          return done();
+        }
+      });
+    };
+
+
     //  ╔═╗╦═╗╔═╗╔═╗╔═╗╔═╗╔═╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬  ┬─┐┌─┐┌─┐┬ ┬┬ ┌┬┐┌─┐
     //  ╠═╝╠╦╝║ ║║  ║╣ ╚═╗╚═╗  │─┼┐│ │├┤ ├┬┘└┬┘  ├┬┘├┤ └─┐│ ││  │ └─┐
     //  ╩  ╩╚═╚═╝╚═╝╚═╝╚═╝╚═╝  └─┘└└─┘└─┘┴└─ ┴   ┴└─└─┘└─┘└─┘┴─┘┴ └─┘
@@ -252,26 +272,38 @@ module.exports = require('machine').build({
       // Run DESCRIBE query
       runNativeQuery(connection, describeQuery, function cb(err, describeResults) {
         if (err) {
-          return exits.error(err);
+          releaseConnection(connection, function cb() {
+            return exits.error(err);
+          });
+          return;
         }
 
         // Run AUTO INCREMENT query
         runNativeQuery(connection, autoIncrementQuery, function cb(err, incrementResults) {
           if (err) {
-            return exits.error(err);
+            releaseConnection(connection, function cb() {
+              return exits.error(err);
+            });
+            return;
           }
 
           // Run INDICIES query
           runNativeQuery(connection, indiciesQuery, function cb(err, indiciesResults) {
             if (err) {
-              return exits.error(err);
+              releaseConnection(connection, function cb() {
+                return exits.error(err);
+              });
+              return;
             }
 
             // Process the results
             processQueryResults(describeResults, incrementResults, indiciesResults);
 
-            // Return the model schema
-            return exits.success({ schema: dbSchema });
+            // Ensure the connection is always released
+            releaseConnection(connection, function cb() {
+              // Return the model schema
+              return exits.success({ schema: dbSchema });
+            });
           });
         });
       });

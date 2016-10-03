@@ -129,7 +129,10 @@ module.exports = require('machine').build({
       // Run the native query
       runNativeQuery(connection, query, function cb(err, results) {
         if (err) {
-          return exits.error(err);
+          releaseConnection(connection, function cb() {
+            return exits.error(err);
+          });
+          return;
         }
 
         // Release the connection back to the pool

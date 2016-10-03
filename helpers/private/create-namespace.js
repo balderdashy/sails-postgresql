@@ -97,6 +97,47 @@ module.exports = require('machine').build({
     };
 
 
+    //  ╦═╗╔═╗╦  ╔═╗╔═╗╔═╗╔═╗  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
+    //  ╠╦╝║╣ ║  ║╣ ╠═╣╚═╗║╣   │  │ │││││││├┤ │   │ ││ ││││
+    //  ╩╚═╚═╝╩═╝╚═╝╩ ╩╚═╝╚═╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
+    var releaseConnection = function releaseConnection(connection, done) {
+      PG.releaseConnection({
+        connection: connection
+      }).exec({
+        error: function error(err) {
+          return done(err);
+        },
+        badConnection: function badConnection() {
+          return done(new Error('Bad connection when trying to release an active connection.'));
+        },
+        success: function success() {
+          return done();
+        }
+      });
+    };
+
+
+    //  ╦═╗╦ ╦╔╗╔  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬  ┌─┐┌┐┌┌┬┐  ┬─┐┌─┐┬  ┌─┐┌─┐┌─┐┌─┐
+    //  ╠╦╝║ ║║║║  │─┼┐│ │├┤ ├┬┘└┬┘  ├─┤│││ ││  ├┬┘├┤ │  ├┤ ├─┤└─┐├┤
+    //  ╩╚═╚═╝╝╚╝  └─┘└└─┘└─┘┴└─ ┴   ┴ ┴┘└┘─┴┘  ┴└─└─┘┴─┘└─┘┴ ┴└─┘└─┘
+    //  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
+    //  │  │ │││││││├┤ │   │ ││ ││││
+    //  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
+    var runQuery = function runQuery(connection, query, done) {
+      runNativeQuery(connection, query, function cb(err) {
+        // Always release the connection no matter what the error state.
+        releaseConnection(connection, function cb() {
+          // If the native query had an error, return that error
+          if (err) {
+            return done(err);
+          }
+
+          return done();
+        });
+      });
+    };
+
+
     // Spawn a connection and create the schema
     spawnConnection(function cb(err, connection) {
       if (err) {
@@ -106,8 +147,8 @@ module.exports = require('machine').build({
       // Build Query
       var query = 'CREATE SCHEMA "' + inputs.schemaName + '"';
 
-      // Run the CREATE SCHEMA query
-      runNativeQuery(connection, query, function cb(err) {
+      // Run the CREATE SCHEMA query and release the connection
+      runQuery(connection, query, function cb(err) {
         if (err) {
           return exits.error(err);
         }

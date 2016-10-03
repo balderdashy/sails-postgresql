@@ -145,7 +145,10 @@ module.exports = require('machine').build({
       // Run the DROP TABLE query
       runNativeQuery(connection, query, function cb(err) {
         if (err) {
-          return exits.error(err);
+          releaseConnection(connection, function cb() {
+            return exits.error(err);
+          });
+          return;
         }
 
         // Release the connection back to the pool

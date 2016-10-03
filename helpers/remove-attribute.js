@@ -100,6 +100,20 @@ module.exports = require('machine').build({
     };
 
 
+    //  ╔═╗╔═╗╔═╗╔═╗╔═╗╔═╗  ┌┬┐┌─┐┌┐ ┬  ┌─┐  ┌┐┌┌─┐┌┬┐┌─┐
+    //  ║╣ ╚═╗║  ╠═╣╠═╝║╣    │ ├─┤├┴┐│  ├┤   │││├─┤│││├┤
+    //  ╚═╝╚═╝╚═╝╩ ╩╩  ╚═╝   ┴ ┴ ┴└─┘┴─┘└─┘  ┘└┘┴ ┴┴ ┴└─┘
+    // Ensure the name is escaped in quotes.
+    var escapeName = function escapeName(name, schema) {
+      name = '"' + name + '"';
+      if (schema) {
+        name = '"' + schema + '".' + name;
+      }
+
+      return name;
+    };
+
+
     //  ╦═╗╦ ╦╔╗╔  ┌┐┌┌─┐┌┬┐┬┬  ┬┌─┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
     //  ╠╦╝║ ║║║║  │││├─┤ │ │└┐┌┘├┤   │─┼┐│ │├┤ ├┬┘└┬┘
     //  ╩╚═╚═╝╝╚╝  ┘└┘┴ ┴ ┴ ┴ └┘ └─┘  └─┘└└─┘└─┘┴└─ ┴
@@ -115,20 +129,6 @@ module.exports = require('machine').build({
 
         return done(null, report.result.rows);
       });
-    };
-
-
-    //  ╔═╗╔═╗╔═╗╔═╗╔═╗╔═╗  ┌┬┐┌─┐┌┐ ┬  ┌─┐  ┌┐┌┌─┐┌┬┐┌─┐
-    //  ║╣ ╚═╗║  ╠═╣╠═╝║╣    │ ├─┤├┴┐│  ├┤   │││├─┤│││├┤
-    //  ╚═╝╚═╝╚═╝╩ ╩╩  ╚═╝   ┴ ┴ ┴└─┘┴─┘└─┘  ┘└┘┴ ┴┴ ┴└─┘
-    // Ensure the name is escaped in quotes.
-    var escapeName = function escapeName(name, schema) {
-      name = '"' + name + '"';
-      if (schema) {
-        name = '"' + schema + '".' + name;
-      }
-
-      return name;
     };
 
 
@@ -148,6 +148,27 @@ module.exports = require('machine').build({
         success: function success() {
           return done();
         }
+      });
+    };
+
+
+    //  ╦═╗╦ ╦╔╗╔  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬  ┌─┐┌┐┌┌┬┐  ┬─┐┌─┐┬  ┌─┐┌─┐┌─┐┌─┐
+    //  ╠╦╝║ ║║║║  │─┼┐│ │├┤ ├┬┘└┬┘  ├─┤│││ ││  ├┬┘├┤ │  ├┤ ├─┤└─┐├┤
+    //  ╩╚═╚═╝╝╚╝  └─┘└└─┘└─┘┴└─ ┴   ┴ ┴┘└┘─┴┘  ┴└─└─┘┴─┘└─┘┴ ┴└─┘└─┘
+    //  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
+    //  │  │ │││││││├┤ │   │ ││ ││││
+    //  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
+    var runQuery = function runQuery(connection, query, done) {
+      runNativeQuery(connection, query, function cb(err) {
+        // Always release the connection no matter what the error state.
+        releaseConnection(connection, function cb() {
+          // If the native query had an error, return that error
+          if (err) {
+            return done(err);
+          }
+
+          return done();
+        });
       });
     };
 
@@ -180,20 +201,13 @@ module.exports = require('machine').build({
       // Build Query
       var query = 'ALTER TABLE ' + tableName + ' DROP COLUMN "' + inputs.attributeName + '" RESTRICT';
 
-      // Run the ALTER TABLE query
-      runNativeQuery(connection, query, function cb(err) {
+      // Run the ALTER TABLE query and release the connection
+      runQuery(connection, query, function cb(err) {
         if (err) {
           return exits.error(err);
         }
 
-        // Release the connection back to the pool
-        releaseConnection(connection, function cb(err) {
-          if (err) {
-            return exits.error(err);
-          }
-
-          return exits.success();
-        });
+        return exits.success();
       });
     });
   }

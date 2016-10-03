@@ -121,6 +121,7 @@ module.exports = require('machine').build({
     //  ╔═╗╦═╗╔═╗╔═╗╔╦╗╔═╗  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
     //  ║  ╠╦╝║╣ ╠═╣ ║ ║╣   └─┐│  ├─┤├┤ │││├─┤
     //  ╚═╝╩╚═╚═╝╩ ╩ ╩ ╚═╝  └─┘└─┘┴ ┴└─┘┴ ┴┴ ┴
+    // AKA namespace if one is given.
     var createSchema = function createSchema(connection, done) {
       // If we're being told NOT to create schemas, then skip right to
       // creating the table.
@@ -192,6 +193,26 @@ module.exports = require('machine').build({
     };
 
 
+    //  ╦═╗╔═╗╦  ╔═╗╔═╗╔═╗╔═╗  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
+    //  ╠╦╝║╣ ║  ║╣ ╠═╣╚═╗║╣   │  │ │││││││├┤ │   │ ││ ││││
+    //  ╩╚═╚═╝╩═╝╚═╝╩ ╩╚═╝╚═╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
+    var releaseConnection = function releaseConnection(connection, done) {
+      PG.releaseConnection({
+        connection: connection
+      }).exec({
+        error: function error(err) {
+          return done(err);
+        },
+        badConnection: function badConnection() {
+          return done(new Error('Bad connection when trying to release an active connection.'));
+        },
+        success: function success() {
+          return done();
+        }
+      });
+    };
+
+
     //   █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗
     //  ██╔══██╗██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
     //  ███████║██║        ██║   ██║██║   ██║██╔██╗ ██║
@@ -217,7 +238,10 @@ module.exports = require('machine').build({
       // This will succeed if the schema already exists.
       createSchema(connection, function cb(err) {
         if (err) {
-          return exits.error(err);
+          releaseConnection(connection, function cb() {
+            return exits.error(err);
+          });
+          return;
         }
 
         // Escape Table Name
@@ -230,7 +254,10 @@ module.exports = require('machine').build({
             definition: inputs.definition
           }).execSync();
         } catch (e) {
-          return exits.error(e);
+          releaseConnection(connection, function cb() {
+            return exits.error(e);
+          });
+          return;
         }
 
         // Build Query
@@ -239,16 +266,25 @@ module.exports = require('machine').build({
         // Run the CREATE TABLE query
         runNativeQuery(connection, query, function cb(err) {
           if (err) {
-            return exits.error(err);
+            releaseConnection(connection, function cb() {
+              return exits.error(err);
+            });
+            return;
           }
 
           // Build any indexes
           buildIndexes(connection, function cb(err) {
             if (err) {
-              return exits.error(err);
+              releaseConnection(connection, function cb() {
+                return exits.error(err);
+              });
+              return;
             }
 
-            return exits.success();
+            // Ensure the connection is always released
+            releaseConnection(connection, function cb() {
+              return exits.success();
+            });
           });
         });
       });
