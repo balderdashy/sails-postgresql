@@ -10,5 +10,6 @@ module.exports = {
   createSchema: require('./create-schema'),
   drop: require('./drop'),
   addAttribute: require('./add-attribute'),
-  removeAttribute: require('./remove-attribute')
+  removeAttribute: require('./remove-attribute'),
+  query: require('./query')
 };
