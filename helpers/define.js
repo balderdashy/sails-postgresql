@@ -133,7 +133,7 @@ module.exports = require('machine').build({
         return done();
       }
 
-      Helpers.createSchema({
+      Helpers.createNamespace({
         datastore: inputs.datastore,
         schemaName: schemaName
       }).exec({
