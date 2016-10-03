@@ -9,5 +9,6 @@ module.exports = {
   define: require('./define'),
   createSchema: require('./create-schema'),
   drop: require('./drop'),
-  addAttribute: require('./add-attribute')
+  addAttribute: require('./add-attribute'),
+  removeAttribute: require('./remove-attribute')
 };
