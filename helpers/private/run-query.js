@@ -108,6 +108,8 @@ module.exports = require('machine').build({
         }).exec(function releaseCb() {
           return exits.error(parsedError);
         });
+
+        return;
       }
 
       //  ╔═╗╔═╗╦═╗╔═╗╔═╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬  ┬─┐┌─┐┌─┐┬ ┬┬ ┌┬┐┌─┐

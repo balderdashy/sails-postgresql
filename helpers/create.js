@@ -393,6 +393,8 @@ module.exports = require('machine').build({
               return done(err);
             }
           });
+
+          return;
         }
 
         return done();

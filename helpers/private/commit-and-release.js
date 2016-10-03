@@ -68,6 +68,8 @@ module.exports = require('machine').build({
             return exits.error(err);
           });
         });
+
+        return;
       }
 
       // Release the connection back into the pool
