@@ -8,5 +8,6 @@ module.exports = {
   describe: require('./describe'),
   define: require('./define'),
   createSchema: require('./create-schema'),
-  drop: require('./drop')
+  drop: require('./drop'),
+  addAttribute: require('./add-attribute')
 };
