@@ -6,5 +6,6 @@ module.exports = {
   registerDataStore: require('./register-data-store'),
   teardown: require('./teardown'),
   describe: require('./describe'),
-  define: require('./define')
+  define: require('./define'),
+  createSchema: require('./create-schema')
 };
