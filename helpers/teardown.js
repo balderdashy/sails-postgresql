@@ -69,7 +69,7 @@ module.exports = require('machine').build({
       error: function error(err) {
         return exits.error(err);
       },
-      fails: function failed(err) {
+      failed: function failed(err) {
         return exits.error(err);
       },
       success: function success() {
