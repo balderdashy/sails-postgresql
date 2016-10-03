@@ -7,5 +7,6 @@ module.exports = {
   teardown: require('./teardown'),
   describe: require('./describe'),
   define: require('./define'),
-  createSchema: require('./create-schema')
+  createSchema: require('./create-schema'),
+  drop: require('./drop')
 };
