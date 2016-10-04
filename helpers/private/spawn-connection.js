@@ -59,11 +59,6 @@ module.exports = require('machine').build({
         return exits.error(err);
       },
       malformed: function malformed(err) {
-        // // Remove password before reporting error so that it doesn't show up in logs
-        // var connectionValues = _.clone(datastoreConfig.config);
-        // connectionValues.password = '[redacted]';
-        // var Error = new Error('Error creating a connection to Postgresql using the following settings:\n', connectionValues);
-        // Error.originalError = err;
         return exits.error(err);
       },
       failedToConnect: function failedToConnect(err) {
