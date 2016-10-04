@@ -140,7 +140,7 @@ module.exports = require('machine').build({
       var tableName = escapeName(inputs.tableName, schemaName);
 
       // Build Query
-      var query = 'DROP TABLE ' + tableName + ';';
+      var query = 'DROP TABLE IF EXISTS' + tableName + ';';
 
       // Run the DROP TABLE query
       runNativeQuery(connection, query, function cb(err) {
