@@ -76,55 +76,102 @@ module.exports = require('machine').build({
   fn: function runQuery(inputs, exits) {
     var PG = require('machinepack-postgresql');
 
+
+    //  ╦═╗╔═╗╦  ╔═╗╔═╗╔═╗╔═╗  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
+    //  ╠╦╝║╣ ║  ║╣ ╠═╣╚═╗║╣   │  │ │││││││├┤ │   │ ││ ││││
+    //  ╩╚═╚═╝╩═╝╚═╝╩ ╩╚═╝╚═╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
+    var releaseConnection = function releaseConnection(connection, done) {
+      PG.releaseConnection({
+        connection: connection
+      }).exec({
+        error: function error(err) {
+          return done(err);
+        },
+        badConnection: function badConnection() {
+          return done(err);
+        },
+        success: function success() {
+          return done();
+        }
+      });
+    };
+
+
     PG.sendNativeQuery({
       connection: inputs.connection,
       nativeQuery: inputs.nativeQuery
     })
-    .exec(function sendNativeQueryCb(err, report) {
-      //  ╦ ╦╔═╗╔╗╔╔╦╗╦  ╔═╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬  ┌─┐┬─┐┬─┐┌─┐┬─┐┌─┐
-      //  ╠═╣╠═╣║║║ ║║║  ║╣   │─┼┐│ │├┤ ├┬┘└┬┘  ├┤ ├┬┘├┬┘│ │├┬┘└─┐
-      //  ╩ ╩╩ ╩╝╚╝═╩╝╩═╝╚═╝  └─┘└└─┘└─┘┴└─ ┴   └─┘┴└─┴└─└─┘┴└─└─┘
-      // If there was an error, parse it and check if the connection should be
+    .exec({
+      // If there was an error, check if the connection should be
       // released back into the pool automatically.
-      if (err) {
+      error: function error(err) {
+        if (!inputs.disconnectOnError) {
+          return exits.error(err);
+        }
+
+        releaseConnection(inputs.connection, function cb(err) {
+          return exits.error(err);
+        });
+      },
+      // If the query failed, try and parse it into a normalized format and
+      // release the connection if needed.
+      queryFailed: function queryFailed(report) {
         // Parse the native query error into a normalized format
         var parsedError;
         try {
           parsedError = PG.parseNativeQueryError({
-            nativeQueryError: err
+            nativeQueryError: report.error
           }).execSync();
         } catch (e) {
-          parsedError = err;
+          parsedError = report.error;
         }
 
+        // If the catch all error was used, return an error instance instead of
+        // the footprint.
+        var catchAllError = false;
+        if (!parsedError.footprint) {
+          catchAllError = true;
+        }
+
+        if (parsedError.footprint && parsedError.footprint.identity && parsedError.footprint.identity === 'catchall') {
+          catchAllError = true;
+        }
 
         if (!inputs.disconnectOnError) {
+          if (catchAllError) {
+            return exits.error(report.error);
+          }
+
           return exits.error(parsedError);
         }
 
-        // Release the connection
-        PG.releaseConnection({
-          connection: inputs.connection
-        }).exec(function releaseCb() {
+        releaseConnection(inputs.connection, function cb() {
+          if (catchAllError) {
+            return exits.error(report.error);
+          }
+
           return exits.error(parsedError);
         });
+      },
+      success: function success(report) {
+        //  ╔═╗╔═╗╦═╗╔═╗╔═╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬  ┬─┐┌─┐┌─┐┬ ┬┬ ┌┬┐┌─┐
+        //  ╠═╝╠═╣╠╦╝╚═╗║╣   │─┼┐│ │├┤ ├┬┘└┬┘  ├┬┘├┤ └─┐│ ││  │ └─┐
+        //  ╩  ╩ ╩╩╚═╚═╝╚═╝  └─┘└└─┘└─┘┴└─ ┴   ┴└─└─┘└─┘└─┘┴─┘┴ └─┘
+        // If there was a query type given, parse the results.
+        var queryResults = report.result;
+        if (inputs.queryType) {
+          try {
+            queryResults = PG.parseNativeQueryResult({
+              queryType: inputs.queryType,
+              nativeQueryResult: report.result
+            }).execSync();
+          } catch (e) {
+            return exits.error(e);
+          }
+        }
 
-        return;
+        return exits.success(queryResults);
       }
-
-      //  ╔═╗╔═╗╦═╗╔═╗╔═╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬  ┬─┐┌─┐┌─┐┬ ┬┬ ┌┬┐┌─┐
-      //  ╠═╝╠═╣╠╦╝╚═╗║╣   │─┼┐│ │├┤ ├┬┘└┬┘  ├┬┘├┤ └─┐│ ││  │ └─┐
-      //  ╩  ╩ ╩╩╚═╚═╝╚═╝  └─┘└└─┘└─┘┴└─ ┴   ┴└─└─┘└─┘└─┘┴─┘┴ └─┘
-      // If there was a query type given, parse the results.
-      var queryResults = report.result;
-      if (inputs.queryType) {
-        queryResults = PG.parseNativeQueryResult({
-          queryType: inputs.queryType,
-          nativeQueryResult: report.result
-        }).execSync();
-      }
-
-      return exits.success(queryResults);
     });
   }
 
