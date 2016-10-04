@@ -164,18 +164,56 @@ module.exports = require('machine').build({
     //  ║  ║ ║║║║╠═╝║║  ║╣   └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │
     //  ╚═╝╚═╝╩ ╩╩  ╩╩═╝╚═╝  └─┘ ┴ ┴ ┴ ┴ └─┘┴ ┴└─┘┘└┘ ┴
     // Transform the Waterline Query Statement into a SQL query.
-    var compileStatement = function compileStatement(done) {
-      PG.compileStatement({
-        statement: statement
-      })
-      .exec({
-        error: function error(err) {
-          return done(err);
-        },
-        success: function success(report) {
-          return done(null, report.nativeQuery);
+    var compileStatement = function compileStatement(connection, done) {
+      // Find the Primary Key and add a "returning" clause to the statement.
+      findPrimaryKey(function cb(err, primaryKeyField) {
+        if (err) {
+          Helpers.rollbackAndRelease({
+            connection: connection
+          }).exec({
+            error: function error() {
+              return done(new Error('There was an error rolling back the transaction.\n\n' + err.stack));
+            },
+            success: function success() {
+              return done(new Error('There was an error attempting to find the primary key of the model. The transaction has been rolled back.\n\n' + err.stack));
+            }
+          });
+
+          return;
         }
+
+        // Return the values of the primary key field
+        statement.returning = primaryKeyField;
+
+        PG.compileStatement({
+          statement: statement
+        })
+        .exec({
+          error: function error(err) {
+            return done(new Error('There was an error compiling the Waterline Statement to a query.' + err.stack));
+          },
+          success: function success(report) {
+            return done(null, report.nativeQuery);
+          }
+        });
       });
+    };
+
+
+    //  ╔═╗╦╔╗╔╔╦╗  ┌─┐┬─┐┬┌┬┐┌─┐┬─┐┬ ┬  ┬┌─┌─┐┬ ┬
+    //  ╠╣ ║║║║ ║║  ├─┘├┬┘││││├─┤├┬┘└┬┘  ├┴┐├┤ └┬┘
+    //  ╚  ╩╝╚╝═╩╝  ┴  ┴└─┴┴ ┴┴ ┴┴└─ ┴   ┴ ┴└─┘ ┴
+    var findPrimaryKey = function findPrimaryKey(done) {
+      var pk;
+      try {
+        pk = Helpers.findPrimaryKey({
+          model: model
+        }).execSync();
+      } catch (e) {
+        return done(new Error('Could not determine a Primary Key for the model: ' + model + '.\n\n' + e.stack));
+      }
+
+      return done(null, pk);
     };
 
 
@@ -437,16 +475,16 @@ module.exports = require('machine').build({
     //  ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝ ╚═════╝
     //
 
-    // Compile the original Waterline Query
-    compileStatement(function cb(err, query) {
+    // Spawn a new connection and open a transaction for running queries on.
+    spawnTransaction(function cb(err, connection) {
       if (err) {
-        return exits.error(err);
+        return exits.badConnection(err);
       }
 
-      // Spawn a new connection and open a transaction for running queries on.
-      spawnTransaction(function cb(err, connection) {
+      // Compile the original Waterline Query
+      compileStatement(connection, function cb(err, query) {
         if (err) {
-          return exits.badConnection(err);
+          return exits.error(err);
         }
 
         // Insert the new record and if successfully look it up again to get any
@@ -455,7 +493,7 @@ module.exports = require('machine').build({
         // query builder.
         insertAndFind(connection, query, function cb(err, insertedRecords) {
           if (err) {
-            return exits.badConnection(err);
+            return exits.error(err);
           }
 
           // Update any sequences that may have been used
@@ -488,8 +526,8 @@ module.exports = require('machine').build({
             }); // </ .commitTransaction(); >
           }); // </ .setSequenceValues(); >
         }); // </ .insertAndFind(); >
-      }); // </ .spawnTransaction(); >
-    }); // </ .compileStatement(); >
+      }); // </ .compileStatement(); >
+    }); // </ .spawnTransaction(); >
   }
 
 });
