@@ -67,10 +67,10 @@ module.exports = require('machine').build({
       manager: manager
     }).exec({
       error: function error(err) {
-        return exits.error(err);
+        return exits.error(new Error('There was an error destroying the manager.' + err.stack));
       },
       failed: function failed(err) {
-        return exits.error(err);
+        return exits.error(new Error('The manager failed to be destroyed.' + err.stack));
       },
       success: function success() {
         // Delete the rest of the data from the data store

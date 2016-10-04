@@ -113,7 +113,7 @@ module.exports = require('machine').build({
         values: inputs.values
       }).execSync();
     } catch (e) {
-      return exits.error(e);
+      return exits.error(new Error('The Waterline Query failed to convert into a Waterline Statement.' + e.stack));
     }
 
     // Generate a FIND statement as well that will get all the records being updated.
@@ -125,7 +125,7 @@ module.exports = require('machine').build({
         criteria: inputs.criteria
       }).execSync();
     } catch (e) {
-      return exits.error(e);
+      return exits.error(new Error('The Waterline Query failed to convert into a Waterline Statement.' + e.stack));
     }
 
 
@@ -156,7 +156,7 @@ module.exports = require('machine').build({
       })
       .exec({
         error: function error(err) {
-          return done(err);
+          return done(new Error('The Statement failed to be compiled into a query.' + err.stack));
         },
         success: function success(report) {
           return done(null, report.nativeQuery);
@@ -174,7 +174,7 @@ module.exports = require('machine').build({
       })
       .exec({
         error: function error(err) {
-          return done(err);
+          return done(new Error('There was an error spawning a new connection from the pool.' + err.stack));
         },
         success: function success(connection) {
           return done(null, connection);
@@ -198,10 +198,10 @@ module.exports = require('machine').build({
             connection: connection
           }).exec({
             error: function error() {
-              return done(err);
+              return done(new Error('There was an issue releasing the collection back into the pool.' + err.stack));
             },
             success: function success() {
-              return done(err);
+              return done(new Error('There was an error starting a transaction.' + err.stack));
             }
           });
         },
@@ -252,10 +252,10 @@ module.exports = require('machine').build({
             connection: connection
           }).exec({
             error: function error() {
-              return done(err);
+              return done(new Error('There was an error rolling back and releasing the transaction.' + err.stack));
             },
             success: function success() {
-              return done(err);
+              return done(new Error('There was an error running the select query.' + err.stack));
             }
           });
         },
@@ -283,10 +283,10 @@ module.exports = require('machine').build({
             connection: connection
           }).exec({
             error: function error() {
-              return done(err);
+              return done(new Error('There was an error rolling back and releasing the transaction.' + err.stack));
             },
             success: function success() {
-              return done(err);
+              return done(new Error('There was an error running the update query.' + err.stack));
             }
           });
         },
@@ -308,7 +308,7 @@ module.exports = require('machine').build({
           model: model
         }).execSync();
       } catch (e) {
-        return done(new Error('Error determining Primary Key to use.'));
+        return done(new Error('Error determining Primary Key to use.' + e.stack));
       }
 
       // Grab the values of the Primary key from each record
@@ -331,7 +331,7 @@ module.exports = require('machine').build({
         statement: criteriaStatement
       }).exec({
         error: function error(err) {
-          return done(err);
+          return done(new Error('There was an error compiling a statement into a query.' + err.stack));
         },
         success: function success(report) {
           // Run the FIND query
@@ -347,10 +347,10 @@ module.exports = require('machine').build({
                 connection: connection
               }).exec({
                 error: function error() {
-                  return done(err);
+                  return done(new Error('There was an error rolling back and releasing the transaction.' + err.stack));
                 },
                 success: function success() {
-                  return done(err);
+                  return done(new Error('There was an error running the select query.' + err.stack));
                 }
               });
             },
@@ -421,7 +421,7 @@ module.exports = require('machine').build({
       })
       .exec({
         error: function error(err) {
-          return done(err);
+          return done(new Error('There was an error commiting the transaction.' + err.stack));
         },
         success: function success() {
           return done();

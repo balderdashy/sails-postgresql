@@ -139,7 +139,7 @@ module.exports = require('machine').build({
         values: inputs.record
       }).execSync();
     } catch (e) {
-      return exits.error(e);
+      return exits.error(new Error('The Waterline query could not be converted.' + e.stack));
     }
 
 
@@ -188,7 +188,7 @@ module.exports = require('machine').build({
       })
       .exec({
         error: function error(err) {
-          return done(err);
+          return done(new Error('There was an error spawning a connection from the pool.' + err.stack));
         },
         success: function success(connection) {
           return done(null, connection);
@@ -211,11 +211,11 @@ module.exports = require('machine').build({
           PG.releaseConnection({
             connection: connection
           }).exec({
-            error: function error() {
-              return done(err);
+            error: function error(err) {
+              return done(new Error('There was an error releasing the connection back into the pool.' + err.stack));
             },
             success: function success() {
-              return done(err);
+              return done(new Error('There was an error starting a transaction.' + err.stack));
             }
           });
         },
@@ -266,10 +266,10 @@ module.exports = require('machine').build({
             connection: connection
           }).exec({
             error: function error() {
-              return done(err);
+              return done(new Error('There was an error rolling back the transaction.\n\n' + err.stack));
             },
             success: function success() {
-              return done(err);
+              return done(new Error('There was an error attempting to run the query: ' + '\n\n' + query.sql + '\nusing values: (' + query.bindings + ')\n\n' + 'The transaction has been rolled back.\n\n' + err.stack));
             }
           });
         },
@@ -291,8 +291,9 @@ module.exports = require('machine').build({
           model: model
         }).execSync();
       } catch (e) {
-        return done(new Error('Error determining Primary Key to use.'));
+        return done(new Error('Error determining Primary Key to use.' + e.stack));
       }
+
       // Build up a criteria statement to run
       var criteriaStatement = {
         select: ['*'],
@@ -310,7 +311,7 @@ module.exports = require('machine').build({
         statement: criteriaStatement
       }).exec({
         error: function error(err) {
-          return done(err);
+          return done(new Error('There was an error compiling the statement into a query.' + err.stack));
         },
         success: function success(report) {
           // Run the FIND query
@@ -326,10 +327,10 @@ module.exports = require('machine').build({
                 connection: connection
               }).exec({
                 error: function error() {
-                  return done(err);
+                  return done(new Error('There was an error rolling back and releasing the connection' + err.stack));
                 },
                 success: function success() {
-                  return done(err);
+                  return done(new Error('There was an error running the query.' + err.stack));
                 }
               });
             },
@@ -387,10 +388,10 @@ module.exports = require('machine').build({
             connection: connection
           }).exec({
             error: function error() {
-              return done(err);
+              return done(new Error('There was an error rolling back and releasing the connection.' + err.stack));
             },
             success: function success() {
-              return done(err);
+              return done(new Error('There was an error incrementing a sequence on the create.' + err.stack));
             }
           });
 
@@ -412,7 +413,7 @@ module.exports = require('machine').build({
       })
       .exec({
         error: function error(err) {
-          return done(err);
+          return done(new Error('There was an error commiting the transaction.' + err.stack));
         },
         success: function success() {
           return done();

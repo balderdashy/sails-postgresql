@@ -59,7 +59,7 @@ module.exports = require('machine').build({
       schemaName: inputs.schemaName
     }).exec({
       error: function error(err) {
-        return exits.error(err);
+        return exits.error(new Error('There was an error creating the postgres schema.' + err.stack));
       },
       success: function success() {
         return exits.success();

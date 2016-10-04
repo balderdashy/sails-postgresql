@@ -91,7 +91,7 @@ module.exports = require('machine').build({
       })
       .exec({
         error: function error(err) {
-          return done(err);
+          return done(new Error('There was an error spawing a connection from the pool.' + err.stack));
         },
         success: function success(connection) {
           return done(null, connection);
@@ -110,7 +110,7 @@ module.exports = require('machine').build({
       })
       .exec(function execCb(err, report) {
         if (err) {
-          return done(err);
+          return done(new Error('There was an error with the query used to define the table.' + err.stack));
         }
 
         return done(null, report.result.rows);
@@ -139,10 +139,10 @@ module.exports = require('machine').build({
         schemaName: schemaName
       }).exec({
         error: function error(err) {
-          return done(err);
+          return done(new Error('There was an error creating the schema name.' + err.stack));
         },
         badConnection: function badConnection(err) {
-          return done(err);
+          return done(new Error('There was an error connecting to the database.' + err.stack));
         },
         success: function success() {
           return done();
@@ -201,7 +201,7 @@ module.exports = require('machine').build({
         connection: connection
       }).exec({
         error: function error(err) {
-          return done(err);
+          return done(new Error('There was an error releasing the connection back into the pool.' + err.stack));
         },
         badConnection: function badConnection() {
           return done(new Error('Bad connection when trying to release an active connection.'));

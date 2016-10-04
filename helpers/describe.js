@@ -133,7 +133,7 @@ module.exports = require('machine').build({
       })
       .exec({
         error: function error(err) {
-          return done(err);
+          return done(new Error('There was an error spawning a connection from the pool.' + err.stack));
         },
         success: function success(connection) {
           return done(null, connection);
@@ -152,7 +152,7 @@ module.exports = require('machine').build({
       })
       .exec(function execCb(err, report) {
         if (err) {
-          return done(err);
+          return done(new Error('There was an error with a query used to describe the database.' + err.stack));
         }
 
         return done(null, report.result.rows);
@@ -168,7 +168,7 @@ module.exports = require('machine').build({
         connection: connection
       }).exec({
         error: function error(err) {
-          return done(err);
+          return done(new Error('There was an error releasing the connection back into the pool.' + err.stack));
         },
         badConnection: function badConnection() {
           return done(new Error('Bad connection when trying to release an active connection.'));

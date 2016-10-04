@@ -91,7 +91,7 @@ module.exports = require('machine').build({
       })
       .exec({
         error: function error(err) {
-          return done(err);
+          return done(new Error('Failed to spawn a connection from the pool.' + err.stack));
         },
         success: function success(connection) {
           return done(null, connection);
@@ -124,7 +124,7 @@ module.exports = require('machine').build({
       })
       .exec(function execCb(err, report) {
         if (err) {
-          return done(err);
+          return done(new Error('There was an issue running the native query for adding an attribute.' + err.stack));
         }
 
         return done(null, report.result.rows);
@@ -139,7 +139,7 @@ module.exports = require('machine').build({
         connection: connection
       }).exec({
         error: function error(err) {
-          return done(err);
+          return done(new Error('There was an error releasing the connection from the pool.' + err.stack));
         },
         badConnection: function badConnection() {
           return done(new Error('Bad connection when trying to release an active connection.'));
@@ -204,7 +204,7 @@ module.exports = require('machine').build({
           definition: inputs.definition
         }).execSync();
       } catch (e) {
-        return exits.error(e);
+        return exits.error(new Error('There was an error building a schema object.' + e.stack));
       }
 
       // Build Query

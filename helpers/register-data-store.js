@@ -120,13 +120,13 @@ module.exports = require('machine').build({
     })
     .exec({
       error: function error(err) {
-        return exits.error(err);
+        return exits.error(new Error('There was an error creating a new manager for the connection with a url of: ' + inputs.config.url + '\n\n' + err.stack));
       },
       failed: function failed(err) {
-        return exits.badConfiguration(err);
+        return exits.badConfiguration(new Error('There was an error creating a new manager for the connection with a url of: ' + inputs.config.url + '\n\n' + err.stack));
       },
       malformed: function malformed(err) {
-        return exits.badConfiguration(err);
+        return exits.badConfiguration(new Error('There was an error creating a new manager for the connection with a url of: ' + inputs.config.url + '\n\n' + err.stack));
       },
       success: function success(report) {
         // Build up a database schema for this connection that can be used

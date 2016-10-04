@@ -104,7 +104,7 @@ module.exports = require('machine').build({
         criteria: inputs.criteria
       }).execSync();
     } catch (e) {
-      return exits.error(e);
+      return exits.error(new Error('There was an error converting the Waterline Query into a Waterline Statement.' + e.stack));
     }
 
 
@@ -135,7 +135,7 @@ module.exports = require('machine').build({
       })
       .exec({
         error: function error(err) {
-          return done(err);
+          return done(new Error('There was an error compiling the statment into a query.' + err.stack));
         },
         success: function success(report) {
           return done(null, report.nativeQuery);
@@ -153,7 +153,7 @@ module.exports = require('machine').build({
       })
       .exec({
         error: function error(err) {
-          return done(err);
+          return done(new Error('There was an error spawning a new connection from the pool.' + err.stack));
         },
         success: function success(connection) {
           return done(null, connection);
@@ -170,7 +170,7 @@ module.exports = require('machine').build({
         connection: connection
       }).exec({
         error: function error(err) {
-          return done(err);
+          return done(new Error('There was an error releasing the connection back into the pool.' + err.stack));
         },
         badConnection: function badConnection() {
           return done(new Error('Bad connection when trying to release an active connection.'));
@@ -195,7 +195,7 @@ module.exports = require('machine').build({
       .exec({
         // The runQuery helper will automatically release the connection on error.
         error: function error(err) {
-          done(err);
+          done(new Error('There was an error running the Select query.' + err.stack));
         },
         success: function success(report) {
           releaseConnection(connection, function cb() {
