@@ -473,10 +473,15 @@ module.exports = require('machine').build({
               //  ╔═╗╔═╗╔═╗╔╦╗  ┬  ┬┌─┐┬  ┬ ┬┌─┐┌─┐
               //  ║  ╠═╣╚═╗ ║   └┐┌┘├─┤│  │ │├┤ └─┐
               //  ╚═╝╩ ╩╚═╝ ╩    └┘ ┴ ┴┴─┘└─┘└─┘└─┘
-              var castResults = Helpers.normalizeValues({
-                schema: dbSchema,
-                records: insertedRecords
-              }).execSync();
+              var castResults;
+              try {
+                castResults = Helpers.normalizeValues({
+                  schema: dbSchema,
+                  records: insertedRecords
+                }).execSync();
+              } catch (e) {
+                return exits.error(new Error('There was an error normalizing the insert values.' + e.stack));
+              }
 
               // Only return the first record (there should only ever be one)
               return exits.success({ record: _.first(castResults) });
