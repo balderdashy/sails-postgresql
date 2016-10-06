@@ -151,14 +151,14 @@ module.exports = require('machine').build({
         });
 
         // Store the connection
-        inputs.datastores[inputs.config.identity] = {
+        inputs.datastores[inputs.identity] = {
           manager: report.manager,
           config: inputs.config,
           driver: PG
         };
 
         // Store the db schema for the connection
-        inputs.modelDefinitions[inputs.config.identity] = dbSchema;
+        inputs.modelDefinitions[inputs.identity] = dbSchema;
 
         return exits.success();
       }
