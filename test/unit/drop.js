@@ -16,7 +16,7 @@ describe('Unit Tests ::', function() {
 
 
     it('should remove a table from the database', function(done) {
-      Adapter.drop('test', 'test_drop', function dropCb(err) {
+      Adapter.drop('test', 'test_drop', [], function dropCb(err) {
         assert(!err);
 
         Adapter.describe('test', 'test_drop', function describeCb(err, result) {
