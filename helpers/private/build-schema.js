@@ -24,7 +24,7 @@ module.exports = require('machine').build({
   inputs: {
 
     definition: {
-      description: 'The schema definition to use for the query.',
+      description: 'The model definition to use for the query.',
       required: true,
       example: {}
     }

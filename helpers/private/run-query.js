@@ -87,7 +87,7 @@ module.exports = require('machine').build({
         error: function error(err) {
           return done(err);
         },
-        badConnection: function badConnection() {
+        badConnection: function badConnection(err) {
           return done(err);
         },
         success: function success() {
@@ -123,17 +123,17 @@ module.exports = require('machine').build({
             nativeQueryError: report.error
           }).execSync();
         } catch (e) {
-          parsedError = report.error;
+          releaseConnection(inputs.connection, function cb() {
+            return exits.error(e);
+          });
+          return;
         }
 
         // If the catch all error was used, return an error instance instead of
         // the footprint.
         var catchAllError = false;
-        if (!parsedError.footprint) {
-          catchAllError = true;
-        }
 
-        if (parsedError.footprint && parsedError.footprint.identity && parsedError.footprint.identity === 'catchall') {
+        if (parsedError.footprint.identity === 'catchall') {
           catchAllError = true;
         }
 
