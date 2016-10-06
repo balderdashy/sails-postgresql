@@ -58,8 +58,7 @@ module.exports = require('machine').build({
 
   fn: function createNamespace(inputs, exits) {
     var PG = require('machinepack-postgresql');
-    var Helpers = require('./private');
-
+    var Helpers = require('./');
 
     //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
     //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
