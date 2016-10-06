@@ -8,34 +8,21 @@ var adapter = require('../../../lib/adapter');
 
 var Support = module.exports = {};
 
-// Support.SqlOptions = {
-//   parameterized: true,
-//   caseSensitive: true,
-//   escapeCharacter: '"',
-//   casting: true,
-//   canReturnValues: true,
-//   escapeInserts: true,
-//   declareDeleteAlias: false
-// };
-
 Support.Config = {
   host: process.env.POSTGRES_1_PORT_5432_TCP_ADDR || process.env.WATERLINE_ADAPTER_TESTS_HOST || 'localhost',
-  user: process.env.POSTGRES_ENV_POSTGRES_USER || process.env.WATERLINE_ADAPTER_TESTS_USER || 'sails',
-  password: process.env.POSTGRES_ENV_POSTGRES_PASSWORD || process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || 'sails',
+  user: process.env.POSTGRES_ENV_POSTGRES_USER || process.env.WATERLINE_ADAPTER_TESTS_USER || 'particlebanana',
+  password: process.env.POSTGRES_ENV_POSTGRES_PASSWORD || process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || '',
   database: process.env.POSTGRES_ENV_POSTGRES_DB || process.env.WATERLINE_ADAPTER_TESTS_DATABASE || 'sailspg',
   port: process.env.POSTGRES_PORT_5432_TCP_PORT || process.env.WATERLINE_ADAPTER_TESTS_PORT || 5432
 };
 
-// Fixture Collection Def
-Support.Collection = function collection(name, def) {
-  var schemaDef = {};
-  schemaDef[name] = Support.Schema(name, def);
+// Fixture Model Def
+Support.Model = function model(name, def) {
   return {
     identity: name,
     tableName: name,
     connection: 'test',
-    definition: def || Support.Definition,
-    waterline: { schema: schemaDef }
+    definition: def || Support.Definition
   };
 };
 
@@ -46,23 +33,13 @@ Support.Definition = {
   id: {
     type: 'integer',
     autoIncrement: true,
-    defaultsTo: 'AUTO_INCREMENT',
     primaryKey: true
   }
 };
 
-Support.Schema = function schema(name, def) {
-  return {
-    connection: 'test',
-    identity: name,
-    tableName: name,
-    attributes: def || Support.Definition
-  };
-};
-
 // Register and Define a Collection
 Support.Setup = function setup(tableName, cb) {
-  var collection = Support.Collection(tableName);
+  var collection = Support.Model(tableName);
   var collections = {};
   collections[tableName] = collection;
 
@@ -83,7 +60,7 @@ Support.registerConnection = function registerConnection(tableNames, cb) {
   var collections = {};
 
   _.each(tableNames, function processTable(name) {
-    var collection = Support.Collection(name);
+    var collection = Support.Model(name);
     collections[name] = collection;
   });
 
@@ -95,7 +72,7 @@ Support.registerConnection = function registerConnection(tableNames, cb) {
 
 // Remove a table and destroy the manager
 Support.Teardown = function teardown(tableName, cb) {
-  var manager = adapter._datastores[_.first(_.keys(adapter._datastores))].manager;
+  var manager = adapter.datastores[_.first(_.keys(adapter.datastores))].manager;
   PG.getConnection({
     manager: manager,
     meta: Support.Config
@@ -120,7 +97,7 @@ Support.Teardown = function teardown(tableName, cb) {
           return cb(err);
         }
 
-        delete adapter._datastores[_.first(_.keys(adapter._datastores))];
+        delete adapter.datastores[_.first(_.keys(adapter.datastores))];
         return cb();
       });
     });
@@ -129,7 +106,7 @@ Support.Teardown = function teardown(tableName, cb) {
 
 // Seed a record to use for testing
 Support.Seed = function seed(tableName, cb) {
-  var manager = adapter._datastores[_.first(_.keys(adapter._datastores))].manager;
+  var manager = adapter.datastores[_.first(_.keys(adapter.datastores))].manager;
   PG.getConnection({
     manager: manager,
     meta: Support.Config
