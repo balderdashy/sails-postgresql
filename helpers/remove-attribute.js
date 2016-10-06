@@ -72,10 +72,10 @@ module.exports = require('machine').build({
     // by query basis using the meta input or configured on the datastore. Default
     // to use the public schema.
     var schemaName = 'public';
-    if (inputs.meta && inputs.meta.schema) {
-      schemaName = inputs.meta.schema;
-    } else if (inputs.datastore.config && inputs.datastore.config.schema) {
-      schemaName = inputs.datastore.config.schema;
+    if (inputs.meta && inputs.meta.schemaName) {
+      schemaName = inputs.meta.schemaName;
+    } else if (inputs.datastore.config && inputs.datastore.config.schemaName) {
+      schemaName = inputs.datastore.config.schemaName;
     }
 
 
