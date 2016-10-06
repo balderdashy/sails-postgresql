@@ -30,8 +30,8 @@ module.exports = require('machine').build({
 
   inputs: {
 
-    model: {
-      description: 'The Waterline model for a table.',
+    definition: {
+      description: 'The Waterline model definition for a table.',
       required: true,
       readOnly: true,
       example: '==='
@@ -53,13 +53,8 @@ module.exports = require('machine').build({
   fn: function findPrimaryKey(inputs, exits) {
     var _ = require('lodash');
 
-    var definition = inputs.model.definition;
-    if (!definition) {
-      return exits.error(new Error('Invalid Model, missing definition object.'));
-    }
-
     // Look for an attribute that has a primaryKey flag on it
-    var pk = _.findKey(definition, function find(val) {
+    var pk = _.findKey(inputs.definition, function find(val) {
       if (_.has(val, 'primaryKey')) {
         return true;
       }
