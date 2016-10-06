@@ -1,9 +1,9 @@
-//  ███╗   ██╗ ██████╗ ██████╗ ███╗   ███╗ █████╗ ██╗     ██╗███████╗███████╗
-//  ████╗  ██║██╔═══██╗██╔══██╗████╗ ████║██╔══██╗██║     ██║╚══███╔╝██╔════╝
-//  ██╔██╗ ██║██║   ██║██████╔╝██╔████╔██║███████║██║     ██║  ███╔╝ █████╗
-//  ██║╚██╗██║██║   ██║██╔══██╗██║╚██╔╝██║██╔══██║██║     ██║ ███╔╝  ██╔══╝
-//  ██║ ╚████║╚██████╔╝██║  ██║██║ ╚═╝ ██║██║  ██║███████╗██║███████╗███████╗
-//  ╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚══════╝
+//  ██╗   ██╗███╗   ██╗███████╗███████╗██████╗ ██╗ █████╗ ██╗     ██╗███████╗███████╗
+//  ██║   ██║████╗  ██║██╔════╝██╔════╝██╔══██╗██║██╔══██╗██║     ██║╚══███╔╝██╔════╝
+//  ██║   ██║██╔██╗ ██║███████╗█████╗  ██████╔╝██║███████║██║     ██║  ███╔╝ █████╗
+//  ██║   ██║██║╚██╗██║╚════██║██╔══╝  ██╔══██╗██║██╔══██║██║     ██║ ███╔╝  ██╔══╝
+//  ╚██████╔╝██║ ╚████║███████║███████╗██║  ██║██║██║  ██║███████╗██║███████╗███████╗
+//   ╚═════╝ ╚═╝  ╚═══╝╚══════╝╚══════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚══════╝
 //
 //  ██╗   ██╗ █████╗ ██╗     ██╗   ██╗███████╗███████╗
 //  ██║   ██║██╔══██╗██║     ██║   ██║██╔════╝██╔════╝
@@ -12,14 +12,16 @@
 //   ╚████╔╝ ██║  ██║███████╗╚██████╔╝███████╗███████║
 //    ╚═══╝  ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚══════╝╚══════╝
 //
+// Given a model schema unserialize any values returned from the database into
+// values suitable for Waterline.
 
 module.exports = require('machine').build({
 
 
-  friendlyName: 'Normalize Values',
+  friendlyName: 'Unserialize Values',
 
 
-  description: 'Based on the model schema, normalize and cast the values.',
+  description: 'Based on the model schema, cast the values into proper types.',
 
 
   cacheable: true,
@@ -30,8 +32,8 @@ module.exports = require('machine').build({
 
   inputs: {
 
-    schema: {
-      description: 'The model schema from Waterline',
+    definition: {
+      description: 'The model definition from Waterline',
       required: true,
       readOnly: true,
       example: '==='
@@ -57,7 +59,7 @@ module.exports = require('machine').build({
   },
 
 
-  fn: function normalizeValues(inputs, exits) {
+  fn: function unserializeValues(inputs, exits) {
     var _ = require('lodash');
 
     // Ensure the records are an array
@@ -74,7 +76,7 @@ module.exports = require('machine').build({
     // Currently only ARRAY types are castable. This is because they are stored
     // as JSON encoded strings in the database.
     var castable = [];
-    _.forEach(inputs.schema.attributes, function schemaCheck(val, key) {
+    _.each(inputs.definition, function schemaCheck(val, key) {
       var type;
       if (!_.isPlainObject(val)) {
         type = val;
@@ -83,6 +85,11 @@ module.exports = require('machine').build({
       }
 
       if (type.toLowerCase() === 'array') {
+        // Check if a column name is being used
+        if (_.has(val, 'columnName')) {
+          key = val.columnName;
+        }
+
         castable.push(key);
       }
     });
