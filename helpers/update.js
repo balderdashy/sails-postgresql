@@ -414,6 +414,20 @@ module.exports = require('machine').build({
     // query using the primary key of the table. Then the update query is ran and
     // then the built query is ran to get the results of the update.
     var updateAndFind = function updateAndFind(connection, done) {
+      // Find the Primary Key field in the model
+      var primaryKeyField;
+      try {
+        primaryKeyField = Helpers.findPrimaryKey({
+          definition: model.definition
+        }).execSync();
+      } catch (e) {
+        return done(new Error('Error determining Primary Key to use.' + e.stack));
+      }
+
+      // Return the values of the primary key field
+      findStatement.returning = primaryKeyField;
+      updateStatement.returning = primaryKeyField;
+
       // Compile the FIND statement
       compileStatement(findStatement, function cb(err, findQuery) {
         if (err) {
