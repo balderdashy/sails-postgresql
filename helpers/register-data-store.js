@@ -24,6 +24,12 @@ module.exports = require('machine').build({
 
   inputs: {
 
+    identity: {
+      description: 'A unique identitifer for the connection.',
+      example: 'localPostgres',
+      required: true
+    },
+
     config: {
       description: 'The configuration to use for the data store.',
       required: true,
@@ -63,7 +69,7 @@ module.exports = require('machine').build({
     var PG = require('machinepack-postgresql');
 
     // Validate that the datastore isn't already initialized
-    if (inputs.datastores[inputs.config.identity]) {
+    if (inputs.datastores[inputs.identity]) {
       return exits.badConfiguration(new Error('Connection config is already registered.'));
     }
 
@@ -73,11 +79,6 @@ module.exports = require('machine').build({
     // If a URL config value was not given, ensure that all the various pieces
     // needed to create one exist.
     var hasURL = _.has(inputs.config, 'url');
-
-    // Validate that the connection has an identity property
-    if (!inputs.config.identity) {
-      return exits.badConfiguration(new Error('Connection config is missing an identity.'));
-    }
 
     // Validate that the connection has a host and database property
     if (!hasURL && !inputs.config.host) {
