@@ -46,7 +46,13 @@ module.exports = require('machine').build({
     values: {
       description: 'The values to set on the matching records.',
       required: true,
-      readOnly: true,
+      example: '==='
+    },
+
+    meta: {
+      friendlyName: 'Meta (custom)',
+      description: 'Additional stuff to pass to the driver.',
+      extendedDescription: 'This is reserved for custom driver-specific extensions.',
       example: '==='
     }
 
@@ -88,17 +94,32 @@ module.exports = require('machine').build({
       return exits.invalidDatastore();
     }
 
-    // Default the postgres schemaName to "public"
-    var schemaName = 'public';
 
-    // Check if a schemaName was manually defined
-    if (model.meta && model.meta.schemaName) {
-      schemaName = model.meta.schemaName;
+    //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ┌─┐┌─┐┬─┐  ┌─┐  ┌─┐┌─┐  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
+    //  ║  ╠═╣║╣ ║  ╠╩╗  ├┤ │ │├┬┘  ├─┤  ├─┘│ ┬  └─┐│  ├─┤├┤ │││├─┤
+    //  ╚═╝╩ ╩╚═╝╚═╝╩ ╩  └  └─┘┴└─  ┴ ┴  ┴  └─┘  └─┘└─┘┴ ┴└─┘┴ ┴┴ ┴
+    // This is a unique feature of Postgres. It may be passed in on a query
+    // by query basis using the meta input or configured on the datastore. Default
+    // to use the public schema.
+    var schemaName = 'public';
+    if (inputs.meta && inputs.meta.schema) {
+      schemaName = inputs.meta.schema;
+    } else if (inputs.datastore.config && inputs.datastore.config.schema) {
+      schemaName = inputs.datastore.config.schema;
     }
 
-    var dbSchema = inputs.datastore.dbSchema && inputs.datastore.dbSchema[inputs.tableName];
-    if (!dbSchema) {
-      return exits.invalidDatastore();
+
+    //  ╔═╗╔═╗╦═╗╦╔═╗╦  ╦╔═╗╔═╗  ┬  ┬┌─┐┬  ┬ ┬┌─┐┌─┐
+    //  ╚═╗║╣ ╠╦╝║╠═╣║  ║╔═╝║╣   └┐┌┘├─┤│  │ │├┤ └─┐
+    //  ╚═╝╚═╝╩╚═╩╩ ╩╩═╝╩╚═╝╚═╝   └┘ ┴ ┴┴─┘└─┘└─┘└─┘
+    // Ensure that all the values being stored are valid for the database.
+    var serializedValues;
+    try {
+      serializedValues = Helpers.serializeValues({
+        records: inputs.values
+      }).execSync();
+    } catch (e) {
+      return exits.error(new Error('There was an error serializing the insert values.' + e.stack));
     }
 
 
@@ -116,8 +137,13 @@ module.exports = require('machine').build({
         model: inputs.tableName,
         method: 'update',
         criteria: inputs.criteria,
-        values: inputs.values
+        values: serializedValues
       }).execSync();
+
+      // Add the postgres schema object to the statement
+      updateStatement.opts = {
+        schema: schemaName
+      };
     } catch (e) {
       return exits.error(new Error('The Waterline Query failed to convert into a Waterline Statement.' + e.stack));
     }
@@ -130,6 +156,11 @@ module.exports = require('machine').build({
         method: 'find',
         criteria: inputs.criteria
       }).execSync();
+
+      // Add the postgres schema object to the statement
+      findStatement.opts = {
+        schema: schemaName
+      };
     } catch (e) {
       return exits.error(new Error('The Waterline Query failed to convert into a Waterline Statement.' + e.stack));
     }
@@ -311,7 +342,7 @@ module.exports = require('machine').build({
       var primaryKey;
       try {
         primaryKey = Helpers.findPrimaryKey({
-          model: model
+          definition: model.definition
         }).execSync();
       } catch (e) {
         return done(new Error('Error determining Primary Key to use.' + e.stack));
@@ -325,6 +356,11 @@ module.exports = require('machine').build({
         select: ['*'],
         from: inputs.tableName,
         where: {}
+      };
+
+      // Add the postgres schema object to the statement
+      criteriaStatement.opts = {
+        schema: schemaName
       };
 
       // Insert dynamic primary key value into query
@@ -473,8 +509,8 @@ module.exports = require('machine').build({
           //  ╔═╗╔═╗╔═╗╔╦╗  ┬  ┬┌─┐┬  ┬ ┬┌─┐┌─┐
           //  ║  ╠═╣╚═╗ ║   └┐┌┘├─┤│  │ │├┤ └─┐
           //  ╚═╝╩ ╩╚═╝ ╩    └┘ ┴ ┴┴─┘└─┘└─┘└─┘
-          var castResults = Helpers.normalizeValues({
-            schema: dbSchema,
+          var castResults = Helpers.unserializeValues({
+            definition: model.definition,
             records: updatedRecords
           }).execSync();
 

@@ -35,6 +35,13 @@ module.exports = require('machine').build({
       description: 'The name of the attribute to remove.',
       required: true,
       example: 'name'
+    },
+
+    meta: {
+      friendlyName: 'Meta (custom)',
+      description: 'Additional stuff to pass to the driver.',
+      extendedDescription: 'This is reserved for custom driver-specific extensions.',
+      example: '==='
     }
 
   },
@@ -58,11 +65,18 @@ module.exports = require('machine').build({
     var Helpers = require('./private');
 
 
-    // Find the model in the datastore
-    var model = inputs.datastore.models[inputs.tableName];
-
-    // Determine a schema name
-    var schemaName = model.meta && model.meta.schemaName || 'public';
+    //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ┌─┐┌─┐┬─┐  ┌─┐  ┌─┐┌─┐  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
+    //  ║  ╠═╣║╣ ║  ╠╩╗  ├┤ │ │├┬┘  ├─┤  ├─┘│ ┬  └─┐│  ├─┤├┤ │││├─┤
+    //  ╚═╝╩ ╩╚═╝╚═╝╩ ╩  └  └─┘┴└─  ┴ ┴  ┴  └─┘  └─┘└─┘┴ ┴└─┘┴ ┴┴ ┴
+    // This is a unique feature of Postgres. It may be passed in on a query
+    // by query basis using the meta input or configured on the datastore. Default
+    // to use the public schema.
+    var schemaName = 'public';
+    if (inputs.meta && inputs.meta.schema) {
+      schemaName = inputs.meta.schema;
+    } else if (inputs.datastore.config && inputs.datastore.config.schema) {
+      schemaName = inputs.datastore.config.schema;
+    }
 
 
     //  ███╗   ██╗ █████╗ ███╗   ███╗███████╗██████╗

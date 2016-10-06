@@ -12,7 +12,7 @@ module.exports = require('machine').build({
   friendlyName: 'Describe',
 
 
-  description: 'Describe a table and update the model schema in the related data store.',
+  description: 'Describe a table in the related data store.',
 
 
   inputs: {
@@ -28,6 +28,13 @@ module.exports = require('machine').build({
       description: 'The name of the table to describe.',
       required: true,
       example: 'users'
+    },
+
+    meta: {
+      friendlyName: 'Meta (custom)',
+      description: 'Additional stuff to pass to the driver.',
+      extendedDescription: 'This is reserved for custom driver-specific extensions.',
+      example: '==='
     }
 
   },
@@ -58,6 +65,20 @@ module.exports = require('machine').build({
 
     // Build an object for holding information about the schema
     var dbSchema = {};
+
+
+    //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ┌─┐┌─┐┬─┐  ┌─┐  ┌─┐┌─┐  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
+    //  ║  ╠═╣║╣ ║  ╠╩╗  ├┤ │ │├┬┘  ├─┤  ├─┘│ ┬  └─┐│  ├─┤├┤ │││├─┤
+    //  ╚═╝╩ ╩╚═╝╚═╝╩ ╩  └  └─┘┴└─  ┴ ┴  ┴  └─┘  └─┘└─┘┴ ┴└─┘┴ ┴┴ ┴
+    // This is a unique feature of Postgres. It may be passed in on a query
+    // by query basis using the meta input or configured on the datastore. Default
+    // to use the public schema.
+    var schemaName = 'public';
+    if (inputs.meta && inputs.meta.schema) {
+      schemaName = inputs.meta.schema;
+    } else if (inputs.datastore.config && inputs.datastore.config.schema) {
+      schemaName = inputs.datastore.config.schema;
+    }
 
 
     //   ██████╗ ██╗   ██╗███████╗██████╗ ██╗███████╗███████╗

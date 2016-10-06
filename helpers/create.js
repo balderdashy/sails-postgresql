@@ -42,6 +42,13 @@ module.exports = require('machine').build({
       required: true,
       readOnly: true,
       example: '==='
+    },
+
+    meta: {
+      friendlyName: 'Meta (custom)',
+      description: 'Additional stuff to pass to the driver.',
+      extendedDescription: 'This is reserved for custom driver-specific extensions.',
+      example: '==='
     }
 
   },
@@ -82,17 +89,18 @@ module.exports = require('machine').build({
       return exits.invalidDatastore();
     }
 
-    // Default the postgres schemaName to "public"
+
+    //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ┌─┐┌─┐┬─┐  ┌─┐  ┌─┐┌─┐  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
+    //  ║  ╠═╣║╣ ║  ╠╩╗  ├┤ │ │├┬┘  ├─┤  ├─┘│ ┬  └─┐│  ├─┤├┤ │││├─┤
+    //  ╚═╝╩ ╩╚═╝╚═╝╩ ╩  └  └─┘┴└─  ┴ ┴  ┴  └─┘  └─┘└─┘┴ ┴└─┘┴ ┴┴ ┴
+    // This is a unique feature of Postgres. It may be passed in on a query
+    // by query basis using the meta input or configured on the datastore. Default
+    // to use the public schema.
     var schemaName = 'public';
-
-    // Check if a schemaName was manually defined
-    if (model.meta && model.meta.schemaName) {
-      schemaName = model.meta.schemaName;
-    }
-
-    var dbSchema = inputs.datastore.dbSchema && inputs.datastore.dbSchema[inputs.tableName];
-    if (!dbSchema) {
-      return exits.invalidDatastore();
+    if (inputs.meta && inputs.meta.schema) {
+      schemaName = inputs.meta.schema;
+    } else if (inputs.datastore.config && inputs.datastore.config.schema) {
+      schemaName = inputs.datastore.config.schema;
     }
 
 
@@ -128,6 +136,20 @@ module.exports = require('machine').build({
     });
 
 
+    //  ╔═╗╔═╗╦═╗╦╔═╗╦  ╦╔═╗╔═╗  ┬─┐┌─┐┌─┐┌─┐┬─┐┌┬┐
+    //  ╚═╗║╣ ╠╦╝║╠═╣║  ║╔═╝║╣   ├┬┘├┤ │  │ │├┬┘ ││
+    //  ╚═╝╚═╝╩╚═╩╩ ╩╩═╝╩╚═╝╚═╝  ┴└─└─┘└─┘└─┘┴└──┴┘
+    // Ensure that all the values being stored are valid for the database.
+    var serializedValues;
+    try {
+      serializedValues = Helpers.serializeValues({
+        records: inputs.record
+      }).execSync();
+    } catch (e) {
+      return exits.error(new Error('There was an error serializing the insert values.' + e.stack));
+    }
+
+
     //  ╔═╗╔═╗╔╗╔╦  ╦╔═╗╦═╗╔╦╗  ┌┬┐┌─┐  ┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┐┌┌┬┐
     //  ║  ║ ║║║║╚╗╔╝║╣ ╠╦╝ ║    │ │ │  └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │
     //  ╚═╝╚═╝╝╚╝ ╚╝ ╚═╝╩╚═ ╩    ┴ └─┘  └─┘ ┴ ┴ ┴ ┴ └─┘┴ ┴└─┘┘└┘ ┴
@@ -141,8 +163,13 @@ module.exports = require('machine').build({
       statement = Converter.convert({
         model: inputs.tableName,
         method: 'create',
-        values: inputs.record
+        values: serializedValues
       }).execSync();
+
+      // Add the postgres schema object to the statement
+      statement.opts = {
+        schema: schemaName
+      };
     } catch (e) {
       return exits.error(new Error('The Waterline query could not be converted.' + e.stack));
     }
@@ -327,61 +354,61 @@ module.exports = require('machine').build({
     //  ╠╣ ║║║║ ║║  ││││└─┐├┤ ├┬┘ │ ├┤  ││  ├┬┘├┤ │  │ │├┬┘ ││└─┐
     //  ╚  ╩╝╚╝═╩╝  ┴┘└┘└─┘└─┘┴└─ ┴ └─┘─┴┘  ┴└─└─┘└─┘└─┘┴└──┴┘└─┘
     var runFindQuery = function runFindQuery(connection, insertResults, done) {
-      // Find the Primary Key field in the model
-      var primaryKey;
-      try {
-        primaryKey = Helpers.findPrimaryKey({
-          model: model
-        }).execSync();
-      } catch (e) {
-        return done(new Error('Error determining Primary Key to use.' + e.stack));
-      }
-
-      // Build up a criteria statement to run
-      var criteriaStatement = {
-        select: ['*'],
-        from: inputs.tableName,
-        where: {}
-      };
-
-      // Insert dynamic primary key value into query
-      criteriaStatement.where[primaryKey] = {
-        in: insertResults.inserted
-      };
-
-      // Build an IN query from the results of the insert query
-      PG.compileStatement({
-        statement: criteriaStatement
-      }).exec({
-        error: function error(err) {
-          return done(new Error('There was an error compiling the statement into a query.' + err.stack));
-        },
-        success: function success(report) {
-          // Run the FIND query
-          Helpers.runQuery({
-            connection: connection,
-            nativeQuery: report.nativeQuery,
-            queryType: 'select',
-            disconnectOnError: false
-          }).exec({
-            // Rollback the transaction and release the connection on error.
-            error: function error(err) {
-              Helpers.rollbackAndRelease({
-                connection: connection
-              }).exec({
-                error: function error() {
-                  return done(new Error('There was an error rolling back and releasing the connection' + err.stack));
-                },
-                success: function success() {
-                  return done(new Error('There was an error running the query.' + err.stack));
-                }
-              });
-            },
-            success: function success(report) {
-              return done(null, report.result);
-            }
-          });
+      // Find the Primary Key field for the model
+      findPrimaryKey(function cb(err, pk) {
+        if (err) {
+          return done(err);
         }
+
+        // Build up a criteria statement to run
+        var criteriaStatement = {
+          select: ['*'],
+          from: inputs.tableName,
+          where: {},
+          opts: {
+            schema: schemaName
+          }
+        };
+
+        // Insert dynamic primary key value into query
+        criteriaStatement.where[pk] = {
+          in: insertResults.inserted
+        };
+
+        // Build an IN query from the results of the insert query
+        PG.compileStatement({
+          statement: criteriaStatement
+        }).exec({
+          error: function error(err) {
+            return done(new Error('There was an error compiling the statement into a query.' + err.stack));
+          },
+          success: function success(report) {
+            // Run the FIND query
+            Helpers.runQuery({
+              connection: connection,
+              nativeQuery: report.nativeQuery,
+              queryType: 'select',
+              disconnectOnError: false
+            }).exec({
+              // Rollback the transaction and release the connection on error.
+              error: function error(err) {
+                Helpers.rollbackAndRelease({
+                  connection: connection
+                }).exec({
+                  error: function error() {
+                    return done(new Error('There was an error rolling back and releasing the connection' + err.stack));
+                  },
+                  success: function success() {
+                    return done(new Error('There was an error running the query.' + err.stack));
+                  }
+                });
+              },
+              success: function success(report) {
+                return done(null, report.result);
+              }
+            });
+          }
+        });
       });
     };
 
@@ -518,8 +545,8 @@ module.exports = require('machine').build({
               //  ╚═╝╩ ╩╚═╝ ╩    └┘ ┴ ┴┴─┘└─┘└─┘└─┘
               var castResults;
               try {
-                castResults = Helpers.normalizeValues({
-                  schema: dbSchema,
+                castResults = Helpers.unserializeValues({
+                  definition: model.definition,
                   records: insertedRecords
                 }).execSync();
               } catch (e) {

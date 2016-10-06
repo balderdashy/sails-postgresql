@@ -41,6 +41,13 @@ module.exports = require('machine').build({
       description: 'The Waterline criteria object to use for the query.',
       required: true,
       example: {}
+    },
+
+    meta: {
+      friendlyName: 'Meta (custom)',
+      description: 'Additional stuff to pass to the driver.',
+      extendedDescription: 'This is reserved for custom driver-specific extensions.',
+      example: '==='
     }
 
   },
@@ -74,13 +81,17 @@ module.exports = require('machine').build({
     var Helpers = require('./private');
 
 
-
-    // Default the postgres schemaName to "public"
+    //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ┌─┐┌─┐┬─┐  ┌─┐  ┌─┐┌─┐  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
+    //  ║  ╠═╣║╣ ║  ╠╩╗  ├┤ │ │├┬┘  ├─┤  ├─┘│ ┬  └─┐│  ├─┤├┤ │││├─┤
+    //  ╚═╝╩ ╩╚═╝╚═╝╩ ╩  └  └─┘┴└─  ┴ ┴  ┴  └─┘  └─┘└─┘┴ ┴└─┘┴ ┴┴ ┴
+    // This is a unique feature of Postgres. It may be passed in on a query
+    // by query basis using the meta input or configured on the datastore. Default
+    // to use the public schema.
     var schemaName = 'public';
-
-    // Check if a schemaName was manually defined
-    if (model.meta && model.meta.schemaName) {
-      schemaName = model.meta.schemaName;
+    if (inputs.meta && inputs.meta.schema) {
+      schemaName = inputs.meta.schema;
+    } else if (inputs.datastore.config && inputs.datastore.config.schema) {
+      schemaName = inputs.datastore.config.schema;
     }
 
 
@@ -99,6 +110,11 @@ module.exports = require('machine').build({
         method: 'destroy',
         criteria: inputs.criteria
       }).execSync();
+
+      // Add the postgres schema object to the statement
+      statement.opts = {
+        schema: schemaName
+      };
     } catch (e) {
       return exits.error(new Error('There was an error converting the Waterline Query into a Statement' + e.stack));
     }
