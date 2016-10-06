@@ -46,6 +46,12 @@ module.exports = require('machine').build({
       description: 'An object containing all of the data stores that have been registered.',
       required: true,
       example: '==='
+    },
+
+    modelDefinitions: {
+      description: 'An object containing all of the model definitions that have been registered.',
+      required: true,
+      example: '==='
     }
 
   },
@@ -134,49 +140,25 @@ module.exports = require('machine').build({
         // throughout the adapter
         var dbSchema = {};
 
-        _.each(inputs.models, function buildSchema(val, key) {
-          var _schema = val.waterline && val.waterline.schema && val.waterline.schema[val.identity];
-          if (!_schema) {
-            return;
-          }
+        _.each(inputs.models, function buildSchema(val) {
+          var tableName = val.tableName;
+          var definition = val.definition;
 
-          // Set defaults to ensure values are set
-          if (!_schema.attributes) {
-            _schema.attributes = {};
-          }
-
-          if (!_schema.tableName) {
-            _schema.tableName = key;
-          }
-
-          // If the connection names are't the same we don't need it in the schema
-          if (!_.includes(val.connection, inputs.config.identity)) {
-            return;
-          }
-
-          // If the tableName is different from the identity, store the tableName in the schema
-          var schemaKey = key;
-          if (_schema.tableName !== key) {
-            schemaKey = _schema.tableName;
-          }
-
-          dbSchema[schemaKey] = _schema;
+          dbSchema[tableName] = {
+            tableName: tableName,
+            definition: definition
+          };
         });
 
         // Store the connection
         inputs.datastores[inputs.config.identity] = {
           manager: report.manager,
           config: inputs.config,
-          models: inputs.models,
-          dbSchema: dbSchema,
           driver: PG
         };
 
-        // Always call describe on each individual collection table.
-        // This adds properties such as auto-increment, indexes, etc.
-        // async.map(_.keys(models), function describe(colName, cb) {
-        //   self.describe(connectionConfig.identity, colName, cb);
-        // }, cb);
+        // Store the db schema for the connection
+        inputs.modelDefinitions[inputs.config.identity] = dbSchema;
 
         return exits.success();
       }

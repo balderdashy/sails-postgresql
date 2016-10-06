@@ -27,6 +27,12 @@ module.exports = require('machine').build({
       description: 'An object containing all of the data stores that have been registered.',
       required: true,
       example: '==='
+    },
+
+    modelDefinitions: {
+      description: 'An object containing all of the model definitions that have been registered.',
+      required: true,
+      example: '==='
     }
 
   },
@@ -75,6 +81,9 @@ module.exports = require('machine').build({
       success: function success() {
         // Delete the rest of the data from the data store
         delete inputs.datastores[inputs.identity];
+
+        // Delete the model definitions
+        delete inputs.modelDefinitions[inputs.identity];
 
         return exits.success();
       }

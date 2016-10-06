@@ -56,12 +56,6 @@ module.exports = require('machine').build({
     var PG = require('machinepack-postgresql');
     var Helpers = require('./private');
 
-    // Find the model in the datastore
-    var model = inputs.datastore.models[inputs.tableName];
-
-    // Determine a schema name
-    var schemaName = model.meta && model.meta.schemaName || 'public';
-
     // Build an object for holding information about the schema
     var dbSchema = {};
 

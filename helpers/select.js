@@ -25,6 +25,12 @@ module.exports = require('machine').build({
       example: '==='
     },
 
+    models: {
+      description: 'An object containing all of the model definitions that have been registered.',
+      required: true,
+      example: '==='
+    },
+
     tableName: {
       description: 'The name of the table to search in.',
       required: true,
@@ -68,8 +74,8 @@ module.exports = require('machine').build({
     var Helpers = require('./private');
 
 
-    // Ensure that a model can be found on the datastore.
-    var model = inputs.datastore.models && inputs.datastore.models[inputs.tableName];
+    // Find the model definition
+    var model = inputs.models[inputs.tableName];
     if (!model) {
       return exits.invalidDatastore();
     }

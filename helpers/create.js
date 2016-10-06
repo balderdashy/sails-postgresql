@@ -25,6 +25,12 @@ module.exports = require('machine').build({
       example: '==='
     },
 
+    models: {
+      description: 'An object containing all of the model definitions that have been registered.',
+      required: true,
+      example: '==='
+    },
+
     tableName: {
       description: 'The name of the table to insert the record into.',
       required: true,
@@ -70,9 +76,8 @@ module.exports = require('machine').build({
     var Converter = require('machinepack-waterline-query-converter');
     var Helpers = require('./private');
 
-
-    // Ensure that a model can be found on the datastore.
-    var model = inputs.datastore.models && inputs.datastore.models[inputs.tableName];
+    // Find the model definition
+    var model = inputs.models[inputs.tableName];
     if (!model) {
       return exits.invalidDatastore();
     }
@@ -110,16 +115,16 @@ module.exports = require('machine').build({
     // To prevent this the sequence is updated manually whenever a record is
     // created that has any of the sequence values defined.
     var incrementSequences = [];
-    _.each(_.keys(dbSchema), function checkSequences(schemaKey) {
-      if (!_.has(dbSchema[schemaKey], 'autoIncrement')) {
+    _.each(model.definition, function checkSequences(val, key) {
+      if (!_.has(val, 'autoIncrement')) {
         return;
       }
 
-      if (_.indexOf(_.keys(inputs.record), schemaKey) < 0) {
+      if (_.indexOf(_.keys(inputs.record), key) < 0) {
         return;
       }
 
-      incrementSequences.push(schemaKey);
+      incrementSequences.push(key);
     });
 
 
@@ -207,10 +212,10 @@ module.exports = require('machine').build({
       var pk;
       try {
         pk = Helpers.findPrimaryKey({
-          model: model
+          definition: model.definition
         }).execSync();
       } catch (e) {
-        return done(new Error('Could not determine a Primary Key for the model: ' + model + '.\n\n' + e.stack));
+        return done(new Error('Could not determine a Primary Key for the model: ' + model.tableName + '.\n\n' + e.stack));
       }
 
       return done(null, pk);
