@@ -4,7 +4,7 @@
 
 var _ = require('lodash');
 var PG = require('machinepack-postgresql');
-var adapter = require('../../../lib/adapter');
+var adapter = require('../../lib/adapter');
 
 var Support = module.exports = {};
 

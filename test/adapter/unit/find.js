@@ -1,55 +1,66 @@
 var assert = require('assert');
 var _ = require('lodash');
-var Adapter = require('../../lib/adapter');
-var Support = require('./support/bootstrap');
+var Adapter = require('../../../lib/adapter');
+var Support = require('../../support/bootstrap');
 
 describe('Unit Tests ::', function() {
-  describe('Update', function() {
+  describe('Find', function() {
     // Test Setup
     before(function(done) {
-      Support.Setup('test_update', function(err) {
+      Support.Setup('test_find', function(err) {
         if (err) {
           return done(err);
         }
 
         // Seed the database with two simple records.
-        Support.Seed('test_update', done);
+        Support.Seed('test_find', done);
       });
     });
 
     after(function(done) {
-      Support.Teardown('test_update', done);
+      Support.Teardown('test_find', done);
     });
 
-    it('should update the correct record', function(done) {
-      var wlFindQuery = {
+
+    it('should select the correct record', function(done) {
+      var wlQuery = {
         where: {
           fieldA: 'foo'
         }
       };
 
-      Adapter.update('test', 'test_update', wlFindQuery, { fieldA: 'foobar' }, function(err, results) {
+      Adapter.find('test', 'test_find', wlQuery, function(err, results) {
         assert(!err);
         assert(_.isArray(results));
         assert.equal(results.length, 1);
-        assert.equal(_.first(results).fieldA, 'foobar');
+        assert.equal(_.first(results).fieldA, 'foo');
         assert.equal(_.first(results).fieldB, 'bar');
-        return done();
+
+        done();
+      });
+    });
+
+    it('should return all the records', function(done) {
+      Adapter.find('test', 'test_find', {}, function(err, results) {
+        assert(!err);
+        assert(_.isArray(results));
+        assert.equal(results.length, 2);
+        done();
       });
     });
 
     it('should be case sensitive', function(done) {
-      var wlFindQuery = {
+      var wlQuery = {
         where: {
           fieldB: 'bAr_2'
         }
       };
 
-      Adapter.update('test', 'test_update', wlFindQuery, { fieldA: 'FooBar' }, function(err, results) {
+      Adapter.find('test', 'test_find', wlQuery, function(err, results) {
         assert(!err);
         assert(_.isArray(results));
         assert.equal(results.length, 1);
-        assert.equal(_.first(results).fieldA, 'FooBar');
+        assert.equal(_.first(results).fieldA, 'foo_2');
         assert.equal(_.first(results).fieldB, 'bAr_2');
         done();
       });
@@ -61,7 +72,7 @@ describe('Unit Tests ::', function() {
       var manager = Adapter.datastores.test.manager;
       var preConnectionsAvailable = manager.pool.pool.availableObjectsCount();
 
-      Adapter.update('test', 'test_update', {}, {}, function(err) {
+      Adapter.find('test', 'test_find', {}, function(err) {
         assert(!err);
         var postConnectionsAvailable = manager.pool.pool.availableObjectsCount();
         assert.equal(preConnectionsAvailable, postConnectionsAvailable);

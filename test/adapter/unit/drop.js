@@ -1,7 +1,7 @@
 var assert = require('assert');
 var _ = require('lodash');
-var Adapter = require('../../lib/adapter');
-var Support = require('./support/bootstrap');
+var Adapter = require('../../../lib/adapter');
+var Support = require('../../support/bootstrap');
 
 describe('Unit Tests ::', function() {
   describe('Drop', function() {

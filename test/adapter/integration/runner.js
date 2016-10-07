@@ -15,7 +15,7 @@
 
 var util = require('util');
 var TestRunner = require('waterline-adapter-tests');
-var Adapter = require('../../lib/adapter');
+var Adapter = require('../../../lib/adapter');
 
 
 // Grab targeted interfaces from this adapter's `package.json` file:
@@ -24,7 +24,7 @@ var interfaces = [];
 var features = [];
 
 try {
-  package = require('../../package.json');
+  package = require('../../../package.json');
   interfaces = package.waterlineAdapter.interfaces;
   features = package.waterlineAdapter.features;
 } catch (e) {
