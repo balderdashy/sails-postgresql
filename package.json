@@ -24,17 +24,19 @@
     "waterline-errors": "0.10.1"
   },
   "devDependencies": {
+    "benchmark": "2.1.1",
     "eslint": "3.5.0",
     "espree": "3.3.0",
     "mocha": "3.0.2",
     "waterline-adapter-tests": "~0.12.1"
   },
   "scripts": {
-    "test": "node ./node_modules/mocha/bin/mocha --recursive",
-    "fasttest": "node ./node_modules/mocha/bin/mocha --recursive",
+    "test": "NODE_ENV=test node ./node_modules/mocha/bin/mocha test/adapter --recursive",
+    "fasttest": "NODE_ENV=test node ./node_modules/mocha/bin/mocha test/adapter --recursive",
     "pretest": "npm run lint",
     "lint": "eslint machines test",
-    "docker": "docker-compose run adapter bash"
+    "docker": "docker-compose run adapter bash",
+    "benchmark": "node ./node_modules/mocha/bin/mocha test/benchmarks --recursive"
   },
   "main": "lib/adapter",
   "directories": {
