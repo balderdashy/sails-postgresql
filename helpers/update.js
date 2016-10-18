@@ -115,9 +115,7 @@ module.exports = require('machine').build({
     // Ensure that all the values being stored are valid for the database.
     var serializedValues;
     try {
-      serializedValues = Helpers.serializeValues({
-        records: inputs.values
-      }).execSync();
+      serializedValues = Helpers.serializeValues(inputs.values);
     } catch (e) {
       return exits.error(new Error('There was an error serializing the insert values.' + e.stack));
     }
@@ -205,16 +203,12 @@ module.exports = require('machine').build({
     //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
     //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
     var spawnConnection = function spawnConnection(done) {
-      Helpers.spawnConnection({
-        datastore: inputs.datastore
-      })
-      .exec({
-        error: function error(err) {
-          return done(new Error('There was an error spawning a new connection from the pool.' + err.stack));
-        },
-        success: function success(connection) {
-          return done(null, connection);
+      Helpers.spawnConnection(inputs.datastore, function cb(err, connection) {
+        if (err) {
+          return done(new Error('Failed to spawn a connection from the pool.' + err.stack));
         }
+
+        return done(null, connection);
       });
     };
 
@@ -280,24 +274,19 @@ module.exports = require('machine').build({
         nativeQuery: query,
         queryType: 'select',
         disconnectOnError: false
-      })
-      .exec({
-        // Rollback the transaction and release the connection on error.
-        error: function error(err) {
-          Helpers.rollbackAndRelease({
-            connection: connection
-          }).exec({
-            error: function error() {
+      }, function _runQueryCb(err, report) {
+        if (err) {
+          Helpers.rollbackAndRelease(connection, function _rollbackAndReleaseCb(err) {
+            if (err) {
               return done(new Error('There was an error rolling back and releasing the transaction.' + err.stack));
-            },
-            success: function success() {
-              return done(new Error('There was an error running the select query.' + err.stack));
             }
+
+            return done(new Error('There was an error running the select query.' + err.stack));
           });
-        },
-        success: function success(report) {
-          return done(null, report.result);
+          return;
         }
+
+        return done(null, report.result);
       });
     };
 
@@ -311,24 +300,19 @@ module.exports = require('machine').build({
         nativeQuery: query,
         queryType: 'update',
         disconnectOnError: false
-      })
-      .exec({
-        // Rollback the transaction and release the connection on error.
-        error: function error(err) {
-          Helpers.rollbackAndRelease({
-            connection: connection
-          }).exec({
-            error: function error() {
+      }, function _runQueryCb(err, report) {
+        if (err) {
+          Helpers.rollbackAndRelease(connection, function _rollbackAndReleaseCb(err) {
+            if (err) {
               return done(new Error('There was an error rolling back and releasing the transaction.' + err.stack));
-            },
-            success: function success() {
-              return done(new Error('There was an error running the update query.' + err.stack));
             }
+
+            return done(new Error('There was an error running the select query.' + err.stack));
           });
-        },
-        success: function success(report) {
-          return done(null, report.result);
+          return;
         }
+
+        return done(null, report.result);
       });
     };
 
@@ -340,9 +324,7 @@ module.exports = require('machine').build({
       // Find the Primary Key field in the model
       var primaryKey;
       try {
-        primaryKey = Helpers.findPrimaryKey({
-          definition: model.definition
-        }).execSync();
+        primaryKey = Helpers.findPrimaryKey(model.definition);
       } catch (e) {
         return done(new Error('Error determining Primary Key to use.' + e.stack));
       }
@@ -383,23 +365,19 @@ module.exports = require('machine').build({
         nativeQuery: report.nativeQuery,
         queryType: 'select',
         disconnectOnError: false
-      }).exec({
-        // Rollback the transaction and release the connection on error.
-        error: function error(err) {
-          Helpers.rollbackAndRelease({
-            connection: connection
-          }).exec({
-            error: function error() {
+      }, function _runQueryCb(err, report) {
+        if (err) {
+          Helpers.rollbackAndRelease(connection, function _rollbackAndReleaseCb(err) {
+            if (err) {
               return done(new Error('There was an error rolling back and releasing the transaction.' + err.stack));
-            },
-            success: function success() {
-              return done(new Error('There was an error running the select query.' + err.stack));
             }
+
+            return done(new Error('There was an error running the select query.' + err.stack));
           });
-        },
-        success: function success(report) {
-          return done(null, report.result);
+          return;
         }
+
+        return done(null, report.result);
       });
     };
 
@@ -416,9 +394,7 @@ module.exports = require('machine').build({
       // Find the Primary Key field in the model
       var primaryKeyField;
       try {
-        primaryKeyField = Helpers.findPrimaryKey({
-          definition: model.definition
-        }).execSync();
+        primaryKeyField = Helpers.findPrimaryKey(model.definition);
       } catch (e) {
         return done(new Error('Error determining Primary Key to use.' + e.stack));
       }
@@ -473,16 +449,12 @@ module.exports = require('machine').build({
     //  ╚═╝╚═╝╩ ╩╩ ╩╩ ╩    ┴ ┴└─┴ ┴┘└┘└─┘┴ ┴└─┘ ┴ ┴└─┘┘└┘
     // Commit the transaction and release the connection.
     var commitTransaction = function commitTransaction(connection, done) {
-      Helpers.commitAndRelease({
-        connection: connection
-      })
-      .exec({
-        error: function error(err) {
+      Helpers.commitAndRelease(connection, function _commitAndReleaseCb(err) {
+        if (err) {
           return done(new Error('There was an error commiting the transaction.' + err.stack));
-        },
-        success: function success() {
-          return done();
         }
+
+        return done();
       });
     };
 
@@ -524,10 +496,15 @@ module.exports = require('machine').build({
           //  ╔═╗╔═╗╔═╗╔╦╗  ┬  ┬┌─┐┬  ┬ ┬┌─┐┌─┐
           //  ║  ╠═╣╚═╗ ║   └┐┌┘├─┤│  │ │├┤ └─┐
           //  ╚═╝╩ ╩╚═╝ ╩    └┘ ┴ ┴┴─┘└─┘└─┘└─┘
-          var castResults = Helpers.unserializeValues({
-            definition: model.definition,
-            records: updatedRecords
-          }).execSync();
+          var castResults;
+          try {
+            castResults = Helpers.unserializeValues({
+              definition: model.definition,
+              records: updatedRecords
+            });
+          } catch (e) {
+            return exits.error(e);
+          }
 
           return exits.success({ records: castResults });
         }); // </ .commitTransaction(); >

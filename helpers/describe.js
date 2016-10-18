@@ -143,16 +143,12 @@ module.exports = require('machine').build({
     //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
     //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
     var spawnConnection = function spawnConnection(done) {
-      Helpers.spawnConnection({
-        datastore: inputs.datastore
-      })
-      .exec({
-        error: function error(err) {
-          return done(new Error('There was an error spawning a connection from the pool.' + err.stack));
-        },
-        success: function success(connection) {
-          return done(null, connection);
+      Helpers.spawnConnection(inputs.datastore, function cb(err, connection) {
+        if (err) {
+          return done(new Error('Failed to spawn a connection from the pool.' + err.stack));
         }
+
+        return done(null, connection);
       });
     };
 

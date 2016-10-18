@@ -104,16 +104,12 @@ module.exports = require('machine').build({
     //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
     //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
     var spawnConnection = function spawnConnection(done) {
-      Helpers.spawnConnection({
-        datastore: inputs.datastore
-      })
-      .exec({
-        error: function error(err) {
+      Helpers.spawnConnection(inputs.datastore, function cb(err, connection) {
+        if (err) {
           return done(new Error('Failed to spawn a connection from the pool.' + err.stack));
-        },
-        success: function success(connection) {
-          return done(null, connection);
         }
+
+        return done(null, connection);
       });
     };
 
@@ -218,9 +214,7 @@ module.exports = require('machine').build({
       // Iterate through each attribute, building a query string
       var schema;
       try {
-        schema = Helpers.buildSchema({
-          definition: inputs.definition
-        }).execSync();
+        schema = Helpers.buildSchema(inputs.definition);
       } catch (e) {
         return exits.error(new Error('There was an error building a schema object.' + e.stack));
       }

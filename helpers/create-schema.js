@@ -57,13 +57,12 @@ module.exports = require('machine').build({
     Helpers.createNamespace({
       datastore: inputs.datastore,
       schemaName: inputs.schemaName
-    }).exec({
-      error: function error(err) {
+    }, function cb(err) {
+      if (err) {
         return exits.error(new Error('There was an error creating the postgres schema.' + err.stack));
-      },
-      success: function success() {
-        return exits.success();
       }
+
+      return exits.success();
     });
   }
 

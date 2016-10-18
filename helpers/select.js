@@ -164,16 +164,12 @@ module.exports = require('machine').build({
     //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
     //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
     var spawnConnection = function spawnConnection(done) {
-      Helpers.spawnConnection({
-        datastore: inputs.datastore
-      })
-      .exec({
-        error: function error(err) {
-          return done(new Error('There was an error spawning a new connection from the pool.' + err.stack));
-        },
-        success: function success(connection) {
-          return done(null, connection);
+      Helpers.spawnConnection(inputs.datastore, function cb(err, connection) {
+        if (err) {
+          return done(new Error('Failed to spawn a connection from the pool.' + err.stack));
         }
+
+        return done(null, connection);
       });
     };
 
@@ -221,17 +217,15 @@ module.exports = require('machine').build({
         nativeQuery: query,
         queryType: queryType,
         disconnectOnError: true
-      })
-      .exec({
+      }, function _runQueryCb(err, report) {
         // The runQuery helper will automatically release the connection on error.
-        error: function error(err) {
-          done(new Error('There was an error running the Select query.' + err.stack));
-        },
-        success: function success(report) {
-          releaseConnection(connection, function cb() {
-            return done(null, report.result);
-          });
+        if (err) {
+          return done(new Error('There was an error running the Select query.' + err.stack));
         }
+
+        releaseConnection(connection, function cb() {
+          return done(null, report.result);
+        });
       });
     };
 
@@ -274,10 +268,15 @@ module.exports = require('machine').build({
         //  ╔═╗╔═╗╔═╗╔╦╗  ┬  ┬┌─┐┬  ┬ ┬┌─┐┌─┐
         //  ║  ╠═╣╚═╗ ║   └┐┌┘├─┤│  │ │├┤ └─┐
         //  ╚═╝╩ ╩╚═╝ ╩    └┘ ┴ ┴┴─┘└─┘└─┘└─┘
-        var castResults = Helpers.unserializeValues({
-          definition: model.definition,
-          records: foundRecords
-        }).execSync();
+        var castResults;
+        try {
+          castResults = Helpers.unserializeValues({
+            definition: model.definition,
+            records: foundRecords
+          });
+        } catch (e) {
+          return exits.error(e);
+        }
 
         return exits.success({ records: castResults });
       }); // </ .runSelectQuery(); >

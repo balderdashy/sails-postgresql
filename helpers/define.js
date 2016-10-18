@@ -101,16 +101,12 @@ module.exports = require('machine').build({
     //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
     //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
     var spawnConnection = function spawnConnection(done) {
-      Helpers.spawnConnection({
-        datastore: inputs.datastore
-      })
-      .exec({
-        error: function error(err) {
-          return done(new Error('There was an error spawing a connection from the pool.' + err.stack));
-        },
-        success: function success(connection) {
-          return done(null, connection);
+      Helpers.spawnConnection(inputs.datastore, function cb(err, connection) {
+        if (err) {
+          return done(new Error('Failed to spawn a connection from the pool.' + err.stack));
         }
+
+        return done(null, connection);
       });
     };
 
@@ -152,16 +148,12 @@ module.exports = require('machine').build({
       Helpers.createNamespace({
         datastore: inputs.datastore,
         schemaName: schemaName
-      }).exec({
-        error: function error(err) {
+      }, function _createNamespaceCb(err) {
+        if (err) {
           return done(new Error('There was an error creating the schema name.' + err.stack));
-        },
-        badConnection: function badConnection(err) {
-          return done(new Error('There was an error connecting to the database.' + err.stack));
-        },
-        success: function success() {
-          return done();
         }
+
+        return done();
       });
     };
 
@@ -265,9 +257,7 @@ module.exports = require('machine').build({
         // Iterate through each attribute, building a query string
         var schema;
         try {
-          schema = Helpers.buildSchema({
-            definition: inputs.definition
-          }).execSync();
+          schema = Helpers.buildSchema(inputs.definition);
         } catch (e) {
           releaseConnection(connection, function cb() {
             return exits.error(e);

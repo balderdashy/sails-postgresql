@@ -14,58 +14,27 @@
 //
 // Instantiate a new connection from the connection manager.
 
-module.exports = require('machine').build({
+var PG = require('machinepack-postgresql');
 
-
-  friendlyName: 'Spawn Connection',
-
-
-  description: 'Grab a connection from the connection manager.',
-
-
-  inputs: {
-
-    datastore: {
-      description: 'The datastore to use for connections.',
-      extendedDescription: 'Datastores represent the config and manager required to obtain an active database connection.',
-      required: true,
-      readOnly: true,
-      example: '==='
-    }
-
-  },
-
-
-  exits: {
-
-    success: {
-      description: 'A connection was successfully spawned.',
-      outputVariableName: 'connection',
-      example: '==='
-    }
-
-  },
-
-
-  fn: function spawnConnection(inputs, exits) {
-    var PG = require('machinepack-postgresql');
-
-    PG.getConnection({
-      manager: inputs.datastore.manager,
-      meta: inputs.datastore.config
-    })
-    .exec({
-      error: function error(err) {
-        return exits.error(err);
-      },
-      failed: function failedToConnect(err) {
-        return exits.error(err);
-      },
-      success: function success(connection) {
-        return exits.success(connection.connection);
-      }
-    });
+module.exports = function spawnConnection(datastore, cb) {
+  // Validate datastore
+  if (!datastore || !datastore.manager || !datastore.config) {
+    return cb(new Error('Spawn Connection requires a valid datastore.'));
   }
 
-
-});
+  PG.getConnection({
+    manager: datastore.manager,
+    meta: datastore.config
+  })
+  .exec({
+    error: function error(err) {
+      return cb(err);
+    },
+    failed: function failedToConnect(err) {
+      return cb(err);
+    },
+    success: function success(connection) {
+      return cb(null, connection.connection);
+    }
+  });
+};
