@@ -58,10 +58,7 @@ module.exports = require('machine').build({
       error: function error(err) {
         return exits.error(err);
       },
-      malformed: function malformed(err) {
-        return exits.error(err);
-      },
-      failedToConnect: function failedToConnect(err) {
+      failed: function failedToConnect(err) {
         return exits.error(err);
       },
       success: function success(connection) {

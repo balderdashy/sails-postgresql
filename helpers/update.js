@@ -84,7 +84,7 @@ module.exports = require('machine').build({
   fn: function update(inputs, exits) {
     var _ = require('lodash');
     var PG = require('machinepack-postgresql');
-    var Converter = require('machinepack-waterline-query-converter');
+    var Converter = require('waterline-query-parser').converter;
     var Helpers = require('./private');
 
 
@@ -133,12 +133,12 @@ module.exports = require('machine').build({
     // on Waterline Query Statements.
     var updateStatement;
     try {
-      updateStatement = Converter.convert({
+      updateStatement = Converter({
         model: inputs.tableName,
         method: 'update',
         criteria: inputs.criteria,
         values: serializedValues
-      }).execSync();
+      });
 
       // Add the postgres schema object to the statement
       updateStatement.opts = {
@@ -151,11 +151,11 @@ module.exports = require('machine').build({
     // Generate a FIND statement as well that will get all the records being updated.
     var findStatement;
     try {
-      findStatement = Converter.convert({
+      findStatement = Converter({
         model: inputs.tableName,
         method: 'find',
         criteria: inputs.criteria
-      }).execSync();
+      });
 
       // Add the postgres schema object to the statement
       findStatement.opts = {
@@ -187,18 +187,17 @@ module.exports = require('machine').build({
     //  ║  ║ ║║║║╠═╝║║  ║╣   └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │
     //  ╚═╝╚═╝╩ ╩╩  ╩╩═╝╚═╝  └─┘ ┴ ┴ ┴ ┴ └─┘┴ ┴└─┘┘└┘ ┴
     // Transform the Waterline Query Statement into a SQL query.
-    var compileStatement = function compileStatement(statement, done) {
-      PG.compileStatement({
-        statement: statement
-      })
-      .exec({
-        error: function error(err) {
-          return done(new Error('The Statement failed to be compiled into a query.' + err.stack));
-        },
-        success: function success(report) {
-          return done(null, report.nativeQuery);
-        }
-      });
+    var compileStatement = function compileStatement(statement) {
+      var report;
+      try {
+        report = PG.compileStatement({
+          statement: statement
+        }).execSync();
+      } catch (e) {
+        throw new Error('The Statement failed to be compiled into a query.\n\n' + e.stack);
+      }
+
+      return report.nativeQuery;
     };
 
 
@@ -369,37 +368,37 @@ module.exports = require('machine').build({
       };
 
       // Build an IN query from the results of the find query
-      PG.compileStatement({
-        statement: criteriaStatement
+      var report;
+      try {
+        report = PG.compileStatement({
+          statement: criteriaStatement
+        }).execSync();
+      } catch (e) {
+        return done(new Error('There was an error compiling a statement into a query.' + e.stack));
+      }
+
+      // Run the FIND query
+      Helpers.runQuery({
+        connection: connection,
+        nativeQuery: report.nativeQuery,
+        queryType: 'select',
+        disconnectOnError: false
       }).exec({
+        // Rollback the transaction and release the connection on error.
         error: function error(err) {
-          return done(new Error('There was an error compiling a statement into a query.' + err.stack));
-        },
-        success: function success(report) {
-          // Run the FIND query
-          Helpers.runQuery({
-            connection: connection,
-            nativeQuery: report.nativeQuery,
-            queryType: 'select',
-            disconnectOnError: false
+          Helpers.rollbackAndRelease({
+            connection: connection
           }).exec({
-            // Rollback the transaction and release the connection on error.
-            error: function error(err) {
-              Helpers.rollbackAndRelease({
-                connection: connection
-              }).exec({
-                error: function error() {
-                  return done(new Error('There was an error rolling back and releasing the transaction.' + err.stack));
-                },
-                success: function success() {
-                  return done(new Error('There was an error running the select query.' + err.stack));
-                }
-              });
+            error: function error() {
+              return done(new Error('There was an error rolling back and releasing the transaction.' + err.stack));
             },
-            success: function success(report) {
-              return done(null, report.result);
+            success: function success() {
+              return done(new Error('There was an error running the select query.' + err.stack));
             }
           });
+        },
+        success: function success(report) {
+          return done(null, report.result);
         }
       });
     };
@@ -429,38 +428,40 @@ module.exports = require('machine').build({
       updateStatement.returning = primaryKeyField;
 
       // Compile the FIND statement
-      compileStatement(findStatement, function cb(err, findQuery) {
+      var findQuery;
+      try {
+        findQuery = compileStatement(findStatement);
+      } catch (e) {
+        return done(e);
+      }
+
+      // Run the initial FIND query
+      runFindQuery(connection, findQuery, function cb(err, findResults) {
         if (err) {
           return done(err);
         }
 
-        // Run the initial FIND query
-        runFindQuery(connection, findQuery, function cb(err, findResults) {
+        // Compile the UPDATE statement
+        var updateQuery;
+        try {
+          updateQuery = compileStatement(updateStatement);
+        } catch (e) {
+          return done(e);
+        }
+
+        // Run the UPDATE query
+        runUpdateQuery(connection, updateQuery, function cb(err) {
           if (err) {
             return done(err);
           }
 
-          // Compile the UPDATE statement
-          compileStatement(updateStatement, function cb(err, updateQuery) {
+          // Use the results from the FIND query to get the updates records
+          findUpdateResults(connection, findResults, function cb(err, queryResults) {
             if (err) {
               return done(err);
             }
 
-            // Run the UPDATE query
-            runUpdateQuery(connection, updateQuery, function cb(err) {
-              if (err) {
-                return done(err);
-              }
-
-              // Use the results from the FIND query to get the updates records
-              findUpdateResults(connection, findResults, function cb(err, queryResults) {
-                if (err) {
-                  return done(err);
-                }
-
-                return done(null, queryResults);
-              });
-            });
+            return done(null, queryResults);
           });
         });
       });

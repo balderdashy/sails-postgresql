@@ -77,7 +77,7 @@ module.exports = require('machine').build({
 
   fn: function destroy(inputs, exits) {
     var PG = require('machinepack-postgresql');
-    var Converter = require('machinepack-waterline-query-converter');
+    var Converter = require('waterline-query-parser').converter;
     var Helpers = require('./private');
 
 
@@ -105,11 +105,11 @@ module.exports = require('machine').build({
     // on Waterline Query Statements.
     var statement;
     try {
-      statement = Converter.convert({
+      statement = Converter({
         model: inputs.tableName,
         method: 'destroy',
         criteria: inputs.criteria
-      }).execSync();
+      });
 
       // Add the postgres schema object to the statement
       statement.opts = {
@@ -141,18 +141,17 @@ module.exports = require('machine').build({
     //  ║  ║ ║║║║╠═╝║║  ║╣   └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │
     //  ╚═╝╚═╝╩ ╩╩  ╩╩═╝╚═╝  └─┘ ┴ ┴ ┴ ┴ └─┘┴ ┴└─┘┘└┘ ┴
     // Transform the Waterline Query Statement into a SQL query.
-    var compileStatement = function compileStatement(done) {
-      PG.compileStatement({
-        statement: statement
-      })
-      .exec({
-        error: function error(err) {
-          return done(new Error('There was an error compiling the statement into a query.' + err.stack));
-        },
-        success: function success(report) {
-          return done(null, report.nativeQuery);
-        }
-      });
+    var compileStatement = function compileStatement() {
+      var report;
+      try {
+        report = PG.compileStatement({
+          statement: statement
+        }).execSync();
+      } catch (e) {
+        throw new Error('There was an error compiling the statement into a query.\n\n' + e.stack);
+      }
+
+      return report.nativeQuery;
     };
 
 
@@ -234,27 +233,28 @@ module.exports = require('machine').build({
     //
 
     // Compile the original Waterline Query
-    compileStatement(function cb(err, query) {
+    var query;
+    try {
+      query = compileStatement();
+    } catch (e) {
+      return exits.error(e);
+    }
+
+    // Spawn a new connection for running queries on.
+    spawnConnection(function cb(err, connection) {
       if (err) {
-        return exits.error(err);
+        return exits.badConnection(err);
       }
 
-      // Spawn a new connection for running queries on.
-      spawnConnection(function cb(err, connection) {
+      // Run the DESTROY query
+      runDestroyQuery(connection, query, function cb(err, report) {
         if (err) {
           return exits.badConnection(err);
         }
 
-        // Run the DESTROY query
-        runDestroyQuery(connection, query, function cb(err, report) {
-          if (err) {
-            return exits.badConnection(err);
-          }
-
-          return exits.success({ numRecordsDeleted: report.numRecordsDeleted });
-        }); // </ .runDestroyQuery(); >
-      }); // </ .spawnTransaction(); >
-    }); // </ .compileStatement(); >
+        return exits.success({ numRecordsDeleted: report.numRecordsDeleted });
+      }); // </ .runDestroyQuery(); >
+    }); // </ .spawnTransaction(); >
   }
 
 });

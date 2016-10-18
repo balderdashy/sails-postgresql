@@ -80,7 +80,7 @@ module.exports = require('machine').build({
     var _ = require('lodash');
     var async = require('async');
     var PG = require('machinepack-postgresql');
-    var Converter = require('machinepack-waterline-query-converter');
+    var Converter = require('waterline-query-parser').converter;
     var Helpers = require('./private');
 
     // Find the model definition
@@ -160,11 +160,11 @@ module.exports = require('machine').build({
     // on Waterline Query Statements.
     var statement;
     try {
-      statement = Converter.convert({
+      statement = Converter({
         model: inputs.tableName,
         method: 'create',
         values: serializedValues
-      }).execSync();
+      });
 
       // Add the postgres schema object to the statement
       statement.opts = {
@@ -196,56 +196,40 @@ module.exports = require('machine').build({
     //  ║  ║ ║║║║╠═╝║║  ║╣   └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │
     //  ╚═╝╚═╝╩ ╩╩  ╩╩═╝╚═╝  └─┘ ┴ ┴ ┴ ┴ └─┘┴ ┴└─┘┘└┘ ┴
     // Transform the Waterline Query Statement into a SQL query.
-    var compileStatement = function compileStatement(connection, done) {
+    var compileStatement = function compileStatement() {
       // Find the Primary Key and add a "returning" clause to the statement.
-      findPrimaryKey(function cb(err, primaryKeyField) {
-        if (err) {
-          Helpers.rollbackAndRelease({
-            connection: connection
-          }).exec({
-            error: function error() {
-              return done(new Error('There was an error rolling back the transaction.\n\n' + err.stack));
-            },
-            success: function success() {
-              return done(new Error('There was an error attempting to find the primary key of the model. The transaction has been rolled back.\n\n' + err.stack));
-            }
-          });
+      var primaryKeyField = findPrimaryKey();
 
-          return;
-        }
+      // Return the values of the primary key field
+      statement.returning = primaryKeyField;
 
-        // Return the values of the primary key field
-        statement.returning = primaryKeyField;
-
-        PG.compileStatement({
+      var report;
+      try {
+        report = PG.compileStatement({
           statement: statement
-        })
-        .exec({
-          error: function error(err) {
-            return done(new Error('There was an error compiling the Waterline Statement to a query.' + err.stack));
-          },
-          success: function success(report) {
-            return done(null, report.nativeQuery);
-          }
-        });
-      });
+        }).execSync();
+      } catch (e) {
+        throw new Error('Could not compile the statement.\n\n' + e.stack);
+      }
+
+      return report.nativeQuery;
     };
 
 
     //  ╔═╗╦╔╗╔╔╦╗  ┌─┐┬─┐┬┌┬┐┌─┐┬─┐┬ ┬  ┬┌─┌─┐┬ ┬
     //  ╠╣ ║║║║ ║║  ├─┘├┬┘││││├─┤├┬┘└┬┘  ├┴┐├┤ └┬┘
     //  ╚  ╩╝╚╝═╩╝  ┴  ┴└─┴┴ ┴┴ ┴┴└─ ┴   ┴ ┴└─┘ ┴
-    var findPrimaryKey = function findPrimaryKey(done) {
+    var findPrimaryKey = function findPrimaryKey() {
       var pk;
       try {
         pk = Helpers.findPrimaryKey({
           definition: model.definition
         }).execSync();
       } catch (e) {
-        return done(new Error('Could not determine a Primary Key for the model: ' + model.tableName + '.\n\n' + e.stack));
+        throw new Error('Could not determine a Primary Key for the model: ' + model.tableName + '.\n\n' + e.stack);
       }
 
-      return done(null, pk);
+      return pk;
     };
 
 
@@ -355,60 +339,56 @@ module.exports = require('machine').build({
     //  ╚  ╩╝╚╝═╩╝  ┴┘└┘└─┘└─┘┴└─ ┴ └─┘─┴┘  ┴└─└─┘└─┘└─┘┴└──┴┘└─┘
     var runFindQuery = function runFindQuery(connection, insertResults, done) {
       // Find the Primary Key field for the model
-      findPrimaryKey(function cb(err, pk) {
-        if (err) {
-          return done(err);
+      var pk = findPrimaryKey();
+
+      // Build up a criteria statement to run
+      var criteriaStatement = {
+        select: ['*'],
+        from: inputs.tableName,
+        where: {},
+        opts: {
+          schema: schemaName
         }
+      };
 
-        // Build up a criteria statement to run
-        var criteriaStatement = {
-          select: ['*'],
-          from: inputs.tableName,
-          where: {},
-          opts: {
-            schema: schemaName
-          }
-        };
+      // Insert dynamic primary key value into query
+      criteriaStatement.where[pk] = {
+        in: insertResults.inserted
+      };
 
-        // Insert dynamic primary key value into query
-        criteriaStatement.where[pk] = {
-          in: insertResults.inserted
-        };
-
-        // Build an IN query from the results of the insert query
-        PG.compileStatement({
+      // Build an IN query from the results of the insert query
+      var report;
+      try {
+        report = PG.compileStatement({
           statement: criteriaStatement
-        }).exec({
-          error: function error(err) {
-            return done(new Error('There was an error compiling the statement into a query.' + err.stack));
-          },
-          success: function success(report) {
-            // Run the FIND query
-            Helpers.runQuery({
-              connection: connection,
-              nativeQuery: report.nativeQuery,
-              queryType: 'select',
-              disconnectOnError: false
-            }).exec({
-              // Rollback the transaction and release the connection on error.
-              error: function error(err) {
-                Helpers.rollbackAndRelease({
-                  connection: connection
-                }).exec({
-                  error: function error() {
-                    return done(new Error('There was an error rolling back and releasing the connection' + err.stack));
-                  },
-                  success: function success() {
-                    return done(new Error('There was an error running the query.' + err.stack));
-                  }
-                });
-              },
-              success: function success(report) {
-                return done(null, report.result);
-              }
-            });
-          }
-        });
+        }).execSync();
+      } catch (e) {
+        return done(new Error('There was an error compiling the statement into a query.\n\n' + e.stack));
+      }
+
+      // Run the FIND query
+      Helpers.runQuery({
+        connection: connection,
+        nativeQuery: report.nativeQuery,
+        queryType: 'select',
+        disconnectOnError: false
+      }).exec({
+        // Rollback the transaction and release the connection on error.
+        error: function error(err) {
+          Helpers.rollbackAndRelease({
+            connection: connection
+          }).exec({
+            error: function error() {
+              return done(new Error('There was an error rolling back and releasing the connection' + err.stack));
+            },
+            success: function success() {
+              return done(new Error('There was an error running the query.' + err.stack));
+            }
+          });
+        },
+        success: function success(report) {
+          return done(null, report.result);
+        }
       });
     };
 
@@ -514,51 +494,52 @@ module.exports = require('machine').build({
       }
 
       // Compile the original Waterline Query
-      compileStatement(connection, function cb(err, query) {
+      var query;
+      try {
+        query = compileStatement();
+      } catch (e) {
+        return exits.error(e);
+      }
+
+      // Insert the new record and if successfully look it up again to get any
+      // inferred values. This should be updated in the future to use the PG
+      // "returning *" query clause but that isn't currently supported by the
+      // query builder.
+      insertAndFind(connection, query, function cb(err, insertedRecords) {
         if (err) {
           return exits.error(err);
         }
 
-        // Insert the new record and if successfully look it up again to get any
-        // inferred values. This should be updated in the future to use the PG
-        // "returning *" query clause but that isn't currently supported by the
-        // query builder.
-        insertAndFind(connection, query, function cb(err, insertedRecords) {
+        // Update any sequences that may have been used
+        setSequenceValues(connection, function cb(err) {
           if (err) {
             return exits.error(err);
           }
 
-          // Update any sequences that may have been used
-          setSequenceValues(connection, function cb(err) {
+          // Commit the transaction
+          commitTransaction(connection, function cb(err) {
             if (err) {
               return exits.error(err);
             }
 
-            // Commit the transaction
-            commitTransaction(connection, function cb(err) {
-              if (err) {
-                return exits.error(err);
-              }
+            //  ╔═╗╔═╗╔═╗╔╦╗  ┬  ┬┌─┐┬  ┬ ┬┌─┐┌─┐
+            //  ║  ╠═╣╚═╗ ║   └┐┌┘├─┤│  │ │├┤ └─┐
+            //  ╚═╝╩ ╩╚═╝ ╩    └┘ ┴ ┴┴─┘└─┘└─┘└─┘
+            var castResults;
+            try {
+              castResults = Helpers.unserializeValues({
+                definition: model.definition,
+                records: insertedRecords
+              }).execSync();
+            } catch (e) {
+              return exits.error(new Error('There was an error normalizing the insert values.' + e.stack));
+            }
 
-              //  ╔═╗╔═╗╔═╗╔╦╗  ┬  ┬┌─┐┬  ┬ ┬┌─┐┌─┐
-              //  ║  ╠═╣╚═╗ ║   └┐┌┘├─┤│  │ │├┤ └─┐
-              //  ╚═╝╩ ╩╚═╝ ╩    └┘ ┴ ┴┴─┘└─┘└─┘└─┘
-              var castResults;
-              try {
-                castResults = Helpers.unserializeValues({
-                  definition: model.definition,
-                  records: insertedRecords
-                }).execSync();
-              } catch (e) {
-                return exits.error(new Error('There was an error normalizing the insert values.' + e.stack));
-              }
-
-              // Only return the first record (there should only ever be one)
-              return exits.success({ record: _.first(castResults) });
-            }); // </ .commitTransaction(); >
-          }); // </ .setSequenceValues(); >
-        }); // </ .insertAndFind(); >
-      }); // </ .compileStatement(); >
+            // Only return the first record (there should only ever be one)
+            return exits.success({ record: _.first(castResults) });
+          }); // </ .commitTransaction(); >
+        }); // </ .setSequenceValues(); >
+      }); // </ .insertAndFind(); >
     }); // </ .spawnTransaction(); >
   }
 

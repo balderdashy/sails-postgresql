@@ -19,7 +19,7 @@
     "lodash": "3.10.1",
     "machine": "^13.0.0-16",
     "machinepack-postgresql": "treelinehq/machinepack-postgresql",
-    "machinepack-waterline-query-converter": "treelinehq/machinepack-waterline-query-converter",
+    "waterline-query-parser": "treelinehq/waterline-query-parser",
     "waterline-cursor": "0.0.6",
     "waterline-errors": "0.10.1"
   },
