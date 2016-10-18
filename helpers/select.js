@@ -58,9 +58,7 @@ module.exports = require('machine').build({
     success: {
       description: 'The results of the select query.',
       outputVariableName: 'records',
-      example: {
-        records: [{}]
-      }
+      example: '==='
     },
 
     invalidDatastore: {
