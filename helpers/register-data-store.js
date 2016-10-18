@@ -22,6 +22,12 @@ module.exports = require('machine').build({
   description: 'Register a new datastore for making connections.',
 
 
+  cacheable: false,
+
+
+  sync: true,
+
+
   inputs: {
 
     identity: {
@@ -122,47 +128,52 @@ module.exports = require('machine').build({
     //  ║  ╠╦╝║╣ ╠═╣ ║ ║╣   │││├─┤│││├─┤│ ┬├┤ ├┬┘
     //  ╚═╝╩╚═╚═╝╩ ╩ ╩ ╚═╝  ┴ ┴┴ ┴┘└┘┴ ┴└─┘└─┘┴└─
     // Create a manager to handle the datastore connection config
-    PG.createManager({
-      connectionString: inputs.config.url
-    })
-    .exec({
-      error: function error(err) {
-        return exits.error(new Error('There was an error creating a new manager for the connection with a url of: ' + inputs.config.url + '\n\n' + err.stack));
-      },
-      failed: function failed(err) {
-        return exits.badConfiguration(new Error('There was an error creating a new manager for the connection with a url of: ' + inputs.config.url + '\n\n' + err.stack));
-      },
-      malformed: function malformed(err) {
-        return exits.badConfiguration(new Error('There was an error creating a new manager for the connection with a url of: ' + inputs.config.url + '\n\n' + err.stack));
-      },
-      success: function success(report) {
-        // Build up a database schema for this connection that can be used
-        // throughout the adapter
-        var dbSchema = {};
-
-        _.each(inputs.models, function buildSchema(val) {
-          var tableName = val.tableName;
-          var definition = val.definition;
-
-          dbSchema[tableName] = {
-            tableName: tableName,
-            definition: definition
-          };
-        });
-
-        // Store the connection
-        inputs.datastores[inputs.identity] = {
-          manager: report.manager,
-          config: inputs.config,
-          driver: PG
-        };
-
-        // Store the db schema for the connection
-        inputs.modelDefinitions[inputs.identity] = dbSchema;
-
-        return exits.success();
+    var report;
+    try {
+      report = PG.createManager({
+        connectionString: inputs.config.url
+      }).execSync();
+    } catch (e) {
+      if (!e.code || e.code === 'error') {
+        return exits.error(new Error('There was an error creating a new manager for the connection with a url of: ' + inputs.config.url + '\n\n' + e.stack));
       }
-    });
-  }
 
+      if (e.code === 'failed') {
+        return exits.badConfiguration(new Error('There was an error creating a new manager for the connection with a url of: ' + inputs.config.url + '\n\n' + e.stack));
+      }
+
+      if (e.code === 'malformed') {
+        return exits.badConfiguration(new Error('There was an error creating a new manager for the connection with a url of: ' + inputs.config.url + '\n\n' + e.stack));
+      }
+
+      return exits.error(new Error('There was an error creating a new manager for the connection with a url of: ' + inputs.config.url + '\n\n' + e.stack));
+    }
+
+
+    // Build up a database schema for this connection that can be used
+    // throughout the adapter
+    var dbSchema = {};
+
+    _.each(inputs.models, function buildSchema(val) {
+      var tableName = val.tableName;
+      var definition = val.definition;
+
+      dbSchema[tableName] = {
+        tableName: tableName,
+        definition: definition
+      };
+    });
+
+    // Store the connection
+    inputs.datastores[inputs.identity] = {
+      manager: report.manager,
+      config: inputs.config,
+      driver: PG
+    };
+
+    // Store the db schema for the connection
+    inputs.modelDefinitions[inputs.identity] = dbSchema;
+
+    return exits.success();
+  }
 });
