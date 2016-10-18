@@ -17,7 +17,7 @@
   "dependencies": {
     "async": "2.0.1",
     "lodash": "3.10.1",
-    "machine": "12.4.0",
+    "machine": "^13.0.0-16",
     "machinepack-postgresql": "treelinehq/machinepack-postgresql",
     "machinepack-waterline-query-converter": "treelinehq/machinepack-waterline-query-converter",
     "waterline-cursor": "0.0.6",
