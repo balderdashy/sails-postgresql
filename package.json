@@ -28,7 +28,7 @@
     "eslint": "3.5.0",
     "espree": "3.3.0",
     "mocha": "3.0.2",
-    "waterline-adapter-tests": "~0.12.1"
+    "waterline-adapter-tests": "balderdashy/waterline-adapter-tests#machinepack"
   },
   "scripts": {
     "test": "NODE_ENV=test node ./node_modules/mocha/bin/mocha test/adapter --recursive",
