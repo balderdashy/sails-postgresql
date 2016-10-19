@@ -46,14 +46,13 @@ console.log('http://links.sailsjs.org/docs/plugins/adapters/interfaces');
 console.log();
 
 
-
-/**
- * Integration Test Runner
- *
- * Uses the `waterline-adapter-tests` module to
- * run mocha tests against the specified interfaces
- * of the currently-implemented Waterline adapter API.
- */
+// //////////////////////////////////////////////////////////////////////
+// Integration Test Runner
+//
+// Uses the `waterline-adapter-tests` module to
+// run mocha tests against the specified interfaces
+// of the currently-implemented Waterline adapter API.
+// //////////////////////////////////////////////////////////////////////
 new TestRunner({
 
   // Mocha opts

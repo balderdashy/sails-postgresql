@@ -28,6 +28,7 @@
     "linebreak-style":              [2, "unix"],
     "lines-around-comment":         [2, { "beforeBlockComment": true, "afterBlockComment": true, "beforeLineComment": false, "afterLineComment": false }],
     "max-depth":                    [2, 4],
+    "no-console":                   [0],
     "no-else-return":               [2],
     "no-loop-func":                 [2],
     "no-mixed-requires":            [2],
