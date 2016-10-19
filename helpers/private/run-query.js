@@ -19,9 +19,6 @@ module.exports = function runQuery(options, cb) {
     return cb(new Error('Invalid options. Run Query requires a native query option.'));
   }
 
-  // Default disconnectOnError to false
-  var disconnectOnError = options.disconnectOnError || false;
-
 
   //  ╦═╗╔═╗╦  ╔═╗╔═╗╔═╗╔═╗  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
   //  ╠╦╝║╣ ║  ║╣ ╠═╣╚═╗║╣   │  │ │││││││├┤ │   │ ││ ││││
@@ -51,11 +48,11 @@ module.exports = function runQuery(options, cb) {
     // If there was an error, check if the connection should be
     // released back into the pool automatically.
     error: function error(err) {
-      if (!disconnectOnError) {
+      if (!options.disconnectOnError) {
         return cb(err);
       }
 
-      releaseConnection(options.connection, function cb(err) {
+      releaseConnection(options.connection, function releaseConnectionCb(err) {
         return cb(err);
       });
     },
@@ -69,7 +66,7 @@ module.exports = function runQuery(options, cb) {
           nativeQueryError: report.error
         }).execSync();
       } catch (e) {
-        releaseConnection(options.connection, function cb() {
+        releaseConnection(options.connection, function releaseConnectionCb() {
           return cb(e);
         });
         return;
@@ -83,7 +80,7 @@ module.exports = function runQuery(options, cb) {
         catchAllError = true;
       }
 
-      if (!disconnectOnError) {
+      if (!options.disconnectOnError) {
         if (catchAllError) {
           return cb(report.error);
         }
@@ -91,7 +88,7 @@ module.exports = function runQuery(options, cb) {
         return cb(parsedError);
       }
 
-      releaseConnection(options.connection, function cb() {
+      releaseConnection(options.connection, function releaseConnectionCb() {
         if (catchAllError) {
           return cb(report.error);
         }

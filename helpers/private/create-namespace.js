@@ -72,9 +72,9 @@ module.exports = function createNamespace(options, cb) {
   //  │  │ │││││││├┤ │   │ ││ ││││
   //  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
   var runQuery = function runQuery(connection, query, done) {
-    runNativeQuery(connection, query, function cb(err) {
+    runNativeQuery(connection, query, function nativeQueryCb(err) {
       // Always release the connection no matter what the error state.
-      releaseConnection(connection, function cb() {
+      releaseConnection(connection, function releaseConnectionCb() {
         // If the native query had an error, return that error
         if (err) {
           return done(err);
@@ -87,7 +87,7 @@ module.exports = function createNamespace(options, cb) {
 
 
   // Spawn a connection and create the schema
-  spawnConnection(options.datastore, function _cb(err, connection) {
+  spawnConnection(options.datastore, function spawnConnectionCb(err, connection) {
     if (err) {
       err.code = 'badConnection';
       return cb(err);
@@ -97,7 +97,7 @@ module.exports = function createNamespace(options, cb) {
     var query = 'CREATE SCHEMA "' + options.schemaName + '"';
 
     // Run the CREATE SCHEMA query and release the connection
-    runQuery(connection, query, function _cb(err) {
+    runQuery(connection, query, function runQueryCb(err) {
       if (err) {
         return cb(err);
       }
