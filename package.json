@@ -43,7 +43,7 @@
   "license": "MIT",
   "bugs": "https://github.com/balderdashy/sails-postgresql/issues",
   "waterlineAdapter": {
-    "waterlineVersion": "~0.10.0",
+    "waterlineVersion": "~0.13.0",
     "interfaces": [
       "semantic",
       "queryable",
