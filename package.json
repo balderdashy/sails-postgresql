@@ -19,9 +19,7 @@
     "lodash": "3.10.1",
     "machine": "^13.0.0-17",
     "machinepack-postgresql": "treelinehq/machinepack-postgresql",
-    "waterline-cursor": "0.0.6",
-    "waterline-errors": "0.10.1"
-    "waterline-utils": "treelinehq/waterline-utils",
+    "waterline-utils": "treelinehq/waterline-utils"
   },
   "devDependencies": {
     "benchmark": "2.1.1",
