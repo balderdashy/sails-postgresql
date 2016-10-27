@@ -6,6 +6,7 @@ module.exports = {
   describe: require('./describe'),
   destroy: require('./destroy'),
   drop: require('./drop'),
+  join: require('./join'),
   query: require('./query'),
   registerDataStore: require('./register-data-store'),
   removeAttribute: require('./remove-attribute'),

@@ -14,6 +14,7 @@ module.exports = {
   // Helpers for handling query logic
   query: {
     compileStatement: require('./query/compile-statement'),
+    initializeQueryCache: require('./query/initialize-query-cache'),
     insertRecord: require('./query/insert-record'),
     runNativeQuery: require('./query/run-native-query'),
     runQuery: require('./query/run-query'),
