@@ -1,15 +1,15 @@
 module.exports = {
-  create: require('./create'),
-  select: require('./select'),
-  update: require('./update'),
-  destroy: require('./destroy'),
-  registerDataStore: require('./register-data-store'),
-  teardown: require('./teardown'),
-  describe: require('./describe'),
-  define: require('./define'),
-  createSchema: require('./create-schema'),
-  drop: require('./drop'),
   addAttribute: require('./add-attribute'),
+  createSchema: require('./create-schema'),
+  create: require('./create'),
+  define: require('./define'),
+  describe: require('./describe'),
+  destroy: require('./destroy'),
+  drop: require('./drop'),
+  query: require('./query'),
+  registerDataStore: require('./register-data-store'),
   removeAttribute: require('./remove-attribute'),
-  query: require('./query')
+  select: require('./select'),
+  teardown: require('./teardown'),
+  update: require('./update')
 };

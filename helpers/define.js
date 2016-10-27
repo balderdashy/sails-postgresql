@@ -61,9 +61,7 @@ module.exports = require('machine').build({
 
 
   fn: function define(inputs, exits) {
-    var _ = require('lodash');
-    var async = require('async');
-    var PG = require('machinepack-postgresql');
+    // Dependencies
     var Helpers = require('./private');
 
 
@@ -81,185 +79,78 @@ module.exports = require('machine').build({
     }
 
 
-    //  ███╗   ██╗ █████╗ ███╗   ███╗███████╗██████╗
-    //  ████╗  ██║██╔══██╗████╗ ████║██╔════╝██╔══██╗
-    //  ██╔██╗ ██║███████║██╔████╔██║█████╗  ██║  ██║
-    //  ██║╚██╗██║██╔══██║██║╚██╔╝██║██╔══╝  ██║  ██║
-    //  ██║ ╚████║██║  ██║██║ ╚═╝ ██║███████╗██████╔╝
-    //  ╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚═════╝
-    //
-    //  ███████╗██╗   ██╗███╗   ██╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
-    //  ██╔════╝██║   ██║████╗  ██║██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║██╔════╝
-    //  █████╗  ██║   ██║██╔██╗ ██║██║        ██║   ██║██║   ██║██╔██╗ ██║███████╗
-    //  ██╔══╝  ██║   ██║██║╚██╗██║██║        ██║   ██║██║   ██║██║╚██╗██║╚════██║
-    //  ██║     ╚██████╔╝██║ ╚████║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║███████║
-    //  ╚═╝      ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
-    //
-    // Prevent Callback Hell and such.
-
     //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
     //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
     //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-    var spawnConnection = function spawnConnection(done) {
-      Helpers.spawnConnection(inputs.datastore, function cb(err, connection) {
-        if (err) {
-          return done(new Error('Failed to spawn a connection from the pool.' + err.stack));
-        }
-
-        return done(null, connection);
-      });
-    };
-
-
-    //  ╦═╗╦ ╦╔╗╔  ┌┐┌┌─┐┌┬┐┬┬  ┬┌─┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
-    //  ╠╦╝║ ║║║║  │││├─┤ │ │└┐┌┘├┤   │─┼┐│ │├┤ ├┬┘└┬┘
-    //  ╩╚═╚═╝╝╚╝  ┘└┘┴ ┴ ┴ ┴ └┘ └─┘  └─┘└└─┘└─┘┴└─ ┴
-    var runNativeQuery = function runNativeQuery(connection, query, done) {
-      PG.sendNativeQuery({
-        connection: connection,
-        nativeQuery: query
-      })
-      .exec(function execCb(err, report) {
-        if (err) {
-          return done(new Error('There was an error with the query used to define the table.' + err.stack));
-        }
-
-        return done(null, report.result.rows);
-      });
-    };
-
-
-    //  ╔═╗╦═╗╔═╗╔═╗╔╦╗╔═╗  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
-    //  ║  ╠╦╝║╣ ╠═╣ ║ ║╣   └─┐│  ├─┤├┤ │││├─┤
-    //  ╚═╝╩╚═╚═╝╩ ╩ ╩ ╚═╝  └─┘└─┘┴ ┴└─┘┴ ┴┴ ┴
-    // AKA namespace if one is given.
-    var createSchema = function createSchema(connection, done) {
-      // If we're being told NOT to create schemas, then skip right to
-      // creating the table.
-      if (inputs.datastore.config && inputs.datastore.config.createSchemas === false) {
-        return done();
-      }
-
-      // If the schema name is "public" there is nothing to create
-      if (schemaName === 'public') {
-        return done();
-      }
-
-      Helpers.createNamespace({
-        datastore: inputs.datastore,
-        schemaName: schemaName
-      }, function _createNamespaceCb(err) {
-        if (err) {
-          return done(new Error('There was an error creating the schema name.' + err.stack));
-        }
-
-        return done();
-      });
-    };
-
-
-    //  ╔═╗╔═╗╔═╗╔═╗╔═╗╔═╗  ┌┬┐┌─┐┌┐ ┬  ┌─┐  ┌┐┌┌─┐┌┬┐┌─┐
-    //  ║╣ ╚═╗║  ╠═╣╠═╝║╣    │ ├─┤├┴┐│  ├┤   │││├─┤│││├┤
-    //  ╚═╝╚═╝╚═╝╩ ╩╩  ╚═╝   ┴ ┴ ┴└─┘┴─┘└─┘  ┘└┘┴ ┴┴ ┴└─┘
-    // Ensure the name is escaped in quotes.
-    var escapeName = function escapeName(name, schema) {
-      name = '"' + name + '"';
-      if (schema) {
-        name = '"' + schema + '".' + name;
-      }
-
-      return name;
-    };
-
-
-    //  ╔╗ ╦ ╦╦╦  ╔╦╗  ┬┌┐┌┌┬┐┌─┐─┐ ┬┌─┐┌─┐
-    //  ╠╩╗║ ║║║   ║║  ││││ ││├┤ ┌┴┬┘├┤ └─┐
-    //  ╚═╝╚═╝╩╩═╝═╩╝  ┴┘└┘─┴┘└─┘┴ └─└─┘└─┘
-    var buildIndexes = function buildIndexes(connection, done) {
-      var indexes = _.reduce(inputs.definition, function reduce(meta, val, key) {
-        if (_.has(val, 'index')) {
-          meta.push(key);
-        }
-
-        return meta;
-      }, []);
-
-      var build = function build(name, nextIndex) {
-        // Strip slashes from table name, used to namespace index
-        var cleanTable = inputs.tableName.replace(/['"]/g, '');
-
-        // Build a query to create a namespaced index tableName_key
-        var query = 'CREATE INDEX ' + escapeName(cleanTable + '_' + name) + ' on ' + inputs.tableName + ' (' + escapeName(name) + ');';
-
-        // Run the native query
-        runNativeQuery(connection, query, nextIndex);
-      };
-
-      // Build indexes in series
-      async.eachSeries(indexes, build, done);
-    };
-
-
-    //  ╦═╗╔═╗╦  ╔═╗╔═╗╔═╗╔═╗  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
-    //  ╠╦╝║╣ ║  ║╣ ╠═╣╚═╗║╣   │  │ │││││││├┤ │   │ ││ ││││
-    //  ╩╚═╚═╝╩═╝╚═╝╩ ╩╚═╝╚═╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-    var releaseConnection = function releaseConnection(connection, done) {
-      PG.releaseConnection({
-        connection: connection
-      }).exec({
-        error: function error(err) {
-          return done(new Error('There was an error releasing the connection back into the pool.' + err.stack));
-        },
-        badConnection: function badConnection() {
-          return done(new Error('Bad connection when trying to release an active connection.'));
-        },
-        success: function success() {
-          return done();
-        }
-      });
-    };
-
-
-    //   █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗
-    //  ██╔══██╗██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
-    //  ███████║██║        ██║   ██║██║   ██║██╔██╗ ██║
-    //  ██╔══██║██║        ██║   ██║██║   ██║██║╚██╗██║
-    //  ██║  ██║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║
-    //  ╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
-    //
-    //  ██╗      ██████╗  ██████╗ ██╗ ██████╗
-    //  ██║     ██╔═══██╗██╔════╝ ██║██╔════╝
-    //  ██║     ██║   ██║██║  ███╗██║██║
-    //  ██║     ██║   ██║██║   ██║██║██║
-    //  ███████╗╚██████╔╝╚██████╔╝██║╚██████╗
-    //  ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝ ╚═════╝
-    //
-
-    // Open a new connection to use
-    spawnConnection(function cb(err, connection) {
+    // Spawn a new connection for running queries on.
+    Helpers.connection.spawnConnection(inputs.datastore, function spawnConnectionCb(err, connection) {
       if (err) {
         return exits.badConnection(err);
       }
 
-      // Create the schema if needed.
-      // This will succeed if the schema already exists.
-      createSchema(connection, function cb(err) {
+
+      //  ╔═╗╦═╗╔═╗╔═╗╔╦╗╔═╗  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
+      //  ║  ╠╦╝║╣ ╠═╣ ║ ║╣   └─┐│  ├─┤├┤ │││├─┤
+      //  ╚═╝╩╚═╚═╝╩ ╩ ╩ ╚═╝  └─┘└─┘┴ ┴└─┘┴ ┴┴ ┴
+      //  ┌┐┌┌─┐┌┬┐┌─┐┌─┐┌─┐┌─┐┌─┐┌─┐  ┌─┐┌─┐  ┌┐┌┌─┐┌─┐┌┬┐┌─┐┌┬┐
+      //  │││├─┤│││├┤ └─┐├─┘├─┤│  ├┤   ├─┤└─┐  │││├┤ ├┤  ││├┤  ││
+      //  ┘└┘┴ ┴┴ ┴└─┘└─┘┴  ┴ ┴└─┘└─┘  ┴ ┴└─┘  ┘└┘└─┘└─┘─┴┘└─┘─┴┘
+      (function createSchemaNamespace(proceed) {
+        // If we're being told NOT to create schemas, then skip right to
+        // creating the table.
+        if (inputs.datastore.config && inputs.datastore.config.createSchemas === false) {
+          return proceed();
+        }
+
+        // Create the schema if needed.
+        // If the schema name is "public" there is nothing to create
+        if (schemaName === 'public') {
+          return proceed();
+        }
+
+        Helpers.schema.createNamespace({
+          datastore: inputs.datastore,
+          schemaName: schemaName
+        }, function createNamespaceCb(err) {
+          if (err) {
+            return proceed(new Error('There was an error creating the schema name.' + err.stack));
+          }
+
+          return proceed();
+        });
+      })(function afterNamespaceCreation(err) {
         if (err) {
-          releaseConnection(connection, function cb() {
+          // If there was an issue, release the connection
+          Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
             return exits.error(err);
           });
           return;
         }
 
         // Escape Table Name
-        var tableName = escapeName(inputs.tableName, schemaName);
+        var tableName;
+        try {
+          tableName = Helpers.schema.escapeTableName(inputs.tableName, schemaName);
+        } catch (e) {
+          // If there was an issue, release the connection
+          Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+            return exits.error(new Error('There was an issue escaping the table name ' + inputs.tableName + '.\n\n' + e.stack));
+          });
+          return;
+        }
+
+
+        //  ╔╗ ╦ ╦╦╦  ╔╦╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬  ┌─┐┌┬┐┬─┐┬┌┐┌┌─┐
+        //  ╠╩╗║ ║║║   ║║  │─┼┐│ │├┤ ├┬┘└┬┘  └─┐ │ ├┬┘│││││ ┬
+        //  ╚═╝╚═╝╩╩═╝═╩╝  └─┘└└─┘└─┘┴└─ ┴   └─┘ ┴ ┴└─┴┘└┘└─┘
 
         // Iterate through each attribute, building a query string
         var schema;
         try {
-          schema = Helpers.buildSchema(inputs.definition);
+          schema = Helpers.schema.buildSchema(inputs.definition);
         } catch (e) {
-          releaseConnection(connection, function cb() {
+          // If there was an issue, release the connection
+          Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
             return exits.error(e);
           });
           return;
@@ -268,32 +159,45 @@ module.exports = require('machine').build({
         // Build Query
         var query = 'CREATE TABLE IF NOT EXISTS ' + tableName + ' (' + schema + ')';
 
-        // Run the CREATE TABLE query
-        runNativeQuery(connection, query, function cb(err) {
+
+        //  ╦═╗╦ ╦╔╗╔  ┌─┐┬─┐┌─┐┌─┐┌┬┐┌─┐  ┌┬┐┌─┐┌┐ ┬  ┌─┐
+        //  ╠╦╝║ ║║║║  │  ├┬┘├┤ ├─┤ │ ├┤    │ ├─┤├┴┐│  ├┤
+        //  ╩╚═╚═╝╝╚╝  └─┘┴└─└─┘┴ ┴ ┴ └─┘   ┴ ┴ ┴└─┘┴─┘└─┘
+        //  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
+        //  │─┼┐│ │├┤ ├┬┘└┬┘
+        //  └─┘└└─┘└─┘┴└─ ┴
+        Helpers.query.runNativeQuery(connection, query, function runNativeQueryCb(err) {
           if (err) {
-            releaseConnection(connection, function cb() {
+            // If there was an issue, release the connection
+            Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
               return exits.error(err);
             });
             return;
           }
 
-          // Build any indexes
-          buildIndexes(connection, function cb(err) {
-            if (err) {
-              releaseConnection(connection, function cb() {
-                return exits.error(err);
-              });
-              return;
-            }
 
-            // Ensure the connection is always released
-            releaseConnection(connection, function cb() {
+          //  ╔╗ ╦ ╦╦╦  ╔╦╗  ┬┌┐┌┌┬┐┌─┐─┐ ┬┌─┐┌─┐
+          //  ╠╩╗║ ║║║   ║║  ││││ ││├┤ ┌┴┬┘├┤ └─┐
+          //  ╚═╝╚═╝╩╩═╝═╩╝  ┴┘└┘─┴┘└─┘┴ └─└─┘└─┘
+          // Build any indexes
+          Helpers.schema.buildIndexes({
+            connection: connection,
+            definition: inputs.definition,
+            tableName: inputs.tableName
+          },
+
+          function buildIndexesCb(err) {
+            Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+              if (err) {
+                return exits.error(err);
+              }
+
               return exits.success();
             });
-          });
-        });
-      });
-    });
+            return;
+          }); // </ buildIndexes() >
+        }); // </ runNativeQuery >
+      }); // </ afterNamespaceCreation >
+    }); // </ spawnConnection >
   }
-
 });

@@ -74,8 +74,8 @@ module.exports = require('machine').build({
 
 
   fn: function select(inputs, exits) {
-    var PG = require('machinepack-postgresql');
-    var Converter = require('waterline-query-parser').converter;
+    // Dependencies
+    var Converter = require('waterline-utils').query.converter;
     var Helpers = require('./private');
 
 
@@ -125,79 +125,26 @@ module.exports = require('machine').build({
     }
 
 
-    //  ███╗   ██╗ █████╗ ███╗   ███╗███████╗██████╗
-    //  ████╗  ██║██╔══██╗████╗ ████║██╔════╝██╔══██╗
-    //  ██╔██╗ ██║███████║██╔████╔██║█████╗  ██║  ██║
-    //  ██║╚██╗██║██╔══██║██║╚██╔╝██║██╔══╝  ██║  ██║
-    //  ██║ ╚████║██║  ██║██║ ╚═╝ ██║███████╗██████╔╝
-    //  ╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚═════╝
-    //
-    //  ███████╗██╗   ██╗███╗   ██╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
-    //  ██╔════╝██║   ██║████╗  ██║██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║██╔════╝
-    //  █████╗  ██║   ██║██╔██╗ ██║██║        ██║   ██║██║   ██║██╔██╗ ██║███████╗
-    //  ██╔══╝  ██║   ██║██║╚██╗██║██║        ██║   ██║██║   ██║██║╚██╗██║╚════██║
-    //  ██║     ╚██████╔╝██║ ╚████║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║███████║
-    //  ╚═╝      ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
-    //
-    // Prevent Callback Hell and such.
-
-
-    //  ╔═╗╔═╗╔╦╗╔═╗╦╦  ╔═╗  ┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┐┌┌┬┐
-    //  ║  ║ ║║║║╠═╝║║  ║╣   └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │
-    //  ╚═╝╚═╝╩ ╩╩  ╩╩═╝╚═╝  └─┘ ┴ ┴ ┴ ┴ └─┘┴ ┴└─┘┘└┘ ┴
-    // Transform the Waterline Query Statement into a SQL query.
-    var compileStatement = function compileStatement() {
-      var report;
-      try {
-        report = PG.compileStatement({
-          statement: statement
-        }).execSync();
-      } catch (e) {
-        throw new Error('Could not compile the statement.\n\n' + e.stack);
-      }
-
-      return report.nativeQuery;
-    };
-
+    // Compile the original Waterline Query
+    var query;
+    try {
+      query = Helpers.query.compileStatement(statement);
+    } catch (e) {
+      return exits.error(e);
+    }
 
     //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
     //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
     //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-    var spawnConnection = function spawnConnection(done) {
-      Helpers.spawnConnection(inputs.datastore, function cb(err, connection) {
-        if (err) {
-          return done(new Error('Failed to spawn a connection from the pool.' + err.stack));
-        }
+    // Spawn a new connection for running queries on.
+    Helpers.connection.spawnConnection(inputs.datastore, function spawnConnectionCb(err, connection) {
+      if (err) {
+        return exits.badConnection(err);
+      }
 
-        return done(null, connection);
-      });
-    };
-
-
-    //  ╦═╗╔═╗╦  ╔═╗╔═╗╔═╗╔═╗  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
-    //  ╠╦╝║╣ ║  ║╣ ╠═╣╚═╗║╣   │  │ │││││││├┤ │   │ ││ ││││
-    //  ╩╚═╚═╝╩═╝╚═╝╩ ╩╚═╝╚═╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-    var releaseConnection = function releaseConnection(connection, done) {
-      PG.releaseConnection({
-        connection: connection
-      }).exec({
-        error: function error(err) {
-          return done(new Error('There was an error releasing the connection back into the pool.' + err.stack));
-        },
-        badConnection: function badConnection() {
-          return done(new Error('Bad connection when trying to release an active connection.'));
-        },
-        success: function success() {
-          return done();
-        }
-      });
-    };
-
-
-    //  ╦═╗╦ ╦╔╗╔  ┌─┐┌─┐┬  ┌─┐┌─┐┌┬┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
-    //  ╠╦╝║ ║║║║  └─┐├┤ │  ├┤ │   │   │─┼┐│ │├┤ ├┬┘└┬┘
-    //  ╩╚═╚═╝╝╚╝  └─┘└─┘┴─┘└─┘└─┘ ┴   └─┘└└─┘└─┘┴└─ ┴
-    var runSelectQuery = function runSelectQuery(connection, query, done) {
+      //  ╦═╗╦ ╦╔╗╔  ┌─┐┌─┐┬  ┌─┐┌─┐┌┬┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
+      //  ╠╦╝║ ║║║║  └─┐├┤ │  ├┤ │   │   │─┼┐│ │├┤ ├┬┘└┬┘
+      //  ╩╚═╚═╝╝╚╝  └─┘└─┘┴─┘└─┘└─┘ ┴   └─┘└└─┘└─┘┴└─ ┴
       // Build up a query type by looking into if any aggregations were used.
       var queryType = 'select';
 
@@ -212,75 +159,23 @@ module.exports = require('machine').build({
         queryType = 'sum';
       }
 
-      Helpers.runQuery({
+      Helpers.query.runQuery({
         connection: connection,
         nativeQuery: query,
         queryType: queryType,
         disconnectOnError: true
-      }, function _runQueryCb(err, report) {
+      },
+
+      function runQueryCb(err, report) {
         // The runQuery helper will automatically release the connection on error.
         if (err) {
-          return done(new Error('There was an error running the Select query.' + err.stack));
+          return exits.error(new Error('There was an error running the Select query.' + err.stack));
         }
 
-        releaseConnection(connection, function cb() {
-          return done(null, report.result);
-        });
-      });
-    };
-
-
-    //   █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗
-    //  ██╔══██╗██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
-    //  ███████║██║        ██║   ██║██║   ██║██╔██╗ ██║
-    //  ██╔══██║██║        ██║   ██║██║   ██║██║╚██╗██║
-    //  ██║  ██║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║
-    //  ╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
-    //
-    //  ██╗      ██████╗  ██████╗ ██╗ ██████╗
-    //  ██║     ██╔═══██╗██╔════╝ ██║██╔════╝
-    //  ██║     ██║   ██║██║  ███╗██║██║
-    //  ██║     ██║   ██║██║   ██║██║██║
-    //  ███████╗╚██████╔╝╚██████╔╝██║╚██████╗
-    //  ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝ ╚═════╝
-    //
-
-    // Compile the original Waterline Query
-    var query;
-    try {
-      query = compileStatement();
-    } catch (e) {
-      return exits.error(e);
-    }
-
-    // Spawn a new connection for running queries on.
-    spawnConnection(function cb(err, connection) {
-      if (err) {
-        return exits.badConnection(err);
-      }
-
-      // Run the SELECT query
-      runSelectQuery(connection, query, function cb(err, foundRecords) {
-        if (err) {
-          return exits.badConnection(err);
-        }
-
-        //  ╔═╗╔═╗╔═╗╔╦╗  ┬  ┬┌─┐┬  ┬ ┬┌─┐┌─┐
-        //  ║  ╠═╣╚═╗ ║   └┐┌┘├─┤│  │ │├┤ └─┐
-        //  ╚═╝╩ ╩╚═╝ ╩    └┘ ┴ ┴┴─┘└─┘└─┘└─┘
-        var castResults;
-        try {
-          castResults = Helpers.unserializeValues({
-            definition: model.definition,
-            records: foundRecords
-          });
-        } catch (e) {
-          return exits.error(e);
-        }
-
-        return exits.success({ records: castResults });
-      }); // </ .runSelectQuery(); >
-    }); // </ .spawnTransaction(); >
+        Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+          return exits.success({ records: report.result });
+        }); // </ releaseConnection >
+      }); // </ runQuery >
+    }); // </ spawnConnection >
   }
-
 });

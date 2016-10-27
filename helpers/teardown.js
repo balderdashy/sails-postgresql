@@ -52,7 +52,8 @@ module.exports = require('machine').build({
 
 
   fn: function teardown(inputs, exits) {
-    var PG = require('machinepack-postgresql');
+    // Dependencies
+    var Helpers = require('./private');
 
     var datastore = inputs.datastores[inputs.identity];
     if (!datastore) {
@@ -69,25 +70,18 @@ module.exports = require('machine').build({
     }
 
 
-    PG.destroyManager({
-      manager: manager
-    }).exec({
-      error: function error(err) {
-        return exits.error(new Error('There was an error destroying the manager.' + err.stack));
-      },
-      failed: function failed(err) {
-        return exits.error(new Error('The manager failed to be destroyed.' + err.stack));
-      },
-      success: function success() {
-        // Delete the rest of the data from the data store
-        delete inputs.datastores[inputs.identity];
-
-        // Delete the model definitions
-        delete inputs.modelDefinitions[inputs.identity];
-
-        return exits.success();
+    Helpers.connection.destroyManager(manager, function destroyManagerCb(err) {
+      if (err) {
+        return exits.error(err);
       }
+
+      // Delete the rest of the data from the data store
+      delete inputs.datastores[inputs.identity];
+
+      // Delete the model definitions
+      delete inputs.modelDefinitions[inputs.identity];
+
+      return exits.success();
     });
   }
-
 });

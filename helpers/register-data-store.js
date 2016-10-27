@@ -77,8 +77,10 @@ module.exports = require('machine').build({
 
 
   fn: function registerDataStore(inputs, exits) {
+    // Dependencies
     var _ = require('lodash');
     var PG = require('machinepack-postgresql');
+    var Helpers = require('./private');
 
     // Validate that the datastore isn't already initialized
     if (inputs.datastores[inputs.identity]) {
@@ -130,9 +132,7 @@ module.exports = require('machine').build({
     // Create a manager to handle the datastore connection config
     var report;
     try {
-      report = PG.createManager({
-        connectionString: inputs.config.url
-      }).execSync();
+      report = Helpers.connection.createManager(inputs.config.url);
     } catch (e) {
       if (!e.code || e.code === 'error') {
         return exits.error(new Error('There was an error creating a new manager for the connection with a url of: ' + inputs.config.url + '\n\n' + e.stack));

@@ -59,8 +59,8 @@ module.exports = require('machine').build({
 
 
   fn: function describe(inputs, exits) {
+    // Dependencies
     var _ = require('lodash');
-    var PG = require('machinepack-postgresql');
     var Helpers = require('./private');
 
     // Build an object for holding information about the schema
@@ -123,202 +123,131 @@ module.exports = require('machine').build({
       "AND n.nspname !~ '^pg_toast' AND pg_catalog.pg_table_is_visible(c.oid) ORDER BY 1,2;";
 
 
-    //  ███╗   ██╗ █████╗ ███╗   ███╗███████╗██████╗
-    //  ████╗  ██║██╔══██╗████╗ ████║██╔════╝██╔══██╗
-    //  ██╔██╗ ██║███████║██╔████╔██║█████╗  ██║  ██║
-    //  ██║╚██╗██║██╔══██║██║╚██╔╝██║██╔══╝  ██║  ██║
-    //  ██║ ╚████║██║  ██║██║ ╚═╝ ██║███████╗██████╔╝
-    //  ╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚═════╝
-    //
-    //  ███████╗██╗   ██╗███╗   ██╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
-    //  ██╔════╝██║   ██║████╗  ██║██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║██╔════╝
-    //  █████╗  ██║   ██║██╔██╗ ██║██║        ██║   ██║██║   ██║██╔██╗ ██║███████╗
-    //  ██╔══╝  ██║   ██║██║╚██╗██║██║        ██║   ██║██║   ██║██║╚██╗██║╚════██║
-    //  ██║     ╚██████╔╝██║ ╚████║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║███████║
-    //  ╚═╝      ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
-    //
-    // Prevent Callback Hell and such.
-
     //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
     //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
     //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-    var spawnConnection = function spawnConnection(done) {
-      Helpers.spawnConnection(inputs.datastore, function cb(err, connection) {
-        if (err) {
-          return done(new Error('Failed to spawn a connection from the pool.' + err.stack));
-        }
-
-        return done(null, connection);
-      });
-    };
-
-
-    //  ╦═╗╦ ╦╔╗╔  ┌┐┌┌─┐┌┬┐┬┬  ┬┌─┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
-    //  ╠╦╝║ ║║║║  │││├─┤ │ │└┐┌┘├┤   │─┼┐│ │├┤ ├┬┘└┬┘
-    //  ╩╚═╚═╝╝╚╝  ┘└┘┴ ┴ ┴ ┴ └┘ └─┘  └─┘└└─┘└─┘┴└─ ┴
-    var runNativeQuery = function runNativeQuery(connection, query, done) {
-      PG.sendNativeQuery({
-        connection: connection,
-        nativeQuery: query
-      })
-      .exec(function execCb(err, report) {
-        if (err) {
-          return done(new Error('There was an error with a query used to describe the database.' + err.stack));
-        }
-
-        return done(null, report.result.rows);
-      });
-    };
-
-
-    //  ╦═╗╔═╗╦  ╔═╗╔═╗╔═╗╔═╗  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
-    //  ╠╦╝║╣ ║  ║╣ ╠═╣╚═╗║╣   │  │ │││││││├┤ │   │ ││ ││││
-    //  ╩╚═╚═╝╩═╝╚═╝╩ ╩╚═╝╚═╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-    var releaseConnection = function releaseConnection(connection, done) {
-      PG.releaseConnection({
-        connection: connection
-      }).exec({
-        error: function error(err) {
-          return done(new Error('There was an error releasing the connection back into the pool.' + err.stack));
-        },
-        badConnection: function badConnection() {
-          return done(new Error('Bad connection when trying to release an active connection.'));
-        },
-        success: function success() {
-          return done();
-        }
-      });
-    };
-
-
-    //  ╔═╗╦═╗╔═╗╔═╗╔═╗╔═╗╔═╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬  ┬─┐┌─┐┌─┐┬ ┬┬ ┌┬┐┌─┐
-    //  ╠═╝╠╦╝║ ║║  ║╣ ╚═╗╚═╗  │─┼┐│ │├┤ ├┬┘└┬┘  ├┬┘├┤ └─┐│ ││  │ └─┐
-    //  ╩  ╩╚═╚═╝╚═╝╚═╝╚═╝╚═╝  └─┘└└─┘└─┘┴└─ ┴   ┴└─└─┘└─┘└─┘┴─┘┴ └─┘
-    // Augments the schema for the model.
-    var processQueryResults = function processQueryResults(describeResults, incrementResults, indiciesResults) {
-      // Add autoIncrement flag to schema
-      _.each(incrementResults, function processSequence(row) {
-        if (row.related_table !== inputs.tableName) {
-          return;
-        }
-
-        // Look through query results and see if related_column exists
-        _.each(describeResults, function extendColumn(column) {
-          if (column.Column !== row.related_column) {
-            return;
-          }
-
-          column.autoIncrement = true;
-        });
-      });
-
-      // Add index flag to schema
-      _.each(indiciesResults, function processIndex(column) {
-        var key = column.Name.split('_index_')[1];
-
-        // Look through query results and see if key exists
-        _.each(describeResults, function extendColumn(column) {
-          if (column.Column !== key) {
-            return;
-          }
-
-          column.indexed = true;
-        });
-      });
-
-      // Normalize Schema
-      var schema = {};
-      _.each(describeResults, function normalize(column) {
-        // Set Type
-        schema[column.Column] = {
-          type: column.Type
-        };
-
-        // Check for Primary Key
-        if (column.Constraint && column.C === 'p') {
-          schema[column.Column].primaryKey = true;
-        }
-
-        // Check for Unique Constraint
-        if (column.Constraint && column.C === 'u') {
-          schema[column.Column].unique = true;
-        }
-
-        // Check for autoIncrement
-        if (column.autoIncrement) {
-          schema[column.Column].autoIncrement = column.autoIncrement;
-        }
-
-        // Check for index
-        if (column.indexed) {
-          schema[column.Column].indexed = column.indexed;
-        }
-      });
-
-      // Set Internal Schema Mapping
-      dbSchema = schema;
-    };
-
-
-    //   █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗
-    //  ██╔══██╗██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
-    //  ███████║██║        ██║   ██║██║   ██║██╔██╗ ██║
-    //  ██╔══██║██║        ██║   ██║██║   ██║██║╚██╗██║
-    //  ██║  ██║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║
-    //  ╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
-    //
-    //  ██╗      ██████╗  ██████╗ ██╗ ██████╗
-    //  ██║     ██╔═══██╗██╔════╝ ██║██╔════╝
-    //  ██║     ██║   ██║██║  ███╗██║██║
-    //  ██║     ██║   ██║██║   ██║██║██║
-    //  ███████╗╚██████╔╝╚██████╔╝██║╚██████╗
-    //  ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝ ╚═════╝
-    //
-
-    spawnConnection(function cb(err, connection) {
+    // Spawn a new connection to run the queries on.
+    Helpers.connection.spawnConnection(inputs.datastore, function spawnConnectionCb(err, connection) {
       if (err) {
         return exits.badConnection(err);
       }
 
-      // Run DESCRIBE query
-      runNativeQuery(connection, describeQuery, function cb(err, describeResults) {
+
+      //  ╦═╗╦ ╦╔╗╔  ┌┬┐┌─┐┌─┐┌─┐┬─┐┬┌┐ ┌─┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
+      //  ╠╦╝║ ║║║║   ││├┤ └─┐│  ├┬┘│├┴┐├┤   │─┼┐│ │├┤ ├┬┘└┬┘
+      //  ╩╚═╚═╝╝╚╝  ─┴┘└─┘└─┘└─┘┴└─┴└─┘└─┘  └─┘└└─┘└─┘┴└─ ┴
+      Helpers.query.runNativeQuery(connection, describeQuery, function runDescribeQueryCb(err, describeResults) {
         if (err) {
-          releaseConnection(connection, function cb() {
+          // Release the connection on error
+          Helpers.connection.releaseConnection(connection, function cb() {
             return exits.error(err);
           });
           return;
         }
 
-        // Run AUTO INCREMENT query
-        runNativeQuery(connection, autoIncrementQuery, function cb(err, incrementResults) {
+
+        //  ╦═╗╦ ╦╔╗╔  ┌─┐┬ ┬┌┬┐┌─┐   ┬┌┐┌┌─┐┬─┐┌─┐┌┬┐┌─┐┌┐┌┌┬┐
+        //  ╠╦╝║ ║║║║  ├─┤│ │ │ │ │───│││││  ├┬┘├┤ │││├┤ │││ │
+        //  ╩╚═╚═╝╝╚╝  ┴ ┴└─┘ ┴ └─┘   ┴┘└┘└─┘┴└─└─┘┴ ┴└─┘┘└┘ ┴
+        //  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
+        //  │─┼┐│ │├┤ ├┬┘└┬┘
+        //  └─┘└└─┘└─┘┴└─ ┴
+        Helpers.query.runNativeQuery(connection, autoIncrementQuery, function runAutoIncrementQueryCb(err, incrementResults) {
           if (err) {
-            releaseConnection(connection, function cb() {
+            // Release the connection on error
+            Helpers.connection.releaseConnection(connection, function cb() {
               return exits.error(err);
             });
             return;
           }
 
-          // Run INDICIES query
-          runNativeQuery(connection, indiciesQuery, function cb(err, indiciesResults) {
-            if (err) {
-              releaseConnection(connection, function cb() {
+
+          //  ╦═╗╦ ╦╔╗╔  ┬┌┐┌┌┬┐┬┌─┐┬┌─┐┌─┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
+          //  ╠╦╝║ ║║║║  ││││ ││││  │├┤ └─┐  │─┼┐│ │├┤ ├┬┘└┬┘
+          //  ╩╚═╚═╝╝╚╝  ┴┘└┘─┴┘┴└─┘┴└─┘└─┘  └─┘└└─┘└─┘┴└─ ┴
+          Helpers.query.runNativeQuery(connection, indiciesQuery, function runIndiciesQueryCb(err, indiciesResults) {
+            // Ensure the connection is always released back into the pool
+            Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+              if (err) {
                 return exits.error(err);
+              }
+
+
+              //  ╔═╗╦═╗╔═╗╔═╗╔═╗╔═╗╔═╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
+              //  ╠═╝╠╦╝║ ║║  ║╣ ╚═╗╚═╗  │─┼┐│ │├┤ ├┬┘└┬┘
+              //  ╩  ╩╚═╚═╝╚═╝╚═╝╚═╝╚═╝  └─┘└└─┘└─┘┴└─ ┴
+              //  ┬─┐┌─┐┌─┐┬ ┬┬ ┌┬┐┌─┐
+              //  ├┬┘├┤ └─┐│ ││  │ └─┐
+              //  ┴└─└─┘└─┘└─┘┴─┘┴ └─┘
+
+              // Add autoIncrement flag to schema
+              _.each(incrementResults, function processSequence(row) {
+                if (row.related_table !== inputs.tableName) {
+                  return;
+                }
+
+                // Look through query results and see if related_column exists
+                _.each(describeResults, function extendColumn(column) {
+                  if (column.Column !== row.related_column) {
+                    return;
+                  }
+
+                  column.autoIncrement = true;
+                });
               });
-              return;
-            }
 
-            // Process the results
-            processQueryResults(describeResults, incrementResults, indiciesResults);
+              // Add index flag to schema
+              _.each(indiciesResults, function processIndex(column) {
+                var key = column.Name.split('_index_')[1];
 
-            // Ensure the connection is always released
-            releaseConnection(connection, function cb() {
+                // Look through query results and see if key exists
+                _.each(describeResults, function extendColumn(column) {
+                  if (column.Column !== key) {
+                    return;
+                  }
+
+                  column.indexed = true;
+                });
+              });
+
+              // Normalize Schema
+              var schema = {};
+              _.each(describeResults, function normalize(column) {
+                // Set Type
+                schema[column.Column] = {
+                  type: column.Type
+                };
+
+                // Check for Primary Key
+                if (column.Constraint && column.C === 'p') {
+                  schema[column.Column].primaryKey = true;
+                }
+
+                // Check for Unique Constraint
+                if (column.Constraint && column.C === 'u') {
+                  schema[column.Column].unique = true;
+                }
+
+                // Check for autoIncrement
+                if (column.autoIncrement) {
+                  schema[column.Column].autoIncrement = column.autoIncrement;
+                }
+
+                // Check for index
+                if (column.indexed) {
+                  schema[column.Column].indexed = column.indexed;
+                }
+              });
+
+              // Set Internal Schema Mapping
+              dbSchema = schema;
+
               // Return the model schema
               return exits.success({ schema: dbSchema });
-            });
-          });
-        });
-      });
-    });
+            }); // </ releaseConnection >
+          }); // </ runIndiciesQuery >
+        }); // </ runAutoIncrementQuery >
+      }); // </ runDescribeQuery >
+    }); // </ spawnConnection >
   }
-
 });

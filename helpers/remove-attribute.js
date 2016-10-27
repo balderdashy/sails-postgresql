@@ -61,7 +61,7 @@ module.exports = require('machine').build({
 
 
   fn: function removeAttribute(inputs, exits) {
-    var PG = require('machinepack-postgresql');
+    // Dependencies
     var Helpers = require('./private');
 
 
@@ -79,147 +79,46 @@ module.exports = require('machine').build({
     }
 
 
-    //  ███╗   ██╗ █████╗ ███╗   ███╗███████╗██████╗
-    //  ████╗  ██║██╔══██╗████╗ ████║██╔════╝██╔══██╗
-    //  ██╔██╗ ██║███████║██╔████╔██║█████╗  ██║  ██║
-    //  ██║╚██╗██║██╔══██║██║╚██╔╝██║██╔══╝  ██║  ██║
-    //  ██║ ╚████║██║  ██║██║ ╚═╝ ██║███████╗██████╔╝
-    //  ╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚═════╝
-    //
-    //  ███████╗██╗   ██╗███╗   ██╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
-    //  ██╔════╝██║   ██║████╗  ██║██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║██╔════╝
-    //  █████╗  ██║   ██║██╔██╗ ██║██║        ██║   ██║██║   ██║██╔██╗ ██║███████╗
-    //  ██╔══╝  ██║   ██║██║╚██╗██║██║        ██║   ██║██║   ██║██║╚██╗██║╚════██║
-    //  ██║     ╚██████╔╝██║ ╚████║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║███████║
-    //  ╚═╝      ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
-    //
-    // Prevent Callback Hell and such.
-
-
     //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
     //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
     //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-    var spawnConnection = function spawnConnection(done) {
-      Helpers.spawnConnection(inputs.datastore, function cb(err, connection) {
-        if (err) {
-          return done(new Error('Failed to spawn a connection from the pool.' + err.stack));
-        }
-
-        return done(null, connection);
-      });
-    };
-
-
-    //  ╔═╗╔═╗╔═╗╔═╗╔═╗╔═╗  ┌┬┐┌─┐┌┐ ┬  ┌─┐  ┌┐┌┌─┐┌┬┐┌─┐
-    //  ║╣ ╚═╗║  ╠═╣╠═╝║╣    │ ├─┤├┴┐│  ├┤   │││├─┤│││├┤
-    //  ╚═╝╚═╝╚═╝╩ ╩╩  ╚═╝   ┴ ┴ ┴└─┘┴─┘└─┘  ┘└┘┴ ┴┴ ┴└─┘
-    // Ensure the name is escaped in quotes.
-    var escapeName = function escapeName(name, schema) {
-      name = '"' + name + '"';
-      if (schema) {
-        name = '"' + schema + '".' + name;
-      }
-
-      return name;
-    };
-
-
-    //  ╦═╗╦ ╦╔╗╔  ┌┐┌┌─┐┌┬┐┬┬  ┬┌─┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
-    //  ╠╦╝║ ║║║║  │││├─┤ │ │└┐┌┘├┤   │─┼┐│ │├┤ ├┬┘└┬┘
-    //  ╩╚═╚═╝╝╚╝  ┘└┘┴ ┴ ┴ ┴ └┘ └─┘  └─┘└└─┘└─┘┴└─ ┴
-    var runNativeQuery = function runNativeQuery(connection, query, done) {
-      PG.sendNativeQuery({
-        connection: connection,
-        nativeQuery: query
-      })
-      .exec(function execCb(err, report) {
-        if (err) {
-          return done(new Error('There was an error running the native query for remove attribute.' + err.stack));
-        }
-
-        return done(null, report.result.rows);
-      });
-    };
-
-
-    //  ╦═╗╔═╗╦  ╔═╗╔═╗╔═╗╔═╗  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
-    //  ╠╦╝║╣ ║  ║╣ ╠═╣╚═╗║╣   │  │ │││││││├┤ │   │ ││ ││││
-    //  ╩╚═╚═╝╩═╝╚═╝╩ ╩╚═╝╚═╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-    var releaseConnection = function releaseConnection(connection, done) {
-      PG.releaseConnection({
-        connection: connection
-      }).exec({
-        error: function error(err) {
-          return done(new Error('There was an error releasing the connection from the pool.' + err.stack));
-        },
-        badConnection: function badConnection() {
-          return done(new Error('Bad connection when trying to release an active connection.'));
-        },
-        success: function success() {
-          return done();
-        }
-      });
-    };
-
-
-    //  ╦═╗╦ ╦╔╗╔  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬  ┌─┐┌┐┌┌┬┐  ┬─┐┌─┐┬  ┌─┐┌─┐┌─┐┌─┐
-    //  ╠╦╝║ ║║║║  │─┼┐│ │├┤ ├┬┘└┬┘  ├─┤│││ ││  ├┬┘├┤ │  ├┤ ├─┤└─┐├┤
-    //  ╩╚═╚═╝╝╚╝  └─┘└└─┘└─┘┴└─ ┴   ┴ ┴┘└┘─┴┘  ┴└─└─┘┴─┘└─┘┴ ┴└─┘└─┘
-    //  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
-    //  │  │ │││││││├┤ │   │ ││ ││││
-    //  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-    var runQuery = function runQuery(connection, query, done) {
-      runNativeQuery(connection, query, function cb(err) {
-        // Always release the connection no matter what the error state.
-        releaseConnection(connection, function cb() {
-          // If the native query had an error, return that error
-          if (err) {
-            return done(err);
-          }
-
-          return done();
-        });
-      });
-    };
-
-
-    //   █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗
-    //  ██╔══██╗██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
-    //  ███████║██║        ██║   ██║██║   ██║██╔██╗ ██║
-    //  ██╔══██║██║        ██║   ██║██║   ██║██║╚██╗██║
-    //  ██║  ██║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║
-    //  ╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
-    //
-    //  ██╗      ██████╗  ██████╗ ██╗ ██████╗
-    //  ██║     ██╔═══██╗██╔════╝ ██║██╔════╝
-    //  ██║     ██║   ██║██║  ███╗██║██║
-    //  ██║     ██║   ██║██║   ██║██║██║
-    //  ███████╗╚██████╔╝╚██████╔╝██║╚██████╗
-    //  ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝ ╚═════╝
-    //
-
-
-    // Open a new connection to use
-    spawnConnection(function cb(err, connection) {
+    Helpers.connection.spawnConnection(inputs.datastore, function spawnConnectionCb(err, connection) {
       if (err) {
         return exits.badConnection(err);
       }
 
       // Escape Table Name
-      var tableName = escapeName(inputs.tableName, schemaName);
+      var tableName;
+      try {
+        tableName = Helpers.schema.escapeTableName(inputs.tableName, schemaName);
+      } catch (e) {
+        // If there was an issue, release the connection
+        Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+          return exits.error(new Error('There was an issue escaping the table name ' + inputs.tableName + '.\n\n' + e.stack));
+        });
+        return;
+      }
 
       // Build Query
       var query = 'ALTER TABLE ' + tableName + ' DROP COLUMN "' + inputs.attributeName + '" RESTRICT';
 
-      // Run the ALTER TABLE query and release the connection
-      runQuery(connection, query, function cb(err) {
-        if (err) {
-          return exits.error(err);
-        }
 
-        return exits.success();
-      });
-    });
+      //  ╦═╗╦ ╦╔╗╔  ┌─┐┬ ┌┬┐┌─┐┬─┐  ┌┬┐┌─┐┌┐ ┬  ┌─┐
+      //  ╠╦╝║ ║║║║  ├─┤│  │ ├┤ ├┬┘   │ ├─┤├┴┐│  ├┤
+      //  ╩╚═╚═╝╝╚╝  ┴ ┴┴─┘┴ └─┘┴└─   ┴ ┴ ┴└─┘┴─┘└─┘
+      //  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
+      //  │─┼┐│ │├┤ ├┬┘└┬┘
+      //  └─┘└└─┘└─┘┴└─ ┴
+      Helpers.query.runNativeQuery(connection, query, function runNativeQueryCb(err) {
+        // Always release the connection back into the pool
+        Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+          if (err) {
+            return exits.error(err);
+          }
+
+          return exits.success();
+        }); // </ releaseConnection >
+      }); // </ runNativeQuery >
+    }); // </ spawnConnection >
   }
-
 });

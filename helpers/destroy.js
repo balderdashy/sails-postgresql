@@ -76,8 +76,8 @@ module.exports = require('machine').build({
 
 
   fn: function destroy(inputs, exits) {
-    var PG = require('machinepack-postgresql');
-    var Converter = require('waterline-query-parser').converter;
+    // Dependencies
+    var Converter = require('waterline-utils').query.converter;
     var Helpers = require('./private');
 
 
@@ -120,134 +120,43 @@ module.exports = require('machine').build({
     }
 
 
-    //  ███╗   ██╗ █████╗ ███╗   ███╗███████╗██████╗
-    //  ████╗  ██║██╔══██╗████╗ ████║██╔════╝██╔══██╗
-    //  ██╔██╗ ██║███████║██╔████╔██║█████╗  ██║  ██║
-    //  ██║╚██╗██║██╔══██║██║╚██╔╝██║██╔══╝  ██║  ██║
-    //  ██║ ╚████║██║  ██║██║ ╚═╝ ██║███████╗██████╔╝
-    //  ╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚═════╝
-    //
-    //  ███████╗██╗   ██╗███╗   ██╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
-    //  ██╔════╝██║   ██║████╗  ██║██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║██╔════╝
-    //  █████╗  ██║   ██║██╔██╗ ██║██║        ██║   ██║██║   ██║██╔██╗ ██║███████╗
-    //  ██╔══╝  ██║   ██║██║╚██╗██║██║        ██║   ██║██║   ██║██║╚██╗██║╚════██║
-    //  ██║     ╚██████╔╝██║ ╚████║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║███████║
-    //  ╚═╝      ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
-    //
-    // Prevent Callback Hell and such.
-
-
-    //  ╔═╗╔═╗╔╦╗╔═╗╦╦  ╔═╗  ┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┐┌┌┬┐
-    //  ║  ║ ║║║║╠═╝║║  ║╣   └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │
-    //  ╚═╝╚═╝╩ ╩╩  ╩╩═╝╚═╝  └─┘ ┴ ┴ ┴ ┴ └─┘┴ ┴└─┘┘└┘ ┴
-    // Transform the Waterline Query Statement into a SQL query.
-    var compileStatement = function compileStatement() {
-      var report;
-      try {
-        report = PG.compileStatement({
-          statement: statement
-        }).execSync();
-      } catch (e) {
-        throw new Error('There was an error compiling the statement into a query.\n\n' + e.stack);
-      }
-
-      return report.nativeQuery;
-    };
-
-
-    //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
-    //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
-    //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-    var spawnConnection = function spawnConnection(done) {
-      Helpers.spawnConnection(inputs.datastore, function cb(err, connection) {
-        if (err) {
-          return done(new Error('Failed to spawn a connection from the pool.' + err.stack));
-        }
-
-        return done(null, connection);
-      });
-    };
-
-
-    //  ╦═╗╔═╗╦  ╔═╗╔═╗╔═╗╔═╗  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
-    //  ╠╦╝║╣ ║  ║╣ ╠═╣╚═╗║╣   │  │ │││││││├┤ │   │ ││ ││││
-    //  ╩╚═╚═╝╩═╝╚═╝╩ ╩╚═╝╚═╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-    var releaseConnection = function releaseConnection(connection, done) {
-      PG.releaseConnection({
-        connection: connection
-      }).exec({
-        error: function error(err) {
-          return done(new Error('There was an error releasing the connection back into the pool.' + err.stack));
-        },
-        badConnection: function badConnection() {
-          return done(new Error('Bad connection when trying to release an active connection.'));
-        },
-        success: function success() {
-          return done();
-        }
-      });
-    };
-
-
-    //  ╦═╗╦ ╦╔╗╔  ┌┬┐┌─┐┌─┐┌┬┐┬─┐┌─┐┬ ┬  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
-    //  ╠╦╝║ ║║║║   ││├┤ └─┐ │ ├┬┘│ │└┬┘  │─┼┐│ │├┤ ├┬┘└┬┘
-    //  ╩╚═╚═╝╝╚╝  ─┴┘└─┘└─┘ ┴ ┴└─└─┘ ┴   └─┘└└─┘└─┘┴└─ ┴
-    var runDestroyQuery = function runDestroyQuery(connection, query, done) {
-      Helpers.runQuery({
-        connection: connection,
-        nativeQuery: query,
-        queryType: 'delete',
-        disconnectOnError: true
-      }, function _runQueryCb(err, report) {
-        if (err) {
-          return done(new Error('There was an error running the destroy query.' + err.stack));
-        }
-
-        releaseConnection(connection, function cb() {
-          return done(null, report.result);
-        });
-      });
-    };
-
-
-    //   █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗
-    //  ██╔══██╗██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
-    //  ███████║██║        ██║   ██║██║   ██║██╔██╗ ██║
-    //  ██╔══██║██║        ██║   ██║██║   ██║██║╚██╗██║
-    //  ██║  ██║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║
-    //  ╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
-    //
-    //  ██╗      ██████╗  ██████╗ ██╗ ██████╗
-    //  ██║     ██╔═══██╗██╔════╝ ██║██╔════╝
-    //  ██║     ██║   ██║██║  ███╗██║██║
-    //  ██║     ██║   ██║██║   ██║██║██║
-    //  ███████╗╚██████╔╝╚██████╔╝██║╚██████╗
-    //  ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝ ╚═════╝
-    //
-
     // Compile the original Waterline Query
     var query;
     try {
-      query = compileStatement();
+      query = Helpers.query.compileStatement(statement);
     } catch (e) {
       return exits.error(e);
     }
 
     // Spawn a new connection for running queries on.
-    spawnConnection(function cb(err, connection) {
+    Helpers.connection.spawnConnection(inputs.datastore, function spawnConnectionCb(err, connection) {
       if (err) {
         return exits.badConnection(err);
       }
 
-      // Run the DESTROY query
-      runDestroyQuery(connection, query, function cb(err, report) {
+
+      //  ╦═╗╦ ╦╔╗╔  ┌┬┐┌─┐┌─┐┌┬┐┬─┐┌─┐┬ ┬  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
+      //  ╠╦╝║ ║║║║   ││├┤ └─┐ │ ├┬┘│ │└┬┘  │─┼┐│ │├┤ ├┬┘└┬┘
+      //  ╩╚═╚═╝╝╚╝  ─┴┘└─┘└─┘ ┴ ┴└─└─┘ ┴   └─┘└└─┘└─┘┴└─ ┴
+      Helpers.query.runQuery({
+        connection: connection,
+        nativeQuery: query,
+        queryType: 'delete',
+        disconnectOnError: true
+      },
+
+      function runQueryCb(err, report) {
+        // The connection will have been disconnected on error already
         if (err) {
-          return exits.badConnection(err);
+          return exits.error(new Error('There was an error running the destroy query. ' + err.stack));
         }
 
-        return exits.success({ numRecordsDeleted: report.numRecordsDeleted });
-      }); // </ .runDestroyQuery(); >
-    }); // </ .spawnTransaction(); >
+        Helpers.connection.releaseConnection(connection, function cb() {
+          return exits.success({
+            numRecordsDeleted: report.result.numRecordsDeleted
+          });
+        }); // </ releaseConnection >
+      }); // </ runQuery >
+    }); // </ spawnConnection >
   }
-
 });

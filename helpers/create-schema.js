@@ -49,12 +49,13 @@ module.exports = require('machine').build({
 
 
   fn: function createSchema(inputs, exits) {
+    // Dependencies
     var Helpers = require('./private');
 
     //  ╔═╗╦═╗╔═╗╔═╗╔╦╗╔═╗  ┌┐┌┌─┐┌┬┐┌─┐┌─┐┌─┐┌─┐┌─┐┌─┐
     //  ║  ╠╦╝║╣ ╠═╣ ║ ║╣   │││├─┤│││├┤ └─┐├─┘├─┤│  ├┤
     //  ╚═╝╩╚═╚═╝╩ ╩ ╩ ╚═╝  ┘└┘┴ ┴┴ ┴└─┘└─┘┴  ┴ ┴└─┘└─┘
-    Helpers.createNamespace({
+    Helpers.schema.createNamespace({
       datastore: inputs.datastore,
       schemaName: inputs.schemaName
     }, function cb(err) {

@@ -55,7 +55,7 @@ module.exports = require('machine').build({
 
 
   fn: function drop(inputs, exits) {
-    var PG = require('machinepack-postgresql');
+    // Dependencies
     var Helpers = require('./private');
 
 
@@ -76,102 +76,44 @@ module.exports = require('machine').build({
     //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
     //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
     //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-    var spawnConnection = function spawnConnection(done) {
-      Helpers.spawnConnection(inputs.datastore, function cb(err, connection) {
-        if (err) {
-          return done(new Error('Failed to spawn a connection from the pool.' + err.stack));
-        }
-
-        return done(null, connection);
-      });
-    };
-
-
-    //  ╦═╗╦ ╦╔╗╔  ┌┐┌┌─┐┌┬┐┬┬  ┬┌─┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
-    //  ╠╦╝║ ║║║║  │││├─┤ │ │└┐┌┘├┤   │─┼┐│ │├┤ ├┬┘└┬┘
-    //  ╩╚═╚═╝╝╚╝  ┘└┘┴ ┴ ┴ ┴ └┘ └─┘  └─┘└└─┘└─┘┴└─ ┴
-    var runNativeQuery = function runNativeQuery(connection, query, done) {
-      PG.sendNativeQuery({
-        connection: connection,
-        nativeQuery: query
-      })
-      .exec(function execCb(err, report) {
-        if (err) {
-          return done(new Error('There was an error running the native query for drop. The query was: \n\n' + query + '\n\n' + err.stack));
-        }
-
-        return done(null, report.result.rows);
-      });
-    };
-
-
-    //  ╔═╗╔═╗╔═╗╔═╗╔═╗╔═╗  ┌┬┐┌─┐┌┐ ┬  ┌─┐  ┌┐┌┌─┐┌┬┐┌─┐
-    //  ║╣ ╚═╗║  ╠═╣╠═╝║╣    │ ├─┤├┴┐│  ├┤   │││├─┤│││├┤
-    //  ╚═╝╚═╝╚═╝╩ ╩╩  ╚═╝   ┴ ┴ ┴└─┘┴─┘└─┘  ┘└┘┴ ┴┴ ┴└─┘
-    // Ensure the name is escaped in quotes.
-    var escapeName = function escapeName(name, schema) {
-      name = '"' + name + '"';
-      if (schema) {
-        name = '"' + schema + '".' + name;
-      }
-
-      return name;
-    };
-
-
-    //  ╦═╗╔═╗╦  ╔═╗╔═╗╔═╗╔═╗  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
-    //  ╠╦╝║╣ ║  ║╣ ╠═╣╚═╗║╣   │  │ │││││││├┤ │   │ ││ ││││
-    //  ╩╚═╚═╝╩═╝╚═╝╩ ╩╚═╝╚═╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-    var releaseConnection = function releaseConnection(connection, done) {
-      PG.releaseConnection({
-        connection: connection
-      }).exec({
-        error: function error(err) {
-          return done(new Error('There was an error releasing the connection back into the pool.' + err.stack));
-        },
-        badConnection: function badConnection() {
-          return done(new Error('Bad connection when trying to release an active connection.'));
-        },
-        success: function success() {
-          return done();
-        }
-      });
-    };
-
-
-    //  ╔╦╗╦═╗╔═╗╔═╗  ┌┬┐┬ ┬┌─┐  ┌┬┐┌─┐┌┐ ┬  ┌─┐
-    //   ║║╠╦╝║ ║╠═╝   │ ├─┤├┤    │ ├─┤├┴┐│  ├┤
-    //  ═╩╝╩╚═╚═╝╩     ┴ ┴ ┴└─┘   ┴ ┴ ┴└─┘┴─┘└─┘
-    spawnConnection(function cb(err, connection) {
+    // Spawn a new connection to run the queries on.
+    Helpers.connection.spawnConnection(inputs.datastore, function spawnConnectionCb(err, connection) {
       if (err) {
         return exits.badConnection(err);
       }
 
-      // Escape Table Name
-      var tableName = escapeName(inputs.tableName, schemaName);
 
-      // Build Query
-      var query = 'DROP TABLE IF EXISTS' + tableName + ';';
+      //  ╔═╗╔═╗╔═╗╔═╗╔═╗╔═╗  ┌┬┐┌─┐┌┐ ┬  ┌─┐  ┌┐┌┌─┐┌┬┐┌─┐
+      //  ║╣ ╚═╗║  ╠═╣╠═╝║╣    │ ├─┤├┴┐│  ├┤   │││├─┤│││├┤
+      //  ╚═╝╚═╝╚═╝╩ ╩╩  ╚═╝   ┴ ┴ ┴└─┘┴─┘└─┘  ┘└┘┴ ┴┴ ┴└─┘
+      var tableName;
+      try {
+        tableName = Helpers.schema.escapeTableName(inputs.tableName, schemaName);
+      } catch (e) {
+        // Release the connection on error
+        Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+          return exits.error(new Error('There was an issue escaping the table name ' + inputs.tableName + '.\n\n' + e.stack));
+        });
+        return;
+      }
 
-      // Run the DROP TABLE query
-      runNativeQuery(connection, query, function cb(err) {
-        if (err) {
-          releaseConnection(connection, function cb() {
-            return exits.error(err);
-          });
-          return;
-        }
+      // Build native query
+      var query = 'DROP TABLE IF EXISTS ' + tableName + ';';
 
-        // Release the connection back to the pool
-        releaseConnection(connection, function cb(err) {
+
+      //  ╦═╗╦ ╦╔╗╔  ┌┬┐┬─┐┌─┐┌─┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
+      //  ╠╦╝║ ║║║║   ││├┬┘│ │├─┘  │─┼┐│ │├┤ ├┬┘└┬┘
+      //  ╩╚═╚═╝╝╚╝  ─┴┘┴└─└─┘┴    └─┘└└─┘└─┘┴└─ ┴
+      Helpers.query.runNativeQuery(connection, query, function runNativeQueryCb(err) {
+        // Always release the connection back to the pool
+        Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
           if (err) {
-            return exits.error(err);
+            return exits.error(new Error('There was an issue running the query: ' + query + '\n\n' + err.stack));
           }
 
           return exits.success();
-        });
-      });
-    });
+        }); // </ releaseConnection >
+      }); // </ runNativeQuery >
+    }); // </ spawnConnection >
   }
-
 });

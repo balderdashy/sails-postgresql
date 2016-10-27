@@ -77,11 +77,11 @@ module.exports = require('machine').build({
 
 
   fn: function create(inputs, exits) {
+    // Dependencies
     var _ = require('lodash');
-    var async = require('async');
-    var PG = require('machinepack-postgresql');
-    var Converter = require('waterline-query-parser').converter;
+    var utils = require('waterline-utils');
     var Helpers = require('./private');
+
 
     // Find the model definition
     var model = inputs.models[inputs.tableName];
@@ -136,18 +136,6 @@ module.exports = require('machine').build({
     });
 
 
-    //  ╔═╗╔═╗╦═╗╦╔═╗╦  ╦╔═╗╔═╗  ┬─┐┌─┐┌─┐┌─┐┬─┐┌┬┐
-    //  ╚═╗║╣ ╠╦╝║╠═╣║  ║╔═╝║╣   ├┬┘├┤ │  │ │├┬┘ ││
-    //  ╚═╝╚═╝╩╚═╩╩ ╩╩═╝╩╚═╝╚═╝  ┴└─└─┘└─┘└─┘┴└──┴┘
-    // Ensure that all the values being stored are valid for the database.
-    var serializedValues;
-    try {
-      serializedValues = Helpers.serializeValues(inputs.record);
-    } catch (e) {
-      return exits.error(new Error('There was an error serializing the insert values.' + e.stack));
-    }
-
-
     //  ╔═╗╔═╗╔╗╔╦  ╦╔═╗╦═╗╔╦╗  ┌┬┐┌─┐  ┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┐┌┌┬┐
     //  ║  ║ ║║║║╚╗╔╝║╣ ╠╦╝ ║    │ │ │  └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │
     //  ╚═╝╚═╝╝╚╝ ╚╝ ╚═╝╩╚═ ╩    ┴ └─┘  └─┘ ┴ ┴ ┴ ┴ └─┘┴ ┴└─┘┘└┘ ┴
@@ -158,10 +146,10 @@ module.exports = require('machine').build({
     // on Waterline Query Statements.
     var statement;
     try {
-      statement = Converter({
+      statement = utils.query.converter({
         model: inputs.tableName,
         method: 'create',
-        values: serializedValues
+        values: inputs.record
       });
 
       // Add the postgres schema object to the statement
@@ -169,356 +157,98 @@ module.exports = require('machine').build({
         schema: schemaName
       };
     } catch (e) {
-      return exits.error(new Error('The Waterline query could not be converted.' + e.stack));
+      return exits.error(new Error('The Waterline query could not be converted.' + e.message));
     }
 
 
-    //  ███╗   ██╗ █████╗ ███╗   ███╗███████╗██████╗
-    //  ████╗  ██║██╔══██╗████╗ ████║██╔════╝██╔══██╗
-    //  ██╔██╗ ██║███████║██╔████╔██║█████╗  ██║  ██║
-    //  ██║╚██╗██║██╔══██║██║╚██╔╝██║██╔══╝  ██║  ██║
-    //  ██║ ╚████║██║  ██║██║ ╚═╝ ██║███████╗██████╔╝
-    //  ╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚═════╝
-    //
-    //  ███████╗██╗   ██╗███╗   ██╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
-    //  ██╔════╝██║   ██║████╗  ██║██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║██╔════╝
-    //  █████╗  ██║   ██║██╔██╗ ██║██║        ██║   ██║██║   ██║██╔██╗ ██║███████╗
-    //  ██╔══╝  ██║   ██║██║╚██╗██║██║        ██║   ██║██║   ██║██║╚██╗██║╚════██║
-    //  ██║     ╚██████╔╝██║ ╚████║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║███████║
-    //  ╚═╝      ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
-    //
-    // Prevent Callback Hell and such.
-
-
-    //  ╔═╗╔═╗╔╦╗╔═╗╦╦  ╔═╗  ┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┐┌┌┬┐
-    //  ║  ║ ║║║║╠═╝║║  ║╣   └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │
-    //  ╚═╝╚═╝╩ ╩╩  ╩╩═╝╚═╝  └─┘ ┴ ┴ ┴ ┴ └─┘┴ ┴└─┘┘└┘ ┴
-    // Transform the Waterline Query Statement into a SQL query.
-    var compileStatement = function compileStatement() {
-      // Find the Primary Key and add a "returning" clause to the statement.
-      var primaryKeyField = findPrimaryKey();
-
-      // Return the values of the primary key field
-      statement.returning = primaryKeyField;
-
-      var report;
-      try {
-        report = PG.compileStatement({
-          statement: statement
-        }).execSync();
-      } catch (e) {
-        throw new Error('Could not compile the statement.\n\n' + e.stack);
-      }
-
-      return report.nativeQuery;
-    };
-
-
-    //  ╔═╗╦╔╗╔╔╦╗  ┌─┐┬─┐┬┌┬┐┌─┐┬─┐┬ ┬  ┬┌─┌─┐┬ ┬
-    //  ╠╣ ║║║║ ║║  ├─┘├┬┘││││├─┤├┬┘└┬┘  ├┴┐├┤ └┬┘
-    //  ╚  ╩╝╚╝═╩╝  ┴  ┴└─┴┴ ┴┴ ┴┴└─ ┴   ┴ ┴└─┘ ┴
-    var findPrimaryKey = function findPrimaryKey() {
-      var pk;
-      try {
-        pk = Helpers.findPrimaryKey(model.definition);
-      } catch (e) {
-        throw new Error('Could not determine a Primary Key for the model: ' + model.tableName + '.\n\n' + e.stack);
-      }
-
-      return pk;
-    };
-
-
     //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
     //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
     //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-    var spawnConnection = function spawnConnection(done) {
-      Helpers.spawnConnection(inputs.datastore, function cb(err, connection) {
-        if (err) {
-          return done(new Error('Failed to spawn a connection from the pool.' + err.stack));
-        }
-
-        return done(null, connection);
-      });
-    };
-
-
-    //  ╔╗ ╔═╗╔═╗╦╔╗╔  ┌┬┐┬─┐┌─┐┌┐┌┌─┐┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
-    //  ╠╩╗║╣ ║ ╦║║║║   │ ├┬┘├─┤│││└─┐├─┤│   │ ││ ││││
-    //  ╚═╝╚═╝╚═╝╩╝╚╝   ┴ ┴└─┴ ┴┘└┘└─┘┴ ┴└─┘ ┴ ┴└─┘┘└┘
-    var beginTransaction = function beginTransaction(connection, done) {
-      PG.beginTransaction({
-        connection: connection
-      })
-      .exec({
-        // If there was an error opening a transaction, release the connection.
-        // After releasing the connection always return the original error.
-        error: function error(err) {
-          PG.releaseConnection({
-            connection: connection
-          }).exec({
-            error: function error(err) {
-              return done(new Error('There was an error releasing the connection back into the pool.' + err.stack));
-            },
-            success: function success() {
-              return done(new Error('There was an error starting a transaction.' + err.stack));
-            }
-          });
-        },
-        success: function success() {
-          return done();
-        }
-      });
-    };
-
-
-    //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
-    //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
-    //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-    //   ┬   ╔═╗╔╦╗╔═╗╦═╗╔╦╗  ┌┬┐┬─┐┌─┐┌┐┌┌─┐┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
-    //  ┌┼─  ╚═╗ ║ ╠═╣╠╦╝ ║    │ ├┬┘├─┤│││└─┐├─┤│   │ ││ ││││
-    //  └┘   ╚═╝ ╩ ╩ ╩╩╚═ ╩    ┴ ┴└─┴ ┴┘└┘└─┘┴ ┴└─┘ ┴ ┴└─┘┘└┘
-    var spawnTransaction = function spawnTransaction(done) {
-      spawnConnection(function cb(err, connection) {
-        if (err) {
-          return done(err);
-        }
-
-        beginTransaction(connection, function cb(err) {
-          if (err) {
-            return done(err);
-          }
-
-          return done(null, connection);
-        });
-      });
-    };
-
-
-    //  ╦═╗╦ ╦╔╗╔  ┬┌┐┌┌─┐┌─┐┬─┐┌┬┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
-    //  ╠╦╝║ ║║║║  ││││└─┐├┤ ├┬┘ │   │─┼┐│ │├┤ ├┬┘└┬┘
-    //  ╩╚═╚═╝╝╚╝  ┴┘└┘└─┘└─┘┴└─ ┴   └─┘└└─┘└─┘┴└─ ┴
-    var runInsertQuery = function runInsertQuery(connection, query, done) {
-      Helpers.runQuery({
-        connection: connection,
-        nativeQuery: query,
-        queryType: 'insert',
-        disconnectOnError: false
-      }, function cb(err, report) {
-        // If the query failed to run, rollback the transaction and release the connection.
-        if (err) {
-          Helpers.rollbackAndRelease(connection, function _rollbackCB(err) {
-            if (err) {
-              return done(new Error('There was an error rolling back the transaction.\n\n' + err.stack));
-            }
-
-            return done(new Error('There was an error attempting to run the query: ' + '\n\n' + query.sql + '\nusing values: (' + query.bindings + ')\n\n' + 'The transaction has been rolled back.\n\n' + err.stack));
-          });
-
-          return;
-        }
-
-        return done(null, report.result);
-      });
-    };
-
-
-    //  ╔═╗╦╔╗╔╔╦╗  ┬┌┐┌┌─┐┌─┐┬─┐┌┬┐┌─┐┌┬┐  ┬─┐┌─┐┌─┐┌─┐┬─┐┌┬┐┌─┐
-    //  ╠╣ ║║║║ ║║  ││││└─┐├┤ ├┬┘ │ ├┤  ││  ├┬┘├┤ │  │ │├┬┘ ││└─┐
-    //  ╚  ╩╝╚╝═╩╝  ┴┘└┘└─┘└─┘┴└─ ┴ └─┘─┴┘  ┴└─└─┘└─┘└─┘┴└──┴┘└─┘
-    var runFindQuery = function runFindQuery(connection, insertResults, done) {
-      // Find the Primary Key field for the model
-      var pk = findPrimaryKey();
-
-      // Build up a criteria statement to run
-      var criteriaStatement = {
-        select: ['*'],
-        from: inputs.tableName,
-        where: {},
-        opts: {
-          schema: schemaName
-        }
-      };
-
-      // Insert dynamic primary key value into query
-      criteriaStatement.where[pk] = {
-        in: insertResults.inserted
-      };
-
-      // Build an IN query from the results of the insert query
-      var report;
-      try {
-        report = PG.compileStatement({
-          statement: criteriaStatement
-        }).execSync();
-      } catch (e) {
-        return done(new Error('There was an error compiling the statement into a query.\n\n' + e.stack));
-      }
-
-      // Run the FIND query
-      Helpers.runQuery({
-        connection: connection,
-        nativeQuery: report.nativeQuery,
-        queryType: 'select',
-        disconnectOnError: false
-      }, function cb(err, report) {
-        // If the query failed to run, rollback the transaction and release the connection.
-        if (err) {
-          Helpers.rollbackAndRelease(connection, function _rollbackCB(err) {
-            if (err) {
-              return done(new Error('There was an error rolling back the transaction.\n\n' + err.stack));
-            }
-
-            return done(new Error('There was an error attempting to run the query: ' + '\n\n' + report.nativeQuery.sql + '\nusing values: (' + report.nativeQuery.bindings + ')\n\n' + 'The transaction has been rolled back.\n\n' + err.stack));
-          });
-
-          return;
-        }
-
-        return done(null, report.result);
-      });
-    };
-
-
-    //  ╦╔╗╔╔═╗╔═╗╦═╗╔╦╗  ┌─┐┌┐┌┌┬┐  ┌─┐┬┌┐┌┌┬┐
-    //  ║║║║╚═╗║╣ ╠╦╝ ║   ├─┤│││ ││  ├┤ ││││ ││
-    //  ╩╝╚╝╚═╝╚═╝╩╚═ ╩   ┴ ┴┘└┘─┴┘  └  ┴┘└┘─┴┘
-    var insertAndFind = function insertAndFind(connection, query, done) {
-      runInsertQuery(connection, query, function cb(err, insertResults) {
-        if (err) {
-          return done(err);
-        }
-
-        runFindQuery(connection, insertResults, function cb(err, findResults) {
-          if (err) {
-            return done(err);
-          }
-
-          return done(null, findResults);
-        });
-      });
-    };
-
-
-    //  ╔═╗╔═╗╔╦╗  ┌─┐┌─┐┌─┐ ┬ ┬┌─┐┌┐┌┌─┐┌─┐┌─┐  ┬  ┬┌─┐┬  ┬ ┬┌─┐┌─┐
-    //  ╚═╗║╣  ║   └─┐├┤ │─┼┐│ │├┤ │││├┤ │  ├┤   └┐┌┘├─┤│  │ │├┤ └─┐
-    //  ╚═╝╚═╝ ╩   └─┘└─┘└─┘└└─┘└─┘┘└┘└─┘└─┘└─┘   └┘ ┴ ┴┴─┘└─┘└─┘└─┘
-    var setSequenceValues = function setSequenceValues(connection, done) {
-      // Build a function for handling sequence queries on a single sequence.
-      var setSequence = function setSequence(item, next) {
-        var sequenceName = "'\"" + schemaName + '\".\"' + inputs.tableName + '_' + item + '_seq' + "\"'";
-        var sequenceValue = inputs.record[item];
-        var sequenceQuery = 'SELECT setval(' + sequenceName + ', ' + sequenceValue + ', true)';
-
-        // Run Sequence Query
-        Helpers.runQuery({
-          connection: connection,
-          nativeQuery: sequenceQuery,
-          disconnectOnError: false
-        }, next);
-      };
-
-      async.each(incrementSequences, setSequence, function doneWithSequences(err) {
-        if (err) {
-          Helpers.rollbackAndRelease(connection, function _rollbackCb(err) {
-            if (err) {
-              return done(new Error('There was an error rolling back and releasing the connection.' + err.stack));
-            }
-
-            return done(new Error('There was an error incrementing a sequence on the create.' + err.stack));
-          });
-          return;
-        }
-
-        return done();
-      });
-    };
-
-
-    //  ╔═╗╔═╗╔╦╗╔╦╗╦╔╦╗  ┌┬┐┬─┐┌─┐┌┐┌┌─┐┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
-    //  ║  ║ ║║║║║║║║ ║    │ ├┬┘├─┤│││└─┐├─┤│   │ ││ ││││
-    //  ╚═╝╚═╝╩ ╩╩ ╩╩ ╩    ┴ ┴└─┴ ┴┘└┘└─┘┴ ┴└─┘ ┴ ┴└─┘┘└┘
-    // Commit the transaction and release the connection.
-    var commitTransaction = function commitTransaction(connection, done) {
-      Helpers.commitAndRelease(connection, function _commitCb(err) {
-        if (err) {
-          return done(new Error('There was an error commiting the transaction.' + err.stack));
-        }
-
-        return done();
-      });
-    };
-
-
-    //   █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗
-    //  ██╔══██╗██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
-    //  ███████║██║        ██║   ██║██║   ██║██╔██╗ ██║
-    //  ██╔══██║██║        ██║   ██║██║   ██║██║╚██╗██║
-    //  ██║  ██║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║
-    //  ╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
-    //
-    //  ██╗      ██████╗  ██████╗ ██╗ ██████╗
-    //  ██║     ██╔═══██╗██╔════╝ ██║██╔════╝
-    //  ██║     ██║   ██║██║  ███╗██║██║
-    //  ██║     ██║   ██║██║   ██║██║██║
-    //  ███████╗╚██████╔╝╚██████╔╝██║╚██████╗
-    //  ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝ ╚═════╝
-    //
-
     // Spawn a new connection and open a transaction for running queries on.
-    spawnTransaction(function cb(err, connection) {
+    Helpers.connection.spawnTransaction(inputs.datastore, function spawnTransactionCb(err, connection) {
       if (err) {
         return exits.badConnection(err);
       }
 
+
+      // Find the Primary Key and add a "returning" clause to the statement.
+      var primaryKeyField = Helpers.schema.findPrimaryKey(model.definition);
+
+      // Return the values of the primary key field
+      statement.returning = primaryKeyField;
+
+
+      //  ╔═╗╔═╗╔╦╗╔═╗╦╦  ╔═╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
+      //  ║  ║ ║║║║╠═╝║║  ║╣   │─┼┐│ │├┤ ├┬┘└┬┘
+      //  ╚═╝╚═╝╩ ╩╩  ╩╩═╝╚═╝  └─┘└└─┘└─┘┴└─ ┴
       // Compile the original Waterline Query
       var query;
       try {
-        query = compileStatement();
+        query = Helpers.query.compileStatement(statement);
       } catch (e) {
-        return exits.error(e);
+        // If the statement could not be compiled, release the connection and end
+        // the transaction.
+        Helpers.connection.rollbackAndRelease(connection, function rollbackAndReleaseCb() {
+          return exits.error(e);
+        });
+
+        return;
       }
 
-      // Insert the new record and if successfully look it up again to get any
-      // inferred values. This should be updated in the future to use the PG
-      // "returning *" query clause but that isn't currently supported by the
-      // query builder.
-      insertAndFind(connection, query, function cb(err, insertedRecords) {
+      //  ╦╔╗╔╔═╗╔═╗╦═╗╔╦╗  ┬─┐┌─┐┌─┐┌─┐┬─┐┌┬┐
+      //  ║║║║╚═╗║╣ ╠╦╝ ║   ├┬┘├┤ │  │ │├┬┘ ││
+      //  ╩╝╚╝╚═╝╚═╝╩╚═ ╩   ┴└─└─┘└─┘└─┘┴└──┴┘
+      // Insert the record and return the new values
+      Helpers.query.insertRecord({
+        connection: connection,
+        query: query,
+        model: model,
+        schemaName: schemaName,
+        tableName: inputs.tableName
+      },
+
+      function insertRecordCb(err, insertedRecords) {
         if (err) {
           return exits.error(err);
         }
 
+        //  ╔═╗╔╗╔╔═╗╦ ╦╦═╗╔═╗  ┌─┐┌─┐┌─┐ ┬ ┬┌─┐┌┐┌┌─┐┌─┐┌─┐
+        //  ║╣ ║║║╚═╗║ ║╠╦╝║╣   └─┐├┤ │─┼┐│ │├┤ ││││  ├┤ └─┐
+        //  ╚═╝╝╚╝╚═╝╚═╝╩╚═╚═╝  └─┘└─┘└─┘└└─┘└─┘┘└┘└─┘└─┘└─┘
+        //  ┌─┐┬─┐┌─┐  ┬ ┬┌─┐  ┌┬┐┌─┐  ┌┬┐┌─┐┌┬┐┌─┐
+        //  ├─┤├┬┘├┤   │ │├─┘   │ │ │   ││├─┤ │ ├┤
+        //  ┴ ┴┴└─└─┘  └─┘┴     ┴ └─┘  ─┴┘┴ ┴ ┴ └─┘
         // Update any sequences that may have been used
-        setSequenceValues(connection, function cb(err) {
+        Helpers.schema.setSequenceValues({
+          connection: connection,
+          sequences: incrementSequences,
+          record: inputs.record,
+          schemaName: schemaName,
+          tableName: inputs.tableName
+        },
+
+        function setSequencesCb(err) {
           if (err) {
-            return exits.error(err);
+            // If there was an error, release the connection and end the transaction.
+            Helpers.connection.rollbackAndRelease(connection, function rollbackAndReleaseCb() {
+              return exits.error(err);
+            });
+
+            return;
           }
 
           // Commit the transaction
-          commitTransaction(connection, function cb(err) {
+          Helpers.connection.commitAndRelease(connection, function commitCb(err) {
             if (err) {
-              return exits.error(err);
-            }
-
-            //  ╔═╗╔═╗╔═╗╔╦╗  ┬  ┬┌─┐┬  ┬ ┬┌─┐┌─┐
-            //  ║  ╠═╣╚═╗ ║   └┐┌┘├─┤│  │ │├┤ └─┐
-            //  ╚═╝╩ ╩╚═╝ ╩    └┘ ┴ ┴┴─┘└─┘└─┘└─┘
-            var castResults;
-            try {
-              castResults = Helpers.unserializeValues({
-                definition: model.definition,
-                records: insertedRecords
-              });
-            } catch (e) {
-              return exits.error(new Error('There was an error normalizing the insert values.' + e.stack));
+              return exits.error(new Error('There was an error commiting the transaction.' + err.stack));
             }
 
             // Only return the first record (there should only ever be one)
-            return exits.success({ record: _.first(castResults) });
-          }); // </ .commitTransaction(); >
+            var insertedRecord = _.first(insertedRecords);
+            return exits.success({ record: insertedRecord });
+          }); // </ .commitAndRelease(); >
         }); // </ .setSequenceValues(); >
-      }); // </ .insertAndFind(); >
+      }); // </ .insertRecord(); >
     }); // </ .spawnTransaction(); >
   }
-
 });
