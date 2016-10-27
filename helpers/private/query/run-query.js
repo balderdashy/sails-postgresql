@@ -8,6 +8,7 @@
 // Send a Native Query to the datastore and gracefully handle errors.
 
 var PG = require('machinepack-postgresql');
+var releaseConnection = require('../connection/releaseConnection');
 
 module.exports = function runQuery(options, cb) {
   // Validate input options
@@ -20,26 +21,9 @@ module.exports = function runQuery(options, cb) {
   }
 
 
-  //  ╦═╗╔═╗╦  ╔═╗╔═╗╔═╗╔═╗  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
-  //  ╠╦╝║╣ ║  ║╣ ╠═╣╚═╗║╣   │  │ │││││││├┤ │   │ ││ ││││
-  //  ╩╚═╚═╝╩═╝╚═╝╩ ╩╚═╝╚═╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-  var releaseConnection = function releaseConnection(connection, done) {
-    PG.releaseConnection({
-      connection: connection
-    }).exec({
-      error: function error(err) {
-        return done(err);
-      },
-      badConnection: function badConnection(err) {
-        return done(err);
-      },
-      success: function success() {
-        return done();
-      }
-    });
-  };
-
-
+  //  ╦═╗╦ ╦╔╗╔  ┌┐┌┌─┐┌┬┐┬┬  ┬┌─┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
+  //  ╠╦╝║ ║║║║  │││├─┤ │ │└┐┌┘├┤   │─┼┐│ │├┤ ├┬┘└┬┘
+  //  ╩╚═╚═╝╝╚╝  ┘└┘┴ ┴ ┴ ┴ └┘ └─┘  └─┘└└─┘└─┘┴└─ ┴
   PG.sendNativeQuery({
     connection: options.connection,
     nativeQuery: options.nativeQuery
