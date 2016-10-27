@@ -11,7 +11,7 @@ A [Waterline](https://github.com/balderdashy/waterline) adapter for working with
 
 To report a bug, [click here](http://sailsjs.com/bugs).
 
-## Contributing &nbsp; [![Build Status](https://travis-ci.org/treelinehq/sails-postgresql.svg?branch=master)](https://travis-ci.org/treelinehq/sails-postgresql)
+## Contributing &nbsp; [![Build Status](https://travis-ci.org/balderdashy/sails-postgresql.svg?branch=master)](https://travis-ci.org/balderdashy/sails-postgresql)
 
 Please observe the guidelines and conventions laid out in the [Sails project contribution guide](http://sailsjs.com/contribute) when opening issues or submitting pull requests.
 
