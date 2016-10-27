@@ -8,7 +8,7 @@
 // Send a Native Query to the datastore and gracefully handle errors.
 
 var PG = require('machinepack-postgresql');
-var releaseConnection = require('../connection/releaseConnection');
+var releaseConnection = require('../connection/release-connection');
 
 module.exports = function runQuery(options, cb) {
   // Validate input options
