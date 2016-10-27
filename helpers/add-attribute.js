@@ -1,0 +1,146 @@
+//   █████╗ ██████╗ ██████╗      █████╗ ████████╗████████╗██████╗ ██╗██████╗ ██╗   ██╗████████╗███████╗
+//  ██╔══██╗██╔══██╗██╔══██╗    ██╔══██╗╚══██╔══╝╚══██╔══╝██╔══██╗██║██╔══██╗██║   ██║╚══██╔══╝██╔════╝
+//  ███████║██║  ██║██║  ██║    ███████║   ██║      ██║   ██████╔╝██║██████╔╝██║   ██║   ██║   █████╗
+//  ██╔══██║██║  ██║██║  ██║    ██╔══██║   ██║      ██║   ██╔══██╗██║██╔══██╗██║   ██║   ██║   ██╔══╝
+//  ██║  ██║██████╔╝██████╔╝    ██║  ██║   ██║      ██║   ██║  ██║██║██████╔╝╚██████╔╝   ██║   ███████╗
+//  ╚═╝  ╚═╝╚═════╝ ╚═════╝     ╚═╝  ╚═╝   ╚═╝      ╚═╝   ╚═╝  ╚═╝╚═╝╚═════╝  ╚═════╝    ╚═╝   ╚══════╝
+//
+
+module.exports = require('machine').build({
+
+
+  friendlyName: 'Add Attribute',
+
+
+  description: 'Add an attribute to an existing table.',
+
+
+  inputs: {
+
+    datastore: {
+      description: 'The datastore to use for connections.',
+      extendedDescription: 'Datastores represent the config and manager required to obtain an active database connection.',
+      required: true,
+      readOnly: true,
+      example: '==='
+    },
+
+    tableName: {
+      description: 'The name of the table to create.',
+      required: true,
+      example: 'users'
+    },
+
+    definition: {
+      description: 'The definition of the attribute to add.',
+      required: true,
+      example: {}
+    },
+
+    meta: {
+      friendlyName: 'Meta (custom)',
+      description: 'Additional stuff to pass to the driver.',
+      extendedDescription: 'This is reserved for custom driver-specific extensions.',
+      example: '==='
+    }
+
+  },
+
+
+  exits: {
+
+    success: {
+      description: 'The attribute was created successfully.'
+    },
+
+    badConfiguration: {
+      description: 'The configuration was invalid.'
+    },
+
+    invalidDatastore: {
+      description: 'The datastore used is invalid. It is missing key pieces.'
+    }
+
+  },
+
+
+  fn: function addAttribute(inputs, exits) {
+    // Dependencies
+    var Helpers = require('./private');
+
+
+    //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ┌─┐┌─┐┬─┐  ┌─┐  ┌─┐┌─┐  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
+    //  ║  ╠═╣║╣ ║  ╠╩╗  ├┤ │ │├┬┘  ├─┤  ├─┘│ ┬  └─┐│  ├─┤├┤ │││├─┤
+    //  ╚═╝╩ ╩╚═╝╚═╝╩ ╩  └  └─┘┴└─  ┴ ┴  ┴  └─┘  └─┘└─┘┴ ┴└─┘┴ ┴┴ ┴
+    // This is a unique feature of Postgres. It may be passed in on a query
+    // by query basis using the meta input or configured on the datastore. Default
+    // to use the public schema.
+    var schemaName = 'public';
+    if (inputs.meta && inputs.meta.schemaName) {
+      schemaName = inputs.meta.schemaName;
+    } else if (inputs.datastore.config && inputs.datastore.config.schemaName) {
+      schemaName = inputs.datastore.config.schemaName;
+    }
+
+
+    //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
+    //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
+    //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
+    // Spawn a new connection to run the queries on.
+    Helpers.connection.spawnConnection(inputs.datastore, function spawnConnectionCb(err, connection) {
+      if (err) {
+        return exits.badConnection(err);
+      }
+
+
+      //  ╔═╗╔═╗╔═╗╔═╗╔═╗╔═╗  ┌┬┐┌─┐┌┐ ┬  ┌─┐  ┌┐┌┌─┐┌┬┐┌─┐
+      //  ║╣ ╚═╗║  ╠═╣╠═╝║╣    │ ├─┤├┴┐│  ├┤   │││├─┤│││├┤
+      //  ╚═╝╚═╝╚═╝╩ ╩╩  ╚═╝   ┴ ┴ ┴└─┘┴─┘└─┘  ┘└┘┴ ┴┴ ┴└─┘
+      var tableName;
+      try {
+        tableName = Helpers.schema.escapeTableName(inputs.tableName, schemaName);
+      } catch (e) {
+        // If there was an error escaping the table name, release the connection
+        // and return out the badConfiguration exit
+        Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+          return exits.badConfiguration(e);
+        });
+
+        return;
+      }
+
+      // Iterate through each attribute, building the column parts of the query string
+      var schema;
+      try {
+        schema = Helpers.schema.buildSchema(inputs.definition);
+      } catch (e) {
+        // If there was an error escaping the table name, release the connection
+        // and return out the error exit
+        Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+          return exits.error(new Error('There was an error building a schema object. ' + e.stack));
+        });
+
+        return;
+      }
+
+      // Build Query
+      var query = 'ALTER TABLE ' + tableName + ' ADD COLUMN ' + schema;
+
+
+      //  ╦═╗╦ ╦╔╗╔  ┌┐┌┌─┐┌┬┐┬┬  ┬┌─┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
+      //  ╠╦╝║ ║║║║  │││├─┤ │ │└┐┌┘├┤   │─┼┐│ │├┤ ├┬┘└┬┘
+      //  ╩╚═╚═╝╝╚╝  ┘└┘┴ ┴ ┴ ┴ └┘ └─┘  └─┘└└─┘└─┘┴└─ ┴
+      Helpers.query.runNativeQuery(connection, query, function cb(err) {
+        // Always release the connection no matter what the error state.
+        Helpers.connection.releaseConnection(connection, function cb() {
+          // If the native query had an error, return that error
+          if (err) {
+            return exits.error(err);
+          }
+
+          return exits.success();
+        });
+      });
+    });
+  }
+});

@@ -1,0 +1,59 @@
+//  ██████╗ ██╗   ██╗███╗   ██╗    ███╗   ██╗ █████╗ ████████╗██╗██╗   ██╗███████╗
+//  ██╔══██╗██║   ██║████╗  ██║    ████╗  ██║██╔══██╗╚══██╔══╝██║██║   ██║██╔════╝
+//  ██████╔╝██║   ██║██╔██╗ ██║    ██╔██╗ ██║███████║   ██║   ██║██║   ██║█████╗
+//  ██╔══██╗██║   ██║██║╚██╗██║    ██║╚██╗██║██╔══██║   ██║   ██║╚██╗ ██╔╝██╔══╝
+//  ██║  ██║╚██████╔╝██║ ╚████║    ██║ ╚████║██║  ██║   ██║   ██║ ╚████╔╝ ███████╗
+//  ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝    ╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═══╝  ╚══════╝
+//
+//   ██████╗ ██╗   ██╗███████╗██████╗ ██╗   ██╗
+//  ██╔═══██╗██║   ██║██╔════╝██╔══██╗╚██╗ ██╔╝
+//  ██║   ██║██║   ██║█████╗  ██████╔╝ ╚████╔╝
+//  ██║▄▄ ██║██║   ██║██╔══╝  ██╔══██╗  ╚██╔╝
+//  ╚██████╔╝╚██████╔╝███████╗██║  ██║   ██║
+//   ╚══▀▀═╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝   ╚═╝
+//
+// Run a native SQL query on an open connection and return the raw results.
+
+var PG = require('machinepack-postgresql');
+
+module.exports = function runNativeQuery(connection, query, cb) {
+  PG.sendNativeQuery({
+    connection: connection,
+    nativeQuery: query
+  })
+  .exec({
+    error: function error(err) {
+      return cb(err);
+    },
+
+    // If the query failed, try and parse it into a normalized format.
+    queryFailed: function queryFailed(report) {
+      // Parse the native query error into a normalized format
+      var parsedError;
+      try {
+        parsedError = PG.parseNativeQueryError({
+          nativeQueryError: report.error
+        }).execSync();
+      } catch (e) {
+        return cb(e);
+      }
+
+      // If the catch all error was used, return an error instance instead of
+      // the footprint.
+      var catchAllError = false;
+
+      if (parsedError.footprint.identity === 'catchall') {
+        catchAllError = true;
+      }
+
+      if (catchAllError) {
+        return cb(report.error);
+      }
+
+      return cb(parsedError);
+    },
+    success: function success(report) {
+      return cb(null, report.result.rows);
+    }
+  });
+};

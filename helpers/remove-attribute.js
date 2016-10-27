@@ -1,0 +1,124 @@
+//  ██████╗ ███████╗███╗   ███╗ ██████╗ ██╗   ██╗███████╗     █████╗ ████████╗████████╗██████╗ ██╗██████╗ ██╗   ██╗████████╗███████╗
+//  ██╔══██╗██╔════╝████╗ ████║██╔═══██╗██║   ██║██╔════╝    ██╔══██╗╚══██╔══╝╚══██╔══╝██╔══██╗██║██╔══██╗██║   ██║╚══██╔══╝██╔════╝
+//  ██████╔╝█████╗  ██╔████╔██║██║   ██║██║   ██║█████╗      ███████║   ██║      ██║   ██████╔╝██║██████╔╝██║   ██║   ██║   █████╗
+//  ██╔══██╗██╔══╝  ██║╚██╔╝██║██║   ██║╚██╗ ██╔╝██╔══╝      ██╔══██║   ██║      ██║   ██╔══██╗██║██╔══██╗██║   ██║   ██║   ██╔══╝
+//  ██║  ██║███████╗██║ ╚═╝ ██║╚██████╔╝ ╚████╔╝ ███████╗    ██║  ██║   ██║      ██║   ██║  ██║██║██████╔╝╚██████╔╝   ██║   ███████╗
+//  ╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝ ╚═════╝   ╚═══╝  ╚══════╝    ╚═╝  ╚═╝   ╚═╝      ╚═╝   ╚═╝  ╚═╝╚═╝╚═════╝  ╚═════╝    ╚═╝   ╚══════╝
+//
+
+module.exports = require('machine').build({
+
+
+  friendlyName: 'Remove Attribute',
+
+
+  description: 'Remove an attribute from an existing table.',
+
+
+  inputs: {
+
+    datastore: {
+      description: 'The datastore to use for connections.',
+      extendedDescription: 'Datastores represent the config and manager required to obtain an active database connection.',
+      required: true,
+      readOnly: true,
+      example: '==='
+    },
+
+    tableName: {
+      description: 'The name of the table to create.',
+      required: true,
+      example: 'users'
+    },
+
+    attributeName: {
+      description: 'The name of the attribute to remove.',
+      required: true,
+      example: 'name'
+    },
+
+    meta: {
+      friendlyName: 'Meta (custom)',
+      description: 'Additional stuff to pass to the driver.',
+      extendedDescription: 'This is reserved for custom driver-specific extensions.',
+      example: '==='
+    }
+
+  },
+
+
+  exits: {
+
+    success: {
+      description: 'The attribute was removed successfully.'
+    },
+
+    badConfiguration: {
+      description: 'The configuration was invalid.'
+    }
+
+  },
+
+
+  fn: function removeAttribute(inputs, exits) {
+    // Dependencies
+    var Helpers = require('./private');
+
+
+    //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ┌─┐┌─┐┬─┐  ┌─┐  ┌─┐┌─┐  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
+    //  ║  ╠═╣║╣ ║  ╠╩╗  ├┤ │ │├┬┘  ├─┤  ├─┘│ ┬  └─┐│  ├─┤├┤ │││├─┤
+    //  ╚═╝╩ ╩╚═╝╚═╝╩ ╩  └  └─┘┴└─  ┴ ┴  ┴  └─┘  └─┘└─┘┴ ┴└─┘┴ ┴┴ ┴
+    // This is a unique feature of Postgres. It may be passed in on a query
+    // by query basis using the meta input or configured on the datastore. Default
+    // to use the public schema.
+    var schemaName = 'public';
+    if (inputs.meta && inputs.meta.schemaName) {
+      schemaName = inputs.meta.schemaName;
+    } else if (inputs.datastore.config && inputs.datastore.config.schemaName) {
+      schemaName = inputs.datastore.config.schemaName;
+    }
+
+
+    //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
+    //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
+    //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
+    Helpers.connection.spawnConnection(inputs.datastore, function spawnConnectionCb(err, connection) {
+      if (err) {
+        return exits.badConnection(err);
+      }
+
+      // Escape Table Name
+      var tableName;
+      try {
+        tableName = Helpers.schema.escapeTableName(inputs.tableName, schemaName);
+      } catch (e) {
+        // If there was an issue, release the connection
+        Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+          return exits.error(new Error('There was an issue escaping the table name ' + inputs.tableName + '.\n\n' + e.stack));
+        });
+        return;
+      }
+
+      // Build Query
+      var query = 'ALTER TABLE ' + tableName + ' DROP COLUMN "' + inputs.attributeName + '" RESTRICT';
+
+
+      //  ╦═╗╦ ╦╔╗╔  ┌─┐┬ ┌┬┐┌─┐┬─┐  ┌┬┐┌─┐┌┐ ┬  ┌─┐
+      //  ╠╦╝║ ║║║║  ├─┤│  │ ├┤ ├┬┘   │ ├─┤├┴┐│  ├┤
+      //  ╩╚═╚═╝╝╚╝  ┴ ┴┴─┘┴ └─┘┴└─   ┴ ┴ ┴└─┘┴─┘└─┘
+      //  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
+      //  │─┼┐│ │├┤ ├┬┘└┬┘
+      //  └─┘└└─┘└─┘┴└─ ┴
+      Helpers.query.runNativeQuery(connection, query, function runNativeQueryCb(err) {
+        // Always release the connection back into the pool
+        Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+          if (err) {
+            return exits.error(err);
+          }
+
+          return exits.success();
+        }); // </ releaseConnection >
+      }); // </ runNativeQuery >
+    }); // </ spawnConnection >
+  }
+});
