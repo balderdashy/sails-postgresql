@@ -90,6 +90,10 @@ module.exports = require('machine').build({
     }
 
 
+    // Set a flag if a leased connection from outside the adapter was used or not.
+    var leased = _.has(inputs.meta, 'leasedConnection');
+
+
     //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ┌─┐┌─┐┬─┐  ┌─┐  ┌─┐┌─┐  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
     //  ║  ╠═╣║╣ ║  ╠╩╗  ├┤ │ │├┬┘  ├─┤  ├─┘│ ┬  └─┐│  ├─┤├┤ │││├─┤
     //  ╚═╝╩ ╩╚═╝╚═╝╩ ╩  └  └─┘┴└─  ┴ ┴  ┴  └─┘  └─┘└─┘┴ ┴└─┘┴ ┴┴ ┴
@@ -164,8 +168,11 @@ module.exports = require('machine').build({
     //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
     //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
     //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
+    //  ┌─┐┬─┐  ┬ ┬┌─┐┌─┐  ┬  ┌─┐┌─┐┌─┐┌─┐┌┬┐  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
+    //  │ │├┬┘  │ │└─┐├┤   │  ├┤ ├─┤└─┐├┤  ││  │  │ │││││││├┤ │   │ ││ ││││
+    //  └─┘┴└─  └─┘└─┘└─┘  ┴─┘└─┘┴ ┴└─┘└─┘─┴┘  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
     // Spawn a new connection and open a transaction for running queries on.
-    Helpers.connection.spawnTransaction(inputs.datastore, function spawnTransactionCb(err, connection) {
+    Helpers.connection.spawnTransaction(inputs.datastore, inputs.meta, function spawnTransactionCb(err, connection) {
       if (err) {
         return exits.badConnection(err);
       }
@@ -188,7 +195,7 @@ module.exports = require('machine').build({
       } catch (e) {
         // If the statement could not be compiled, release the connection and end
         // the transaction.
-        Helpers.connection.rollbackAndRelease(connection, function rollbackAndReleaseCb() {
+        Helpers.connection.rollbackAndRelease(connection, leased, function rollbackAndReleaseCb() {
           return exits.error(e);
         });
 
@@ -204,7 +211,8 @@ module.exports = require('machine').build({
         query: query,
         model: model,
         schemaName: schemaName,
-        tableName: inputs.tableName
+        tableName: inputs.tableName,
+        leased: leased
       },
 
       function insertRecordCb(err, insertedRecords) {
@@ -224,13 +232,14 @@ module.exports = require('machine').build({
           sequences: incrementSequences,
           record: inputs.record,
           schemaName: schemaName,
-          tableName: inputs.tableName
+          tableName: inputs.tableName,
+          leased: leased
         },
 
         function setSequencesCb(err) {
           if (err) {
             // If there was an error, release the connection and end the transaction.
-            Helpers.connection.rollbackAndRelease(connection, function rollbackAndReleaseCb() {
+            Helpers.connection.rollbackAndRelease(connection, leased, function rollbackAndReleaseCb() {
               return exits.error(err);
             });
 
@@ -238,7 +247,7 @@ module.exports = require('machine').build({
           }
 
           // Commit the transaction
-          Helpers.connection.commitAndRelease(connection, function commitCb(err) {
+          Helpers.connection.commitAndRelease(connection, leased, function commitCb(err) {
             if (err) {
               return exits.error(new Error('There was an error commiting the transaction.' + err.stack));
             }

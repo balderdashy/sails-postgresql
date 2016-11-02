@@ -77,8 +77,13 @@ module.exports = require('machine').build({
 
   fn: function destroy(inputs, exits) {
     // Dependencies
+    var _ = require('lodash');
     var Converter = require('waterline-utils').query.converter;
     var Helpers = require('./private');
+
+
+    // Set a flag if a leased connection from outside the adapter was used or not.
+    var leased = _.has(inputs.meta, 'leasedConnection');
 
 
     //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ┌─┐┌─┐┬─┐  ┌─┐  ┌─┐┌─┐  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
@@ -128,8 +133,15 @@ module.exports = require('machine').build({
       return exits.error(e);
     }
 
+
+    //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
+    //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
+    //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
+    //  ┌─┐┬─┐  ┬ ┬┌─┐┌─┐  ┬  ┌─┐┌─┐┌─┐┌─┐┌┬┐  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
+    //  │ │├┬┘  │ │└─┐├┤   │  ├┤ ├─┤└─┐├┤  ││  │  │ │││││││├┤ │   │ ││ ││││
+    //  └─┘┴└─  └─┘└─┘└─┘  ┴─┘└─┘┴ ┴└─┘└─┘─┴┘  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
     // Spawn a new connection for running queries on.
-    Helpers.connection.spawnConnection(inputs.datastore, function spawnConnectionCb(err, connection) {
+    Helpers.connection.spawnorLeaseConnection(inputs.datastore, inputs.meta, function spawnConnectionCb(err, connection) {
       if (err) {
         return exits.badConnection(err);
       }
@@ -142,16 +154,18 @@ module.exports = require('machine').build({
         connection: connection,
         nativeQuery: query,
         queryType: 'delete',
-        disconnectOnError: true
+        disconnectOnError: leased ? false : true
       },
 
       function runQueryCb(err, report) {
-        // The connection will have been disconnected on error already
+        // The connection will have been disconnected on error already if needed.
         if (err) {
           return exits.error(new Error('There was an error running the destroy query. ' + err.stack));
         }
 
-        Helpers.connection.releaseConnection(connection, function cb() {
+        // Always release the connection unless a leased connection from outside
+        // the adapter was used.
+        Helpers.connection.releaseConnection(connection, leased, function cb() {
           return exits.success({
             numRecordsDeleted: report.result.numRecordsDeleted
           });

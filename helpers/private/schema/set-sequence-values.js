@@ -25,7 +25,7 @@ module.exports = function setSequenceValues(options, cb) {
   //  ╚╗╔╝╠═╣║  ║ ║║╠═╣ ║ ║╣   │ │├─┘ │ ││ ││││└─┐
   //   ╚╝ ╩ ╩╩═╝╩═╩╝╩ ╩ ╩ ╚═╝  └─┘┴   ┴ ┴└─┘┘└┘└─┘
   if (_.isUndefined(options) || !_.isPlainObject(options)) {
-    throw new Error('Invalid options argument. Options must contain: connection, query, model, schemaName, and tableName.');
+    throw new Error('Invalid options argument. Options must contain: connection, query, model, schemaName, leased, and tableName.');
   }
 
   if (!_.has(options, 'connection') || !_.isObject(options.connection)) {
@@ -48,6 +48,10 @@ module.exports = function setSequenceValues(options, cb) {
     throw new Error('Invalid option used in options argument. Missing or invalid tableName.');
   }
 
+  if (!_.has(options, 'leased') || !_.isBoolean(options.leased)) {
+    throw new Error('Invalid option used in options argument. Missing or invalid leased flag.');
+  }
+
 
   async.each(options.sequences, function setSequence(item, next) {
     var sequenceName = '\"' + options.schemaName + '\".\"' + options.tableName + '_' + item + '_seq' + '\"';
@@ -64,7 +68,7 @@ module.exports = function setSequenceValues(options, cb) {
 
   function doneWithSequences(err) {
     if (err) {
-      rollbackAndRelease(options.connection, function rollbackCb(err) {
+      rollbackAndRelease(options.connection, options.leased, function rollbackCb(err) {
         if (err) {
           return cb(new Error('There was an error rolling back and releasing the connection.' + err.stack));
         }

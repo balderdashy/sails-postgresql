@@ -74,6 +74,10 @@ module.exports = require('machine').build({
     var Helpers = require('./private');
 
 
+    // Set a flag if a leased connection from outside the adapter was used or not.
+    var leased = _.has(inputs.meta, 'leasedConnection');
+
+
     //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ┌─┐┌─┐┬─┐  ┌─┐  ┌─┐┌─┐  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
     //  ║  ╠═╣║╣ ║  ╠╩╗  ├┤ │ │├┬┘  ├─┤  ├─┘│ ┬  └─┐│  ├─┤├┤ │││├─┤
     //  ╚═╝╩ ╩╚═╝╚═╝╩ ╩  └  └─┘┴└─  ┴ ┴  ┴  └─┘  └─┘└─┘┴ ┴└─┘┴ ┴┴ ┴
@@ -145,8 +149,11 @@ module.exports = require('machine').build({
     //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
     //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
     //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-    // Spawn a new postgres connection to use.
-    Helpers.connection.spawnConnection(inputs.datastore, function spawnCb(err, connection) {
+    //  ┌─┐┬─┐  ┬ ┬┌─┐┌─┐  ┬  ┌─┐┌─┐┌─┐┌─┐┌┬┐  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
+    //  │ │├┬┘  │ │└─┐├┤   │  ├┤ ├─┤└─┐├┤  ││  │  │ │││││││├┤ │   │ ││ ││││
+    //  └─┘┴└─  └─┘└─┘└─┘  ┴─┘└─┘┴ ┴└─┘└─┘─┴┘  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
+    // Spawn a new connection for running queries on.
+    Helpers.connection.spawnOrLeaseConnection(inputs.datastore, inputs.meta, function spawnCb(err, connection) {
       if (err) {
         return exits.error(new Error('There was an issue spawning a new connection when attempting to populate that buffers. ' + err.stack));
       }
@@ -158,7 +165,7 @@ module.exports = require('machine').build({
       Helpers.query.runNativeQuery(connection, nativeQuery, function parentQueryCb(err, parentResults) {
         if (err) {
           // Release the connection on error
-          Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+          Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
             return exits.error(new Error('There was an issue running a query. The query was: \n\n' + nativeQuery + '\n\n' + err.stack));
           });
           return;
@@ -167,7 +174,7 @@ module.exports = require('machine').build({
         // If there weren't any joins being performed, release the connection and
         // return the results.
         if (!_.has(inputs.criteria, 'instructions')) {
-          Helpers.connection.releaseConnection(connection, function releaseConnectionCb(err) {
+          Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb(err) {
             if (err) {
               return exits.error(err);
             }
@@ -189,7 +196,7 @@ module.exports = require('machine').build({
           sortedResults = utils.joins.detectChildrenRecords(primaryKeyAttr, parentResults);
         } catch (e) {
           // Release the connection if there was an error.
-          Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+          Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
             return exits.error(e);
           });
           return;
@@ -208,7 +215,7 @@ module.exports = require('machine').build({
           });
         } catch (e) {
           // Release the connection if there was an error.
-          Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+          Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
             return exits.error(e);
           });
           return;
@@ -222,7 +229,7 @@ module.exports = require('machine').build({
           queryCache.setParents(sortedResults.parents);
         } catch (e) {
           // Release the connection if there was an error.
-          Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+          Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
             return exits.error(e);
           });
           return;
@@ -239,7 +246,7 @@ module.exports = require('machine').build({
         // statements that need to be processed. If not, close the connection and
         // return the combined results.
         if (!statements.childStatements || !statements.childStatements.length) {
-          Helpers.connection.releaseConnection(connection, function releaseConnectionCb(err) {
+          Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb(err) {
             if (err) {
               return exits.error(err);
             }
@@ -365,8 +372,9 @@ module.exports = require('machine').build({
         },
 
         function asyncEachCb(err) {
-          // Always release the connection when completed
-          Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+          // Always release the connection unless a leased connection from outside
+          // the adapter was used.
+          Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
             if (err) {
               return exits.error(err);
             }

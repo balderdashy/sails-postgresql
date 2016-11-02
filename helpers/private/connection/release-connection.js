@@ -16,7 +16,14 @@
 
 var PG = require('machinepack-postgresql');
 
-module.exports = function releaseConnection(connection, cb) {
+module.exports = function releaseConnection(connection, leased, cb) {
+  // If this connection was leased outside of the Adapter, don't release it.
+  if (leased) {
+    return setImmediate(function ensureAsync() {
+      return cb();
+    });
+  }
+
   PG.releaseConnection({
     connection: connection
   }).exec({

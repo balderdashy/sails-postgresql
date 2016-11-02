@@ -14,11 +14,11 @@
 //
 // Similar to spawnConnection except it also opens up a new transaction.
 
-var spawnConnection = require('./spawn-connection');
+var spawnOrLeaseConnection = require('./spawn-or-lease-connection');
 var beginTransaction = require('./begin-transaction');
 
-module.exports = function spawnTransaction(datastore, cb) {
-  spawnConnection(datastore, function spawnConnectionCb(err, connection) {
+module.exports = function spawnTransaction(datastore, meta, cb) {
+  spawnOrLeaseConnection(datastore, meta, function spawnConnectionCb(err, connection) {
     if (err) {
       return cb(err);
     }

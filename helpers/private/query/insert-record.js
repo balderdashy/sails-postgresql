@@ -27,7 +27,7 @@ module.exports = function insertRecord(options, cb) {
   //  ╚╗╔╝╠═╣║  ║ ║║╠═╣ ║ ║╣   │ │├─┘ │ ││ ││││└─┐
   //   ╚╝ ╩ ╩╩═╝╩═╩╝╩ ╩ ╩ ╚═╝  └─┘┴   ┴ ┴└─┘┘└┘└─┘
   if (_.isUndefined(options) || !_.isPlainObject(options)) {
-    throw new Error('Invalid options argument. Options must contain: connection, query, model, schemaName, and tableName.');
+    throw new Error('Invalid options argument. Options must contain: connection, query, model, schemaName, leased, and tableName.');
   }
 
   if (!_.has(options, 'connection') || !_.isObject(options.connection)) {
@@ -50,6 +50,10 @@ module.exports = function insertRecord(options, cb) {
     throw new Error('Invalid option used in options argument. Missing or invalid tableName.');
   }
 
+  if (!_.has(options, 'leased') || !_.isBoolean(options.leased)) {
+    throw new Error('Invalid option used in options argument. Missing or invalid leased flag.');
+  }
+
 
   //  ╦╔╗╔╔═╗╔═╗╦═╗╔╦╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
   //  ║║║║╚═╗║╣ ╠╦╝ ║   │─┼┐│ │├┤ ├┬┘└┬┘
@@ -64,7 +68,7 @@ module.exports = function insertRecord(options, cb) {
   function runQueryCb(err, insertReport) {
     // If the query failed to run, rollback the transaction and release the connection.
     if (err) {
-      rollbackAndRelease(options.connection, function _rollbackCB() {
+      rollbackAndRelease(options.connection, options.leased, function _rollbackCB() {
         return cb(new Error('There was an error attempting to run the query: ' + '\n\n' + util.inspect(options.query.sql, false, null) + '\nusing values: (' + util.inspect(options.query.bindings, false, null) + ')\n\n' + 'The transaction has been rolled back.' + err.stack));
       });
 
@@ -121,7 +125,7 @@ module.exports = function insertRecord(options, cb) {
     function runFindQueryCb(err, findReport) {
       // If the query failed to run, rollback the transaction and release the connection.
       if (err) {
-        rollbackAndRelease(options.connection, function rollbackCb() {
+        rollbackAndRelease(options.connection, options.leased, function rollbackCb() {
           return cb(new Error('There was an error attempting to run the query: ' + '\n\n' + util.inspect(compiledReport.sql) + '\nusing values: (' + util.inspect(compiledReport.bindings) + ')\n\n' + 'The transaction has been rolled back.\n\n' + err.stack));
         });
 
