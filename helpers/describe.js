@@ -67,6 +67,10 @@ module.exports = require('machine').build({
     var dbSchema = {};
 
 
+    // Set a flag if a leased connection from outside the adapter was used or not.
+    var leased = _.has(inputs.meta, 'leasedConnection');
+
+
     //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ┌─┐┌─┐┬─┐  ┌─┐  ┌─┐┌─┐  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
     //  ║  ╠═╣║╣ ║  ╠╩╗  ├┤ │ │├┬┘  ├─┤  ├─┘│ ┬  └─┐│  ├─┤├┤ │││├─┤
     //  ╚═╝╩ ╩╚═╝╚═╝╩ ╩  └  └─┘┴└─  ┴ ┴  ┴  └─┘  └─┘└─┘┴ ┴└─┘┴ ┴┴ ┴
@@ -127,7 +131,7 @@ module.exports = require('machine').build({
     //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
     //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
     // Spawn a new connection to run the queries on.
-    Helpers.connection.spawnConnection(inputs.datastore, function spawnConnectionCb(err, connection) {
+    Helpers.connection.spawnOrLeaseConnection(inputs.datastore, inputs.meta, function spawnConnectionCb(err, connection) {
       if (err) {
         return exits.badConnection(err);
       }
@@ -139,7 +143,7 @@ module.exports = require('machine').build({
       Helpers.query.runNativeQuery(connection, describeQuery, function runDescribeQueryCb(err, describeResults) {
         if (err) {
           // Release the connection on error
-          Helpers.connection.releaseConnection(connection, function cb() {
+          Helpers.connection.releaseConnection(connection, leased, function cb() {
             return exits.error(err);
           });
           return;
@@ -155,7 +159,7 @@ module.exports = require('machine').build({
         Helpers.query.runNativeQuery(connection, autoIncrementQuery, function runAutoIncrementQueryCb(err, incrementResults) {
           if (err) {
             // Release the connection on error
-            Helpers.connection.releaseConnection(connection, function cb() {
+            Helpers.connection.releaseConnection(connection, leased, function cb() {
               return exits.error(err);
             });
             return;
@@ -167,7 +171,7 @@ module.exports = require('machine').build({
           //  ╩╚═╚═╝╝╚╝  ┴┘└┘─┴┘┴└─┘┴└─┘└─┘  └─┘└└─┘└─┘┴└─ ┴
           Helpers.query.runNativeQuery(connection, indiciesQuery, function runIndiciesQueryCb(err, indiciesResults) {
             // Ensure the connection is always released back into the pool
-            Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+            Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
               if (err) {
                 return exits.error(err);
               }

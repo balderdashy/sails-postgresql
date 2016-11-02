@@ -7,17 +7,24 @@
 //
 // Send a Native Query to the datastore and gracefully handle errors.
 
+var _ = require('lodash');
 var PG = require('machinepack-postgresql');
 var releaseConnection = require('../connection/release-connection');
 
 module.exports = function runQuery(options, cb) {
-  // Validate input options
-  if (!options.connection) {
-    return cb(new Error('Invalid options. Run Query requires a valid connection option.'));
+  //  ╦  ╦╔═╗╦  ╦╔╦╗╔═╗╔╦╗╔═╗  ┌─┐┌─┐┌┬┐┬┌─┐┌┐┌┌─┐
+  //  ╚╗╔╝╠═╣║  ║ ║║╠═╣ ║ ║╣   │ │├─┘ │ ││ ││││└─┐
+  //   ╚╝ ╩ ╩╩═╝╩═╩╝╩ ╩ ╩ ╚═╝  └─┘┴   ┴ ┴└─┘┘└┘└─┘
+  if (_.isUndefined(options) || !_.isPlainObject(options)) {
+    throw new Error('Invalid options argument. Options must contain: connection, nativeQuery, and leased.');
   }
 
-  if (!options.nativeQuery) {
-    return cb(new Error('Invalid options. Run Query requires a native query option.'));
+  if (!_.has(options, 'connection') || !_.isObject(options.connection)) {
+    throw new Error('Invalid option used in options argument. Missing or invalid connection.');
+  }
+
+  if (!_.has(options, 'nativeQuery')) {
+    throw new Error('Invalid option used in options argument. Missing or invalid nativeQuery.');
   }
 
 
@@ -36,7 +43,7 @@ module.exports = function runQuery(options, cb) {
         return cb(err);
       }
 
-      releaseConnection(options.connection, function releaseConnectionCb(err) {
+      releaseConnection(options.connection, options.leased, function releaseConnectionCb(err) {
         return cb(err);
       });
     },
@@ -86,7 +93,7 @@ module.exports = function runQuery(options, cb) {
         return cb(parsedError);
       }
 
-      releaseConnection(options.connection, function releaseConnectionCb() {
+      releaseConnection(options.connection, false, function releaseConnectionCb() {
         if (catchAllError) {
           return cb(report.error);
         }

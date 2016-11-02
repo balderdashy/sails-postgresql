@@ -54,7 +54,7 @@ module.exports = function setSequenceValues(options, cb) {
 
 
   async.each(options.sequences, function setSequence(item, next) {
-    var sequenceName = '\"' + options.schemaName + '\".\"' + options.tableName + '_' + item + '_seq' + '\"';
+    var sequenceName = '\'' + options.schemaName + '.' + options.tableName + '_' + item + '_seq' + '\'';
     var sequenceValue = options.record[item];
     var sequenceQuery = 'SELECT setval(' + sequenceName + ', ' + sequenceValue + ', true)';
 
@@ -68,9 +68,9 @@ module.exports = function setSequenceValues(options, cb) {
 
   function doneWithSequences(err) {
     if (err) {
-      rollbackAndRelease(options.connection, options.leased, function rollbackCb(err) {
-        if (err) {
-          return cb(new Error('There was an error rolling back and releasing the connection.' + err.stack));
+      rollbackAndRelease(options.connection, options.leased, function rollbackCb(err2) {
+        if (err2) {
+          return cb(new Error('There was an error rolling back and releasing the connection.' + err2));
         }
 
         return cb(new Error('There was an error incrementing a sequence on the create.' + err.stack));

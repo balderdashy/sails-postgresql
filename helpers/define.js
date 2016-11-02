@@ -62,7 +62,12 @@ module.exports = require('machine').build({
 
   fn: function define(inputs, exits) {
     // Dependencies
+    var _ = require('lodash');
     var Helpers = require('./private');
+
+
+    // Set a flag if a leased connection from outside the adapter was used or not.
+    var leased = _.has(inputs.meta, 'leasedConnection');
 
 
     //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ┌─┐┌─┐┬─┐  ┌─┐  ┌─┐┌─┐  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
@@ -83,7 +88,7 @@ module.exports = require('machine').build({
     //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
     //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
     // Spawn a new connection for running queries on.
-    Helpers.connection.spawnConnection(inputs.datastore, function spawnConnectionCb(err, connection) {
+    Helpers.connection.spawnOrLeaseConnection(inputs.datastore, inputs.meta, function spawnConnectionCb(err, connection) {
       if (err) {
         return exits.badConnection(err);
       }
@@ -110,7 +115,8 @@ module.exports = require('machine').build({
 
         Helpers.schema.createNamespace({
           datastore: inputs.datastore,
-          schemaName: schemaName
+          schemaName: schemaName,
+          meta: inputs.meta,
         }, function createNamespaceCb(err) {
           if (err) {
             return proceed(new Error('There was an error creating the schema name.' + err.stack));
@@ -121,7 +127,7 @@ module.exports = require('machine').build({
       })(function afterNamespaceCreation(err) {
         if (err) {
           // If there was an issue, release the connection
-          Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+          Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
             return exits.error(err);
           });
           return;
@@ -133,7 +139,7 @@ module.exports = require('machine').build({
           tableName = Helpers.schema.escapeTableName(inputs.tableName, schemaName);
         } catch (e) {
           // If there was an issue, release the connection
-          Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+          Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
             return exits.error(new Error('There was an issue escaping the table name ' + inputs.tableName + '.\n\n' + e.stack));
           });
           return;
@@ -150,7 +156,7 @@ module.exports = require('machine').build({
           schema = Helpers.schema.buildSchema(inputs.definition);
         } catch (e) {
           // If there was an issue, release the connection
-          Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+          Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
             return exits.error(e);
           });
           return;
@@ -169,7 +175,7 @@ module.exports = require('machine').build({
         Helpers.query.runNativeQuery(connection, query, function runNativeQueryCb(err) {
           if (err) {
             // If there was an issue, release the connection
-            Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+            Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
               return exits.error(err);
             });
             return;
@@ -187,7 +193,7 @@ module.exports = require('machine').build({
           },
 
           function buildIndexesCb(err) {
-            Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+            Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
               if (err) {
                 return exits.error(err);
               }

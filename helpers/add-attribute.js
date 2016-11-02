@@ -66,7 +66,12 @@ module.exports = require('machine').build({
 
   fn: function addAttribute(inputs, exits) {
     // Dependencies
+    var _ = require('lodash');
     var Helpers = require('./private');
+
+
+    // Set a flag if a leased connection from outside the adapter was used or not.
+    var leased = _.has(inputs.meta, 'leasedConnection');
 
 
     //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ┌─┐┌─┐┬─┐  ┌─┐  ┌─┐┌─┐  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
@@ -87,7 +92,7 @@ module.exports = require('machine').build({
     //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
     //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
     // Spawn a new connection to run the queries on.
-    Helpers.connection.spawnConnection(inputs.datastore, function spawnConnectionCb(err, connection) {
+    Helpers.connection.spawnOrLeaseConnection(inputs.datastore, inputs.meta, function spawnConnectionCb(err, connection) {
       if (err) {
         return exits.badConnection(err);
       }
@@ -102,7 +107,7 @@ module.exports = require('machine').build({
       } catch (e) {
         // If there was an error escaping the table name, release the connection
         // and return out the badConfiguration exit
-        Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+        Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
           return exits.badConfiguration(e);
         });
 
@@ -116,7 +121,7 @@ module.exports = require('machine').build({
       } catch (e) {
         // If there was an error escaping the table name, release the connection
         // and return out the error exit
-        Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+        Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
           return exits.error(new Error('There was an error building a schema object. ' + e.stack));
         });
 
@@ -132,7 +137,7 @@ module.exports = require('machine').build({
       //  ╩╚═╚═╝╝╚╝  ┘└┘┴ ┴ ┴ ┴ └┘ └─┘  └─┘└└─┘└─┘┴└─ ┴
       Helpers.query.runNativeQuery(connection, query, function cb(err) {
         // Always release the connection no matter what the error state.
-        Helpers.connection.releaseConnection(connection, function cb() {
+        Helpers.connection.releaseConnection(connection, leased, function cb() {
           // If the native query had an error, return that error
           if (err) {
             return exits.error(err);

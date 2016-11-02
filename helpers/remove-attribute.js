@@ -62,7 +62,12 @@ module.exports = require('machine').build({
 
   fn: function removeAttribute(inputs, exits) {
     // Dependencies
+    var _ = require('lodash');
     var Helpers = require('./private');
+
+
+    // Set a flag if a leased connection from outside the adapter was used or not.
+    var leased = _.has(inputs.meta, 'leasedConnection');
 
 
     //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ┌─┐┌─┐┬─┐  ┌─┐  ┌─┐┌─┐  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
@@ -82,7 +87,7 @@ module.exports = require('machine').build({
     //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
     //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
     //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-    Helpers.connection.spawnConnection(inputs.datastore, function spawnConnectionCb(err, connection) {
+    Helpers.connection.spawnOrLeaseConnection(inputs.datastore, inputs.meta, function spawnConnectionCb(err, connection) {
       if (err) {
         return exits.badConnection(err);
       }
@@ -93,7 +98,7 @@ module.exports = require('machine').build({
         tableName = Helpers.schema.escapeTableName(inputs.tableName, schemaName);
       } catch (e) {
         // If there was an issue, release the connection
-        Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+        Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
           return exits.error(new Error('There was an issue escaping the table name ' + inputs.tableName + '.\n\n' + e.stack));
         });
         return;
@@ -111,7 +116,7 @@ module.exports = require('machine').build({
       //  └─┘└└─┘└─┘┴└─ ┴
       Helpers.query.runNativeQuery(connection, query, function runNativeQueryCb(err) {
         // Always release the connection back into the pool
-        Helpers.connection.releaseConnection(connection, function releaseConnectionCb() {
+        Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
           if (err) {
             return exits.error(err);
           }

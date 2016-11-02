@@ -30,6 +30,13 @@ module.exports = require('machine').build({
       description: 'The name of the schema to create.',
       required: true,
       example: 'users'
+    },
+
+    meta: {
+      friendlyName: 'Meta (custom)',
+      description: 'Additional stuff to pass to the driver.',
+      extendedDescription: 'This is reserved for custom driver-specific extensions.',
+      example: '==='
     }
 
   },
@@ -50,14 +57,22 @@ module.exports = require('machine').build({
 
   fn: function createSchema(inputs, exits) {
     // Dependencies
+    var _ = require('lodash');
     var Helpers = require('./private');
+
+
+    // Set a flag if a leased connection from outside the adapter was used or not.
+    var leased = _.has(inputs.meta, 'leasedConnection');
+
 
     //  ╔═╗╦═╗╔═╗╔═╗╔╦╗╔═╗  ┌┐┌┌─┐┌┬┐┌─┐┌─┐┌─┐┌─┐┌─┐┌─┐
     //  ║  ╠╦╝║╣ ╠═╣ ║ ║╣   │││├─┤│││├┤ └─┐├─┘├─┤│  ├┤
     //  ╚═╝╩╚═╚═╝╩ ╩ ╩ ╚═╝  ┘└┘┴ ┴┴ ┴└─┘└─┘┴  ┴ ┴└─┘└─┘
     Helpers.schema.createNamespace({
       datastore: inputs.datastore,
-      schemaName: inputs.schemaName
+      schemaName: inputs.schemaName,
+      meta: inputs.meta,
+      leased: leased
     }, function cb(err) {
       if (err) {
         return exits.error(new Error('There was an error creating the postgres schema.' + err.stack));
