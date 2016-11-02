@@ -79,7 +79,7 @@ module.exports = function buildSchema(definition) {
         return 'BYTEA';
 
       default:
-        return "TEXT";
+        return 'TEXT';
     }
   };
 

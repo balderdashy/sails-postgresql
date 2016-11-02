@@ -50,7 +50,7 @@ module.exports = function setSequenceValues(options, cb) {
 
 
   async.each(options.sequences, function setSequence(item, next) {
-    var sequenceName = "'\"" + options.schemaName + '\".\"' + options.tableName + '_' + item + '_seq' + "\"'";
+    var sequenceName = '\"' + options.schemaName + '\".\"' + options.tableName + '_' + item + '_seq' + '\"';
     var sequenceValue = options.record[item];
     var sequenceQuery = 'SELECT setval(' + sequenceName + ', ' + sequenceValue + ', true)';
 
