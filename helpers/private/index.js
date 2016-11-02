@@ -8,6 +8,7 @@ module.exports = {
     releaseConnection: require('./connection/release-connection'),
     rollbackAndRelease: require('./connection/rollback-and-release'),
     spawnConnection: require('./connection/spawn-connection'),
+    spawnOrLeaseConnection: require('./connection/spawn-or-lease-connection'),
     spawnTransaction: require('./connection/spawn-transaction')
   },
 
