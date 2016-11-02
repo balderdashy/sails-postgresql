@@ -132,7 +132,7 @@ module.exports = require('machine').build({
     // Create a manager to handle the datastore connection config
     var report;
     try {
-      report = Helpers.connection.createManager(inputs.config.url);
+      report = Helpers.connection.createManager(inputs.config.url, inputs.config);
     } catch (e) {
       if (!e.code || e.code === 'error') {
         return exits.error(new Error('There was an error creating a new manager for the connection with a url of: ' + inputs.config.url + '\n\n' + e.stack));

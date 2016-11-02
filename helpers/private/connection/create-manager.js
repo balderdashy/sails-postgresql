@@ -16,9 +16,10 @@
 
 var PG = require('machinepack-postgresql');
 
-module.exports = function createManager(url) {
+module.exports = function createManager(url, config) {
   var report = PG.createManager({
-    connectionString: url
+    connectionString: url,
+    meta: config
   }).execSync();
 
   return report;
