@@ -50,6 +50,10 @@ module.exports = function runQuery(options, cb) {
           nativeQueryError: report.error
         }).execSync();
       } catch (e) {
+        if (!options.disconnectOnError) {
+          return cb(e);
+        }
+
         releaseConnection(options.connection, function releaseConnectionCb() {
           return cb(e);
         });
@@ -64,6 +68,16 @@ module.exports = function runQuery(options, cb) {
         catchAllError = true;
       }
 
+      if (!options.disconnectOnError) {
+        if (catchAllError) {
+          return cb(report.error);
+        }
+
+        return cb(parsedError);
+      }
+
+      // If this shouldn't disconnect the connection, just return the normalized
+      // error with the footprint.
       if (!options.disconnectOnError) {
         if (catchAllError) {
           return cb(report.error);
