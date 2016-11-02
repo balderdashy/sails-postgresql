@@ -14,6 +14,7 @@
 //
 // Run a native SQL query on an open connection and return the raw results.
 
+var _ = require('lodash');
 var PG = require('machinepack-postgresql');
 
 module.exports = function runNativeQuery(connection, query, cb) {
@@ -50,7 +51,12 @@ module.exports = function runNativeQuery(connection, query, cb) {
         return cb(report.error);
       }
 
-      return cb(parsedError);
+      // Attach parsed error as footprint on the native query error
+      if (!_.has(report.error, 'footprint')) {
+        report.error.footprint = parsedError;
+      }
+
+      return cb(report.error);
     },
     success: function success(report) {
       return cb(null, report.result.rows);
