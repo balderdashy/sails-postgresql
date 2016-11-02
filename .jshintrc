@@ -90,7 +90,7 @@
   //  JavaScript [.js] files.  Note that JSON [.json] files are, of course,
   //  still written exclusively using double quotes around key names and
   //  around string literals.)
-  "quotmark": "single",
+  // "quotmark": "single",
 
   // Do NOT suppress warnings about the use of `==null` comparisons.
   // (please be explicit-- use Lodash or `require('util')` and call
