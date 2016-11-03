@@ -13,7 +13,7 @@ var _ = require('lodash');
 var spawnConnection = require('./spawn-connection');
 
 module.exports = function spawnOrLeaseConnection(datastore, meta, cb) {
-  if (!_.isUndefined(meta) && _.has(meta.leasedConnection)) {
+  if (!_.isUndefined(meta) && _.has(meta, 'leasedConnection')) {
     return setImmediate(function ensureAsync() {
       cb(null, meta.leasedConnection);
     });

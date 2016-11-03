@@ -16,7 +16,7 @@
 
 var PG = require('machinepack-postgresql');
 
-module.exports = function beginTransaction(connection, cb) {
+module.exports = function beginTransaction(connection, leased, cb) {
   PG.beginTransaction({
     connection: connection
   })
@@ -24,6 +24,11 @@ module.exports = function beginTransaction(connection, cb) {
     // If there was an error opening a transaction, release the connection.
     // After releasing the connection always return the original error.
     error: function error(err) {
+      // If the connection was leased from outside the adapter, don't release it.
+      if (leased) {
+        return cb(new Error('There was an error starting a transaction. ' + err.stack));
+      }
+
       PG.releaseConnection({
         connection: connection
       }).exec({
