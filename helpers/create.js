@@ -258,6 +258,6 @@ module.exports = require('machine').build({
           }); // </ .commitAndRelease(); >
         }); // </ .setSequenceValues(); >
       }); // </ .insertRecord(); >
-    }); // </ .spawnTransaction(); >
+    }); // </ .spawnOrLeaseConnection(); >
   }
 });

@@ -1,15 +1,11 @@
 module.exports = {
   // Helpers for handling connections
   connection: {
-    beginTransaction: require('./connection/begin-transaction'),
-    commitAndRelease: require('./connection/commit-and-release'),
     createManager: require('./connection/create-manager'),
     destroyManager: require('./connection/destroy-manager'),
     releaseConnection: require('./connection/release-connection'),
-    rollbackAndRelease: require('./connection/rollback-and-release'),
     spawnConnection: require('./connection/spawn-connection'),
-    spawnOrLeaseConnection: require('./connection/spawn-or-lease-connection'),
-    spawnTransaction: require('./connection/spawn-transaction')
+    spawnOrLeaseConnection: require('./connection/spawn-or-lease-connection')
   },
 
   // Helpers for handling query logic

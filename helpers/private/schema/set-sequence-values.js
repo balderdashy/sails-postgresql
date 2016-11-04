@@ -18,7 +18,7 @@
 var _ = require('lodash');
 var async = require('async');
 var runQuery = require('../query/run-query');
-var rollbackAndRelease = require('../connection/rollback-and-release');
+var releaseConnection = require('../connection/release-connection');
 
 module.exports = function setSequenceValues(options, cb) {
   //  ╦  ╦╔═╗╦  ╦╔╦╗╔═╗╔╦╗╔═╗  ┌─┐┌─┐┌┬┐┬┌─┐┌┐┌┌─┐
@@ -68,9 +68,9 @@ module.exports = function setSequenceValues(options, cb) {
 
   function doneWithSequences(err) {
     if (err) {
-      rollbackAndRelease(options.connection, options.leased, function rollbackCb(err2) {
+      releaseConnection(options.connection, options.leased, function rollbackCb(err2) {
         if (err2) {
-          return cb(new Error('There was an error rolling back and releasing the connection.' + err2));
+          return cb(new Error('There was an error releasing the connection.' + err2));
         }
 
         return cb(new Error('There was an error incrementing a sequence on the create.' + err.stack));
