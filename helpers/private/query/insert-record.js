@@ -18,7 +18,7 @@ var util = require('util');
 var _ = require('lodash');
 var runQuery = require('./run-query');
 var compileStatement = require('./compile-statement');
-var rollbackAndRelease = require('../connection/rollback-and-release');
+var releaseConnection = require('../connection/release-connection');
 var findPrimaryKey = require('../schema/find-primary-key');
 
 
@@ -66,10 +66,10 @@ module.exports = function insertRecord(options, cb) {
   },
 
   function runQueryCb(err, insertReport) {
-    // If the query failed to run, rollback the transaction and release the connection.
+    // If the query failed to run, release the connection.
     if (err) {
-      rollbackAndRelease(options.connection, options.leased, function _rollbackCB() {
-        return cb(new Error('There was an error attempting to run the query: ' + '\n\n' + util.inspect(options.query.sql, false, null) + '\nusing values: (' + util.inspect(options.query.bindings, false, null) + ')\n\n' + 'The transaction has been rolled back.' + err.stack));
+      releaseConnection(options.connection, options.leased, function _rollbackCB() {
+        return cb(new Error('There was an error attempting to run the query: ' + '\n\n' + util.inspect(options.query.sql, false, null) + '\nusing values: (' + util.inspect(options.query.bindings, false, null) + ')'));
       });
 
       return;
@@ -125,8 +125,8 @@ module.exports = function insertRecord(options, cb) {
     function runFindQueryCb(err, findReport) {
       // If the query failed to run, rollback the transaction and release the connection.
       if (err) {
-        rollbackAndRelease(options.connection, options.leased, function rollbackCb() {
-          return cb(new Error('There was an error attempting to run the query: ' + '\n\n' + util.inspect(compiledReport.sql) + '\nusing values: (' + util.inspect(compiledReport.bindings) + ')\n\n' + 'The transaction has been rolled back.\n\n' + err.stack));
+        releaseConnection(options.connection, options.leased, function rollbackCb() {
+          return cb(new Error('There was an error attempting to run the query: ' + '\n\n' + util.inspect(compiledReport.sql) + '\nusing values: (' + util.inspect(compiledReport.bindings) + ')'));
         });
 
         return;

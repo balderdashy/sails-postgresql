@@ -171,8 +171,8 @@ module.exports = require('machine').build({
     //  ┌─┐┬─┐  ┬ ┬┌─┐┌─┐  ┬  ┌─┐┌─┐┌─┐┌─┐┌┬┐  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
     //  │ │├┬┘  │ │└─┐├┤   │  ├┤ ├─┤└─┐├┤  ││  │  │ │││││││├┤ │   │ ││ ││││
     //  └─┘┴└─  └─┘└─┘└─┘  ┴─┘└─┘┴ ┴└─┘└─┘─┴┘  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-    // Spawn a new connection and open a transaction for running queries on.
-    Helpers.connection.spawnTransaction(inputs.datastore, inputs.meta, function spawnTransactionCb(err, connection) {
+    // Spawn a new connection for running queries on.
+    Helpers.connection.spawnOrLeaseConnection(inputs.datastore, inputs.meta, function spawnOrLeaseConnectionCb(err, connection) {
       if (err) {
         return exits.badConnection(err);
       }
@@ -195,7 +195,7 @@ module.exports = require('machine').build({
       } catch (e) {
         // If the statement could not be compiled, release the connection and end
         // the transaction.
-        Helpers.connection.rollbackAndRelease(connection, leased, function rollbackAndReleaseCb() {
+        Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
           return exits.error(e);
         });
 
@@ -239,17 +239,17 @@ module.exports = require('machine').build({
         function setSequencesCb(err) {
           if (err) {
             // If there was an error, release the connection and end the transaction.
-            Helpers.connection.rollbackAndRelease(connection, leased, function rollbackAndReleaseCb() {
+            Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
               return exits.error(err);
             });
 
             return;
           }
 
-          // Commit the transaction
-          Helpers.connection.commitAndRelease(connection, leased, function commitCb(err) {
+          // Release the connection
+          Helpers.connection.releaseConnection(connection, leased, function releaseConnection(err) {
             if (err) {
-              return exits.error(new Error('There was an error commiting the transaction.' + err.stack));
+              return exits.error(new Error('There was an error releasing the connection.' + err.stack));
             }
 
             // Only return the first record (there should only ever be one)
