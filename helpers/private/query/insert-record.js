@@ -19,7 +19,6 @@ var _ = require('lodash');
 var runQuery = require('./run-query');
 var compileStatement = require('./compile-statement');
 var releaseConnection = require('../connection/release-connection');
-var findPrimaryKey = require('../schema/find-primary-key');
 
 
 module.exports = function insertRecord(options, cb) {
@@ -86,7 +85,7 @@ module.exports = function insertRecord(options, cb) {
     // Find the Primary Key field for the model
     var pk;
     try {
-      pk = findPrimaryKey(options.model.definition);
+      pk = options.model.primaryKey;
     } catch (e) {
       throw new Error('Could not determine a Primary Key for the model: ' + options.model.tableName + '.');
     }

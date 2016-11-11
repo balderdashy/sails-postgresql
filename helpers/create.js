@@ -179,7 +179,7 @@ module.exports = require('machine').build({
 
 
       // Find the Primary Key and add a "returning" clause to the statement.
-      var primaryKeyField = Helpers.schema.findPrimaryKey(model.definition);
+      var primaryKeyField = model.primaryKey;
 
       // Return the values of the primary key field
       statement.returning = primaryKeyField;

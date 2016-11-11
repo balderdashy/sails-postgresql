@@ -24,7 +24,6 @@ module.exports = {
     buildSchema: require('./schema/build-schema'),
     createNamespace: require('./schema/create-namespace'),
     escapeTableName: require('./schema/escape-table-name'),
-    findPrimaryKey: require('./schema/find-primary-key'),
     setSequenceValues: require('./schema/set-sequence-values')
   }
 };

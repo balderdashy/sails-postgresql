@@ -102,8 +102,7 @@ module.exports = require('machine').build({
     }
 
     // Grab the primary key attribute for the main table name
-    var primaryKeyAttr = Helpers.schema.findPrimaryKey(model.definition);
-
+    var primaryKeyAttr = model.primaryKey;
 
     //  ╔╗ ╦ ╦╦╦  ╔╦╗  ┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┐┌┌┬┐┌─┐
     //  ╠╩╗║ ║║║   ║║  └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │ └─┐
@@ -120,8 +119,7 @@ module.exports = require('machine').build({
             throw new Error('Invalid parent table name used when caching query results. Perhaps the join criteria is invalid?');
           }
 
-          var pk = Helpers.schema.findPrimaryKey(model.definition);
-          return pk;
+          return model.primaryKey;
         },
         criteria: inputs.criteria
       });

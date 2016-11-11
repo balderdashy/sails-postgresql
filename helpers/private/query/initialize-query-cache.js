@@ -20,7 +20,6 @@
 
 var _ = require('lodash');
 var utils = require('waterline-utils');
-var findPrimaryKey = require('../schema/find-primary-key');
 
 module.exports = function initializeQueryCache(options) {
   //  ╦  ╦╔═╗╦  ╦╔╦╗╔═╗╔╦╗╔═╗  ┌─┐┌─┐┌┬┐┬┌─┐┌┐┌┌─┐
@@ -66,7 +65,7 @@ module.exports = function initializeQueryCache(options) {
       throw new Error('Invalid parent table name used when caching query results. Perhaps the join criteria is invalid?');
     }
 
-    var pk = findPrimaryKey(model.definition);
+    var pk = model.primaryKey;
 
     // Build an alias to use for the association. The alias is the name of the
     // assocation defined by the user. It's created in a model whenever a
