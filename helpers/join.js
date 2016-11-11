@@ -171,9 +171,9 @@ module.exports = require('machine').build({
           return;
         }
 
-        // If there weren't any joins being performed, release the connection and
-        // return the results.
-        if (!_.has(inputs.criteria, 'instructions')) {
+        // If there weren't any joins being performed or no parent records were
+        // returned, release the connection and return the results.
+        if (!_.has(inputs.criteria, 'instructions') || !parentResults.length) {
           Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb(err) {
             if (err) {
               return exits.error(err);
@@ -338,7 +338,14 @@ module.exports = require('machine').build({
             });
 
             // Replace the final statement with the UNION ALL clause
-            template.statement = { unionAll: unionStatements };
+            if (unionStatements.length) {
+              template.statement = { unionAll: unionStatements };
+            }
+          }
+
+          // If there isn't a statement to be run, then just return
+          if (!template.statement) {
+            return next();
           }
 
 
