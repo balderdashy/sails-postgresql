@@ -160,7 +160,8 @@ module.exports = require('machine').build({
 
       dbSchema[tableName] = {
         tableName: tableName,
-        definition: definition
+        definition: definition,
+        primaryKey: val.primaryKey
       };
     });
 
