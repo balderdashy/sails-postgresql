@@ -79,7 +79,7 @@ module.exports = require('machine').build({
   },
 
 
-  fn: function select(inputs, exits) {
+  fn: function avg(inputs, exits) {
     // Dependencies
     var _ = require('lodash');
     var Converter = require('waterline-utils').query.converter;
