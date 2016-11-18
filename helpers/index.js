@@ -11,6 +11,7 @@ module.exports = {
   registerDataStore: require('./register-data-store'),
   removeAttribute: require('./remove-attribute'),
   select: require('./select'),
+  sum: require('./sum'),
   teardown: require('./teardown'),
   update: require('./update')
 };
