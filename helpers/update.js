@@ -128,17 +128,15 @@ module.exports = require('machine').build({
         model: inputs.tableName,
         method: 'update',
         criteria: inputs.criteria,
-        values: inputs.values
+        values: inputs.values,
+        opts: {
+          schema: schemaName
+        }
       });
 
       // Add the postgres RETURNING * piece to the statement to prevent the
       // overhead of running two additional queries.
       statement.returning = '*';
-
-      // Add the postgres schema object to the statement
-      statement.opts = {
-        schema: schemaName
-      };
     } catch (e) {
       return exits.error(new Error('The Waterline Query failed to convert into a Waterline Statement. ' + e.stack));
     }

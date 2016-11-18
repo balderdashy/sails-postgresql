@@ -153,13 +153,11 @@ module.exports = require('machine').build({
       statement = utils.query.converter({
         model: inputs.tableName,
         method: 'create',
-        values: inputs.record
+        values: inputs.record,
+        opts: {
+          schema: schemaName
+        }
       });
-
-      // Add the postgres schema object to the statement
-      statement.opts = {
-        schema: schemaName
-      };
     } catch (e) {
       return exits.error(new Error('The Waterline query could not be converted.' + e.message));
     }

@@ -118,13 +118,11 @@ module.exports = require('machine').build({
       statement = Converter({
         model: inputs.tableName,
         method: 'find',
-        criteria: inputs.criteria
+        criteria: inputs.criteria,
+        opts: {
+          schema: schemaName
+        }
       });
-
-      // Add the postgres schema object to the statement
-      statement.opts = {
-        schema: schemaName
-      };
     } catch (e) {
       return exits.error(new Error('There was an error converting the Waterline Query into a Waterline Statement.' + e.stack));
     }
