@@ -1,6 +1,7 @@
 module.exports = {
   addAttribute: require('./add-attribute'),
   avg: require('./avg'),
+  count: require('./count'),
   createSchema: require('./create-schema'),
   create: require('./create'),
   define: require('./define'),
