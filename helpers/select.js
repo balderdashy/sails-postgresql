@@ -151,19 +151,7 @@ module.exports = require('machine').build({
       //  ╦═╗╦ ╦╔╗╔  ┌─┐┌─┐┬  ┌─┐┌─┐┌┬┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
       //  ╠╦╝║ ║║║║  └─┐├┤ │  ├┤ │   │   │─┼┐│ │├┤ ├┬┘└┬┘
       //  ╩╚═╚═╝╝╚╝  └─┘└─┘┴─┘└─┘└─┘ ┴   └─┘└└─┘└─┘┴└─ ┴
-      // Build up a query type by looking into if any aggregations were used.
       var queryType = 'select';
-
-      // Check if any aggregation queries are being run
-      if (statement.avg) {
-        queryType = 'average';
-      } else if (statement.max) {
-        queryType = 'max';
-      } else if (statement.min) {
-        queryType = 'min';
-      } else if (statement.sum) {
-        queryType = 'sum';
-      }
 
       Helpers.query.runQuery({
         connection: connection,
