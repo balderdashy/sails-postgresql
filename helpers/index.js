@@ -4,6 +4,7 @@ module.exports = {
   count: require('./count'),
   createSchema: require('./create-schema'),
   create: require('./create'),
+  createEach: require('./create-each'),
   define: require('./define'),
   describe: require('./describe'),
   destroy: require('./destroy'),
