@@ -45,9 +45,7 @@ module.exports = require('machine').build({
     success: {
       description: 'The results of the describe query.',
       outputVariableName: 'records',
-      example: {
-        schema: {}
-      }
+      example: '==='
     },
 
     badConnection: {

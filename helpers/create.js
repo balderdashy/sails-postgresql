@@ -59,9 +59,7 @@ module.exports = require('machine').build({
     success: {
       description: 'The record was successfully inserted.',
       outputVariableName: 'record',
-      example: {
-        record: {}
-      }
+      example: '==='
     },
 
     invalidDatastore: {
