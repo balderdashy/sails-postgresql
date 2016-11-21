@@ -14,7 +14,6 @@
 //
 // Insert the record and return the values that were inserted.
 
-var util = require('util');
 var _ = require('lodash');
 var runQuery = require('./run-query');
 var compileStatement = require('./compile-statement');

@@ -14,7 +14,6 @@
 //
 // Transform a Waterline Query Statement into a SQL query.
 
-var util = require('util');
 var PG = require('machinepack-postgresql');
 
 module.exports = function compileStatement(statement) {
