@@ -75,14 +75,6 @@ module.exports = function runQuery(options, cb) {
         catchAllError = true;
       }
 
-      if (!options.disconnectOnError) {
-        if (catchAllError) {
-          return cb(report.error);
-        }
-
-        return cb(parsedError);
-      }
-
       // If this shouldn't disconnect the connection, just return the normalized
       // error with the footprint.
       if (!options.disconnectOnError) {
