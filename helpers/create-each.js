@@ -166,7 +166,7 @@ module.exports = require('machine').build({
       } catch (e) {
         // If the statement could not be compiled, release the connection and end
         // the transaction.
-        Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
+        Helpers.connection.releaseConnection(connection, leased, function releaseCb() {
           return exits.error(e);
         });
 
@@ -187,11 +187,16 @@ module.exports = require('machine').build({
       },
 
       function insertRecordCb(err, insertedRecords) {
+        // If there was an error the helper takes care of closing the connection
+        // if a connection was spawned internally.
         if (err) {
           return exits.error(err);
         }
 
-        return exits.success({ records: insertedRecords });
+        // Release the connection if needed.
+        Helpers.connection.releaseConnection(connection, leased, function releaseCb() {
+          return exits.success({ records: insertedRecords });
+        }); // </ .releaseConnection(); >
       }); // </ .insertRecord(); >
     }); // </ .spawnOrLeaseConnection(); >
   }

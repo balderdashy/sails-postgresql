@@ -106,38 +106,6 @@ module.exports = require('machine').build({
     }
 
 
-    //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ┌─┐┌─┐┬─┐  ┌─┐┌─┐┌─┐ ┬ ┬┌─┐┌┐┌┌─┐┌─┐┌─┐
-    //  ║  ╠═╣║╣ ║  ╠╩╗  ├┤ │ │├┬┘  └─┐├┤ │─┼┐│ │├┤ ││││  ├┤ └─┐
-    //  ╚═╝╩ ╩╚═╝╚═╝╩ ╩  └  └─┘┴└─  └─┘└─┘└─┘└└─┘└─┘┘└┘└─┘└─┘└─┘
-    // If any auto-incrementing sequences are used on the table and the values
-    // are manually being set in the record then there will be an issue. To fix
-    // this the sequence needs to be updated to use the newer value.
-    //
-    // An example of this would be if the schema had an id property set as an
-    // auto-incrementing field and a record was being created that had the id
-    // set to 5.
-    //
-    // If the sequence isn't up to 5, say it's only on 2, then the next record
-    // that gets inserted without an id field defined will just get the next
-    // value in the sequence, (3). This could end up generating a non-unique id
-    // when it eventually gets to 5.
-    //
-    // To prevent this the sequence is updated manually whenever a record is
-    // created that has any of the sequence values defined.
-    var incrementSequences = [];
-    _.each(model.definition, function checkSequences(val, key) {
-      if (!_.has(val, 'autoIncrement')) {
-        return;
-      }
-
-      if (_.indexOf(_.keys(inputs.record), key) < 0) {
-        return;
-      }
-
-      incrementSequences.push(key);
-    });
-
-
     //  ╔═╗╔═╗╔╗╔╦  ╦╔═╗╦═╗╔╦╗  ┌┬┐┌─┐  ┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┐┌┌┬┐
     //  ║  ║ ║║║║╚╗╔╝║╣ ╠╦╝ ║    │ │ │  └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │
     //  ╚═╝╚═╝╝╚╝ ╚╝ ╚═╝╩╚═ ╩    ┴ └─┘  └─┘ ┴ ┴ ┴ ┴ └─┘┴ ┴└─┘┘└┘ ┴
@@ -212,47 +180,18 @@ module.exports = require('machine').build({
       },
 
       function insertRecordCb(err, insertedRecords) {
+        // If there was an error the helper takes care of closing the connection
+        // if a connection was spawned internally.
         if (err) {
           return exits.error(err);
         }
 
-        //  ╔═╗╔╗╔╔═╗╦ ╦╦═╗╔═╗  ┌─┐┌─┐┌─┐ ┬ ┬┌─┐┌┐┌┌─┐┌─┐┌─┐
-        //  ║╣ ║║║╚═╗║ ║╠╦╝║╣   └─┐├┤ │─┼┐│ │├┤ ││││  ├┤ └─┐
-        //  ╚═╝╝╚╝╚═╝╚═╝╩╚═╚═╝  └─┘└─┘└─┘└└─┘└─┘┘└┘└─┘└─┘└─┘
-        //  ┌─┐┬─┐┌─┐  ┬ ┬┌─┐  ┌┬┐┌─┐  ┌┬┐┌─┐┌┬┐┌─┐
-        //  ├─┤├┬┘├┤   │ │├─┘   │ │ │   ││├─┤ │ ├┤
-        //  ┴ ┴┴└─└─┘  └─┘┴     ┴ └─┘  ─┴┘┴ ┴ ┴ └─┘
-        // Update any sequences that may have been used
-        Helpers.schema.setSequenceValues({
-          connection: connection,
-          sequences: incrementSequences,
-          record: inputs.record,
-          schemaName: schemaName,
-          tableName: inputs.tableName,
-          leased: leased
-        },
-
-        function setSequencesCb(err) {
-          if (err) {
-            // If there was an error, release the connection and end the transaction.
-            Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
-              return exits.error(err);
-            });
-
-            return;
-          }
-
-          // Release the connection
-          Helpers.connection.releaseConnection(connection, leased, function releaseConnection(err) {
-            if (err) {
-              return exits.error(err);
-            }
-
-            // Only return the first record (there should only ever be one)
-            var insertedRecord = _.first(insertedRecords);
-            return exits.success({ record: insertedRecord });
-          }); // </ .commitAndRelease(); >
-        }); // </ .setSequenceValues(); >
+        // Release the connection if needed.
+        Helpers.connection.releaseConnection(connection, leased, function releaseCb() {
+          // Only return the first record (there should only ever be one)
+          var insertedRecord = _.first(insertedRecords);
+          return exits.success({ record: insertedRecord });
+        }); // </ .releaseConnection(); >
       }); // </ .insertRecord(); >
     }); // </ .spawnOrLeaseConnection(); >
   }

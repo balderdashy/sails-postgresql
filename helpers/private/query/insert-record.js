@@ -68,7 +68,7 @@ module.exports = function insertRecord(options, cb) {
     // If the query failed to run, release the connection and return the parsed
     // error footprint.
     if (err) {
-      releaseConnection(options.connection, options.leased, function _rollbackCB() {
+      releaseConnection(options.connection, options.leased, function releaseCb() {
         return cb(err);
       });
 
@@ -126,7 +126,7 @@ module.exports = function insertRecord(options, cb) {
       // If the query failed to run, release the connection and return the parsed
       // error footprint.
       if (err) {
-        releaseConnection(options.connection, options.leased, function rollbackCb() {
+        releaseConnection(options.connection, options.leased, function releaseCb() {
           return cb(err);
         });
 
