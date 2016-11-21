@@ -138,7 +138,7 @@ module.exports = require('machine').build({
       // overhead of running two additional queries.
       statement.returning = '*';
     } catch (e) {
-      return exits.error(new Error('The Waterline Query failed to convert into a Waterline Statement. ' + e.stack));
+      return exits.error(e);
     }
 
 
@@ -150,7 +150,7 @@ module.exports = require('machine').build({
     try {
       query = Helpers.query.compileStatement(statement);
     } catch (e) {
-      return exits.error(new Error('There was an issue compiling the statement: ' + util.inspect(statement, false, null) + '\n\n' + e.stack));
+      return exits.error(e);
     }
 
 

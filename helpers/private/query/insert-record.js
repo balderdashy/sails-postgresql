@@ -65,10 +65,11 @@ module.exports = function insertRecord(options, cb) {
   },
 
   function runQueryCb(err, insertReport) {
-    // If the query failed to run, release the connection.
+    // If the query failed to run, release the connection and return the parsed
+    // error footprint.
     if (err) {
       releaseConnection(options.connection, options.leased, function _rollbackCB() {
-        return cb(new Error('There was an error attempting to run the query: ' + '\n\n' + util.inspect(options.query.sql, false, null) + '\nusing values: (' + util.inspect(options.query.bindings, false, null) + ')'));
+        return cb(err);
       });
 
       return;
@@ -110,7 +111,7 @@ module.exports = function insertRecord(options, cb) {
     try {
       compiledReport = compileStatement(criteriaStatement);
     } catch (e) {
-      return cb(new Error('There was an error compiling the statement into a query.\n\n' + util.inspect(criteriaStatement, false, null)));
+      return cb(e);
     }
 
     // Run the FIND query
@@ -122,10 +123,11 @@ module.exports = function insertRecord(options, cb) {
     },
 
     function runFindQueryCb(err, findReport) {
-      // If the query failed to run, rollback the transaction and release the connection.
+      // If the query failed to run, release the connection and return the parsed
+      // error footprint.
       if (err) {
         releaseConnection(options.connection, options.leased, function rollbackCb() {
-          return cb(new Error('There was an error attempting to run the query: ' + '\n\n' + util.inspect(compiledReport.sql) + '\nusing values: (' + util.inspect(compiledReport.bindings) + ')'));
+          return cb(err);
         });
 
         return;

@@ -119,7 +119,7 @@ module.exports = require('machine').build({
           meta: inputs.meta,
         }, function createNamespaceCb(err) {
           if (err) {
-            return proceed(new Error('There was an error creating the schema name.' + err.stack));
+            return proceed(err);
           }
 
           return proceed();
@@ -140,7 +140,7 @@ module.exports = require('machine').build({
         } catch (e) {
           // If there was an issue, release the connection
           Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
-            return exits.error(new Error('There was an issue escaping the table name ' + inputs.tableName + '.\n\n' + e.stack));
+            return exits.error(e);
           });
           return;
         }

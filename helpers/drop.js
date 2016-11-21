@@ -97,7 +97,7 @@ module.exports = require('machine').build({
       } catch (e) {
         // Release the connection on error
         Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
-          return exits.error(new Error('There was an issue escaping the table name ' + inputs.tableName + '.\n\n' + e.stack));
+          return exits.error(e);
         });
         return;
       }
@@ -113,7 +113,7 @@ module.exports = require('machine').build({
         // Always release the connection back to the pool
         Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
           if (err) {
-            return exits.error(new Error('There was an issue running the query: ' + query + '\n\n' + err.stack));
+            return exits.error(err);
           }
 
           return exits.success();

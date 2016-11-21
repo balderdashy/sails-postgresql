@@ -18,14 +18,9 @@ var util = require('util');
 var PG = require('machinepack-postgresql');
 
 module.exports = function compileStatement(statement) {
-  var report;
-  try {
-    report = PG.compileStatement({
-      statement: statement
-    }).execSync();
-  } catch (e) {
-    throw new Error('Could not compile the statement.\n\n' + util.inspect(statement, false, null));
-  }
+  var report = PG.compileStatement({
+    statement: statement
+  }).execSync();
 
   return report.nativeQuery;
 };

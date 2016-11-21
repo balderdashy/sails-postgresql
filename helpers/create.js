@@ -159,7 +159,7 @@ module.exports = require('machine').build({
         }
       });
     } catch (e) {
-      return exits.error(new Error('The Waterline query could not be converted.' + e.message));
+      return exits.error(e);
     }
 
 
@@ -247,7 +247,7 @@ module.exports = require('machine').build({
           // Release the connection
           Helpers.connection.releaseConnection(connection, leased, function releaseConnection(err) {
             if (err) {
-              return exits.error(new Error('There was an error releasing the connection.' + err.stack));
+              return exits.error(err);
             }
 
             // Only return the first record (there should only ever be one)

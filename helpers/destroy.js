@@ -119,7 +119,7 @@ module.exports = require('machine').build({
         }
       });
     } catch (e) {
-      return exits.error(new Error('There was an error converting the Waterline Query into a Statement' + e.stack));
+      return exits.error(e);
     }
 
 
@@ -158,7 +158,7 @@ module.exports = require('machine').build({
       function runQueryCb(err, report) {
         // The connection will have been disconnected on error already if needed.
         if (err) {
-          return exits.error(new Error('There was an error running the destroy query. ' + err.stack));
+          return exits.error(err);
         }
 
         // Always release the connection unless a leased connection from outside

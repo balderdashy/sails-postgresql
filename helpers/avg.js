@@ -131,7 +131,7 @@ module.exports = require('machine').build({
         }
       });
     } catch (e) {
-      return exits.error(new Error('There was an error converting the Waterline Query into a Waterline Statement.' + e.stack));
+      return exits.error(e);
     }
 
     // Compile the original Waterline Query
@@ -170,7 +170,7 @@ module.exports = require('machine').build({
         // The runQuery helper will automatically release the connection on error
         // if needed.
         if (err) {
-          return exits.error(new Error('There was an error running the ' + queryType + ' query.' + err.stack));
+          return exits.error(err);
         }
 
         // Always release the connection unless a leased connection from outside

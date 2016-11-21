@@ -70,10 +70,10 @@ module.exports = function setSequenceValues(options, cb) {
     if (err) {
       releaseConnection(options.connection, options.leased, function rollbackCb(err2) {
         if (err2) {
-          return cb(new Error('There was an error releasing the connection.' + err2));
+          return cb(err2);
         }
 
-        return cb(new Error('There was an error incrementing a sequence on the create.' + err.stack));
+        return cb(err);
       });
       return;
     }

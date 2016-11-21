@@ -140,7 +140,7 @@ module.exports = require('machine').build({
     try {
       nativeQuery = Helpers.query.compileStatement(statements.parentStatement);
     } catch (e) {
-      return exits.error(new Error('There was an issue compiling the statement to a SQL query. ' + e.stack));
+      return exits.error(e);
     }
 
 
@@ -153,7 +153,7 @@ module.exports = require('machine').build({
     // Spawn a new connection for running queries on.
     Helpers.connection.spawnOrLeaseConnection(inputs.datastore, inputs.meta, function spawnCb(err, connection) {
       if (err) {
-        return exits.error(new Error('There was an issue spawning a new connection when attempting to populate that buffers. ' + err.stack));
+        return exits.error(err);
       }
 
 
@@ -164,7 +164,7 @@ module.exports = require('machine').build({
         if (err) {
           // Release the connection on error
           Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
-            return exits.error(new Error('There was an issue running a query. The query was: \n\n' + nativeQuery + '\n\n' + err.stack));
+            return exits.error(err);
           });
           return;
         }
@@ -355,7 +355,7 @@ module.exports = require('machine').build({
           try {
             nativeQuery = Helpers.query.compileStatement(template.statement);
           } catch (e) {
-            return next(new Error('There was an error compiling a child statement in the join logic. Perhaps the criteria is incorrect? \n\n', e.stack));
+            return next(e);
           }
 
 
@@ -365,7 +365,7 @@ module.exports = require('machine').build({
           // Run the native query
           Helpers.query.runNativeQuery(connection, nativeQuery, function parentQueryCb(err, queryResults) {
             if (err) {
-              return next(new Error('There was an issue running a query. The query was: \n\n' + nativeQuery + '\n\n' + err.stack));
+              return next(err);
             }
 
             // Extend the values in the cache to include the values from the
