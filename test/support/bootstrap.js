@@ -2,7 +2,7 @@
  * Support functions for helping with Postgres tests
  */
 
-var _ = require('lodash');
+var _ = require('@sailshq/lodash');
 var PG = require('machinepack-postgresql');
 var adapter = require('../../lib/adapter');
 

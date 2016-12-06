@@ -7,7 +7,7 @@
 //
 // Build a schema object that is suitable for using in a Create Table query.
 
-var _ = require('lodash');
+var _ = require('@sailshq/lodash');
 
 module.exports = function buildSchema(definition) {
   if (!definition) {

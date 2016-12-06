@@ -15,7 +15,7 @@
 // Ensures that all Postgres sequences are up to date with the latest values.
 // This could happen when a value is manually defined for a sequence value.
 
-var _ = require('lodash');
+var _ = require('@sailshq/lodash');
 var async = require('async');
 var runQuery = require('../query/run-query');
 var releaseConnection = require('../connection/release-connection');

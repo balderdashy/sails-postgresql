@@ -1,4 +1,4 @@
-var _ = require('lodash');
+var _ = require('@sailshq/lodash');
 var Benchmark = require('benchmark');
 
 module.exports = function runBenchmarks(name, testFns, done) {

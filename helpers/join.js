@@ -68,7 +68,7 @@ module.exports = require('machine').build({
 
 
   fn: function drop(inputs, exits) {
-    var _ = require('lodash');
+    var _ = require('@sailshq/lodash');
     var async = require('async');
     var utils = require('waterline-utils');
     var Helpers = require('./private');

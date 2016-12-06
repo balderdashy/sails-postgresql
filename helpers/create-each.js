@@ -83,7 +83,7 @@ module.exports = require('machine').build({
 
   fn: function create(inputs, exits) {
     // Dependencies
-    var _ = require('lodash');
+    var _ = require('@sailshq/lodash');
     var utils = require('waterline-utils');
     var Helpers = require('./private');
 

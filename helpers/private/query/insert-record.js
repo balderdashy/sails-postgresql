@@ -14,7 +14,7 @@
 //
 // Insert the record and return the values that were inserted.
 
-var _ = require('lodash');
+var _ = require('@sailshq/lodash');
 var runQuery = require('./run-query');
 var compileStatement = require('./compile-statement');
 var releaseConnection = require('../connection/release-connection');
