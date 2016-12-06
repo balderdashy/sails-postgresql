@@ -39,6 +39,7 @@ module.exports = function buildSchema(definition) {
 
       case 'int':
       case 'integer':
+      case 'number':
         return 'INT';
 
       case 'smallint':

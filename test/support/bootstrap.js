@@ -21,20 +21,17 @@ Support.Model = function model(name, def) {
   return {
     identity: name,
     tableName: name,
-    connection: 'test',
+    datastore: 'test',
+    primaryKey: 'id',
     definition: def || Support.Definition
   };
 };
 
 // Fixture Table Definition
 Support.Definition = {
+  id: { type: 'number' },
   fieldA: { type: 'string' },
-  fieldB: { type: 'string' },
-  id: {
-    type: 'integer',
-    autoIncrement: true,
-    primaryKey: true
-  }
+  fieldB: { type: 'string' }
 };
 
 // Register and Define a Collection
@@ -46,12 +43,17 @@ Support.Setup = function setup(tableName, cb) {
   var connection = _.cloneDeep(Support.Config);
   connection.identity = 'test';
 
+  // Setup a primaryKey for migrations
+  collection.definition = _.cloneDeep(Support.Definition);
+  collection.definition.id.primaryKey = true;
+  collection.definition.id.autoIncrement = true;
+
   adapter.registerConnection(connection, collections, function registerCb(err) {
     if (err) {
       return cb(err);
     }
 
-    adapter.define('test', tableName, Support.Definition, cb);
+    adapter.define('test', tableName, collection.definition, cb);
   });
 };
 
