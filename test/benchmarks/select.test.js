@@ -32,13 +32,16 @@ describe('Benchmark :: Select', function() {
     runBenchmarks('Compiler.execSync()', [
 
       function runSelect(next) {
-        var wlQuery = {
-          where: {
-            fieldA: 'foo'
+        var query = {
+          using: 'test_find',
+          criteria: {
+            where: {
+              fieldA: 'foo'
+            }
           }
         };
 
-        Adapter.find('test', 'test_find', wlQuery, function() {
+        Adapter.find('test', query, function() {
           return next();
         });
       }
