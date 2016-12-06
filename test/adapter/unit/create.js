@@ -1,5 +1,5 @@
 var assert = require('assert');
-var _ = require('lodash');
+var _ = require('@sailshq/lodash');
 var Adapter = require('../../../lib/adapter');
 var Support = require('../../support/bootstrap');
 
@@ -21,38 +21,62 @@ describe('Unit Tests ::', function() {
     };
 
     it('should insert a record into the database and return it\'s fields', function(done) {
-      Adapter.create('test', 'test_create', attributes, function(err, result) {
-        assert(!err);
+      var query = {
+        using: 'test_create',
+        newRecord: attributes
+      };
+
+      Adapter.create('test', query, function(err, result) {
+        if (err) {
+          return done(err);
+        }
+
         assert(_.isPlainObject(result));
         assert.equal(result.fieldA, 'foo');
         assert.equal(result.fieldB, 'bar');
         assert(result.id);
 
-        done();
+        return done();
       });
     });
 
     // Create Auto-Incremented ID
     it('should create an auto-incremented id field', function(done) {
-      Adapter.create('test', 'test_create', attributes, function(err, result) {
-        assert(!err);
+      var query = {
+        using: 'test_create',
+        newRecord: attributes
+      };
+
+      Adapter.create('test', query, function(err, result) {
+        if (err) {
+          return done(err);
+        }
+
         assert(_.isPlainObject(result));
         assert(result.id);
-        done();
+
+        return done();
       });
     });
 
     it('should keep case', function(done) {
-      var attributes = {
-        fieldA: 'Foo',
-        fieldB: 'bAr'
+      var query = {
+        using: 'test_create',
+        newRecord: {
+          fieldA: 'Foo',
+          fieldB: 'bAr'
+        }
       };
 
-      Adapter.create('test', 'test_create', attributes, function(err, result) {
-        assert(!err);
+      Adapter.create('test', query, function(err, result) {
+        if (err) {
+          return done(err);
+        }
+
         assert.equal(result.fieldA, 'Foo');
         assert.equal(result.fieldB, 'bAr');
-        done();
+
+        return done();
       });
     });
 
@@ -62,11 +86,20 @@ describe('Unit Tests ::', function() {
       var manager = Adapter.datastores.test.manager;
       var preConnectionsAvailable = manager.pool.pool.availableObjectsCount();
 
-      Adapter.create('test', 'test_create', attributes, function(err) {
-        assert(!err);
+      var query = {
+        using: 'test_create',
+        newRecord: attributes
+      };
+
+      Adapter.create('test', query, function(err) {
+        if (err) {
+          return done(err);
+        }
+
         var postConnectionsAvailable = manager.pool.pool.availableObjectsCount();
         assert.equal(preConnectionsAvailable, postConnectionsAvailable);
-        done();
+
+        return done();
       });
     });
   });
