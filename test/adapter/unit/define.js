@@ -37,10 +37,15 @@ describe('Unit Tests ::', function() {
 
     it('should create a table in the database', function(done) {
       Adapter.define('test', 'test_define', definition, function(err) {
-        assert(!err);
+        if (err) {
+          return done(err);
+        }
 
         Adapter.describe('test', 'test_define', function(err, result) {
-          assert(!err);
+          if (err) {
+            return done(err);
+          }
+
           assert(_.isPlainObject(result));
 
           assert.equal(_.keys(result).length, 8);
@@ -53,7 +58,7 @@ describe('Unit Tests ::', function() {
           assert(result.favoriteFruit);
           assert(result.age);
 
-          done();
+          return done();
         });
       });
     });

@@ -23,37 +23,53 @@ describe('Unit Tests ::', function() {
 
 
     it('should remove records from the database and return the count', function(done) {
-      var wlQuery = {
-        where: {
-          fieldA: 'foo'
+      var query = {
+        using: 'test_destroy',
+        criteria: {
+          where: {
+            fieldA: 'foo'
+          }
         }
       };
 
-      Adapter.destroy('test', 'test_destroy', wlQuery, function(err, result) {
-        assert(!err);
+      Adapter.destroy('test', query, function(err, result) {
+        if (err) {
+          return done(err);
+        }
+
         assert(_.isPlainObject(result));
         assert(_.isNumber(result.numRecordsDeleted));
         assert(result.numRecordsDeleted);
         assert.equal(result.numRecordsDeleted, 1);
 
-        done();
+        return done();
       });
     });
 
 
     it('should ensure the record is actually deleted', function(done) {
-      var wlQuery = {
-        where: {
-          fieldA: 'foo_2'
+      var query = {
+        using: 'test_destroy',
+        criteria: {
+          where: {
+            fieldA: 'foo_2'
+          }
         }
       };
 
-      Adapter.destroy('test', 'test_destroy', wlQuery, function(err) {
-        assert(!err);
-        Adapter.find('test', 'test_destroy', wlQuery, function(err, results) {
-          assert(!err);
+      Adapter.destroy('test', query, function(err) {
+        if (err) {
+          return done(err);
+        }
+
+        Adapter.find('test', query, function(err, results) {
+          if (err) {
+            return done(err);
+          }
+
           assert.equal(results.length, 0);
-          done();
+
+          return done();
         });
       });
     });
@@ -64,11 +80,20 @@ describe('Unit Tests ::', function() {
       var manager = Adapter.datastores.test.manager;
       var preConnectionsAvailable = manager.pool.pool.availableObjectsCount();
 
-      Adapter.destroy('test', 'test_destroy', {}, function(err) {
-        assert(!err);
+      var query = {
+        using: 'test_destroy',
+        criteria: {}
+      };
+
+      Adapter.destroy('test', query, function(err) {
+        if (err) {
+          return done(err);
+        }
+
         var postConnectionsAvailable = manager.pool.pool.availableObjectsCount();
         assert.equal(preConnectionsAvailable, postConnectionsAvailable);
-        done();
+
+        return done();
       });
     });
   });

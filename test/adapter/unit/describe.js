@@ -16,7 +16,10 @@ describe('Unit Tests ::', function() {
 
     it('should return information on a table', function(done) {
       Adapter.describe('test', 'test_describe', function(err, result) {
-        assert(!err);
+        if (err) {
+          return done(err);
+        }
+
         assert(_.isPlainObject(result));
 
         assert(result.fieldA);
@@ -29,7 +32,7 @@ describe('Unit Tests ::', function() {
         assert(result.id.primaryKey);
         assert(result.id.autoIncrement);
 
-        done();
+        return done();
       });
     });
   });

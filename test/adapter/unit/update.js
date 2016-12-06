@@ -22,36 +22,56 @@ describe('Unit Tests ::', function() {
     });
 
     it('should update the correct record', function(done) {
-      var wlFindQuery = {
-        where: {
-          fieldA: 'foo'
+      var query = {
+        using: 'test_update',
+        criteria: {
+          where: {
+            fieldA: 'foo'
+          }
+        },
+        valuesToSet: {
+          fieldA: 'foobar'
         }
       };
 
-      Adapter.update('test', 'test_update', wlFindQuery, { fieldA: 'foobar' }, function(err, results) {
-        assert(!err);
+      Adapter.update('test', query, function(err, results) {
+        if (err) {
+          return done(err);
+        }
+
         assert(_.isArray(results));
         assert.equal(results.length, 1);
         assert.equal(_.first(results).fieldA, 'foobar');
         assert.equal(_.first(results).fieldB, 'bar');
+
         return done();
       });
     });
 
     it('should be case sensitive', function(done) {
-      var wlFindQuery = {
-        where: {
-          fieldB: 'bAr_2'
+      var query = {
+        using: 'test_update',
+        criteria: {
+          where: {
+            fieldB: 'bAr_2'
+          }
+        },
+        valuesToSet: {
+          fieldA: 'FooBar'
         }
       };
 
-      Adapter.update('test', 'test_update', wlFindQuery, { fieldA: 'FooBar' }, function(err, results) {
-        assert(!err);
+      Adapter.update('test', query, function(err, results) {
+        if (err) {
+          return done(err);
+        }
+
         assert(_.isArray(results));
         assert.equal(results.length, 1);
         assert.equal(_.first(results).fieldA, 'FooBar');
         assert.equal(_.first(results).fieldB, 'bAr_2');
-        done();
+
+        return done();
       });
     });
 
@@ -61,11 +81,21 @@ describe('Unit Tests ::', function() {
       var manager = Adapter.datastores.test.manager;
       var preConnectionsAvailable = manager.pool.pool.availableObjectsCount();
 
-      Adapter.update('test', 'test_update', {}, {}, function(err) {
-        assert(!err);
+      var query = {
+        using: 'test_update',
+        criteria: {},
+        valuesToSet: {}
+      };
+
+      Adapter.update('test', query, function(err) {
+        if (err) {
+          return done(err);
+        }
+
         var postConnectionsAvailable = manager.pool.pool.availableObjectsCount();
         assert.equal(preConnectionsAvailable, postConnectionsAvailable);
-        done();
+
+        return done();
       });
     });
   });

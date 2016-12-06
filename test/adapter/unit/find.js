@@ -23,46 +23,68 @@ describe('Unit Tests ::', function() {
 
 
     it('should select the correct record', function(done) {
-      var wlQuery = {
-        where: {
-          fieldA: 'foo'
+      var query = {
+        using: 'test_find',
+        criteria: {
+          where: {
+            fieldA: 'foo'
+          }
         }
       };
 
-      Adapter.find('test', 'test_find', wlQuery, function(err, results) {
-        assert(!err);
+      Adapter.find('test', query, function(err, results) {
+        if (err) {
+          return done(err);
+        }
+
         assert(_.isArray(results));
         assert.equal(results.length, 1);
         assert.equal(_.first(results).fieldA, 'foo');
         assert.equal(_.first(results).fieldB, 'bar');
 
-        done();
+        return done();
       });
     });
 
     it('should return all the records', function(done) {
-      Adapter.find('test', 'test_find', {}, function(err, results) {
-        assert(!err);
+      var query = {
+        using: 'test_find',
+        criteria: {}
+      };
+
+      Adapter.find('test', query, function(err, results) {
+        if (err) {
+          return done(err);
+        }
+
         assert(_.isArray(results));
         assert.equal(results.length, 2);
-        done();
+
+        return done();
       });
     });
 
     it('should be case sensitive', function(done) {
-      var wlQuery = {
-        where: {
-          fieldB: 'bAr_2'
+      var query = {
+        using: 'test_find',
+        criteria: {
+          where: {
+            fieldB: 'bAr_2'
+          }
         }
       };
 
-      Adapter.find('test', 'test_find', wlQuery, function(err, results) {
-        assert(!err);
+      Adapter.find('test', query, function(err, results) {
+        if (err) {
+          return done(err);
+        }
+
         assert(_.isArray(results));
         assert.equal(results.length, 1);
         assert.equal(_.first(results).fieldA, 'foo_2');
         assert.equal(_.first(results).fieldB, 'bAr_2');
-        done();
+
+        return done();
       });
     });
 
@@ -72,11 +94,20 @@ describe('Unit Tests ::', function() {
       var manager = Adapter.datastores.test.manager;
       var preConnectionsAvailable = manager.pool.pool.availableObjectsCount();
 
-      Adapter.find('test', 'test_find', {}, function(err) {
-        assert(!err);
+      var query = {
+        using: 'test_find',
+        criteria: {}
+      };
+
+      Adapter.find('test', query, function(err) {
+        if (err) {
+          return done(err);
+        }
+
         var postConnectionsAvailable = manager.pool.pool.availableObjectsCount();
         assert.equal(preConnectionsAvailable, postConnectionsAvailable);
-        done();
+
+        return done();
       });
     });
   });

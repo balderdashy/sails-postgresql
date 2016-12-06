@@ -21,10 +21,15 @@ describe('Unit Tests ::', function() {
 
     it('should add a column to a table', function(done) {
       Adapter.addAttribute('test', 'test_add_attribute', 'color', definition, function(err) {
-        assert(!err);
+        if (err) {
+          return done(err);
+        }
 
         Adapter.describe('test', 'test_add_attribute', function(err, result) {
-          assert(!err);
+          if (err) {
+            return done(err);
+          }
+
           assert(_.isPlainObject(result));
           assert(result.color);
           assert.equal(result.color.type, 'text');

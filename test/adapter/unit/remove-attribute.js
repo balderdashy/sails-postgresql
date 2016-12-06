@@ -16,15 +16,20 @@ describe('Unit Tests ::', function() {
 
     it('should remove a column from a table', function(done) {
       Adapter.removeAttribute('test', 'test_remove_attribute', 'fieldB', function(err) {
-        assert(!err);
+        if (err) {
+          return done(err);
+        }
 
         Adapter.describe('test', 'test_remove_attribute', function(err, result) {
-          assert(!err);
+          if (err) {
+            return done(err);
+          }
+
           assert(_.isPlainObject(result));
           assert.equal(_.keys(result).length, 2);
           assert(!result.fieldB);
 
-          done();
+          return done();
         });
       });
     });

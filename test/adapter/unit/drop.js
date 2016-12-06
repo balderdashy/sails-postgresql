@@ -17,10 +17,15 @@ describe('Unit Tests ::', function() {
 
     it('should remove a table from the database', function(done) {
       Adapter.drop('test', 'test_drop', [], function dropCb(err) {
-        assert(!err);
+        if (err) {
+          return done(err);
+        }
 
         Adapter.describe('test', 'test_drop', function describeCb(err, result) {
-          assert(!err);
+          if (err) {
+            return done(err);
+          }
+
           assert.equal(_.keys(result), 0);
 
           return done();
