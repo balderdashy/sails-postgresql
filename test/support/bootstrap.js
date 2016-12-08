@@ -29,9 +29,26 @@ Support.Model = function model(name, def) {
 
 // Fixture Table Definition
 Support.Definition = {
-  id: { type: 'number' },
-  fieldA: { type: 'string' },
-  fieldB: { type: 'string' }
+  id: {
+    type: 'number',
+    autoMigrations: {
+      columnType: 'integer',
+      autoIncrement: true,
+      unique: true
+    }
+  },
+  fieldA: {
+    type: 'string',
+    autoMigrations: {
+      columnType: 'text'
+    }
+  },
+  fieldB: {
+    type: 'string',
+    autoMigrations: {
+      columnType: 'text'
+    }
+  }
 };
 
 // Register and Define a Collection
@@ -45,15 +62,35 @@ Support.Setup = function setup(tableName, cb) {
 
   // Setup a primaryKey for migrations
   collection.definition = _.cloneDeep(Support.Definition);
-  collection.definition.id.primaryKey = true;
-  collection.definition.id.autoIncrement = true;
+
+  // Build a schema to represent the underlying physical database structure
+  var schema = {};
+  _.each(collection.definition, function parseAttribute(attributeVal, attributeName) {
+    var columnName = attributeVal.columnName || attributeName;
+
+    // If the attribute doesn't have an `autoMigrations` key on it, ignore it.
+    if (!_.has(attributeVal, 'autoMigrations')) {
+      return;
+    }
+
+    schema[columnName] = attributeVal.autoMigrations;
+  });
+
+  // Set Primary Key flag on the primary key attribute
+  var primaryKeyAttrName = collection.primaryKey;
+  var primaryKey = collection.definition[primaryKeyAttrName];
+  if (primaryKey) {
+    var pkColumnName = primaryKey.columnName || primaryKeyAttrName;
+    schema[pkColumnName].primaryKey = true;
+  }
+
 
   adapter.registerConnection(connection, collections, function registerCb(err) {
     if (err) {
       return cb(err);
     }
 
-    adapter.define('test', tableName, collection.definition, cb);
+    adapter.define('test', tableName, schema, cb);
   });
 };
 
