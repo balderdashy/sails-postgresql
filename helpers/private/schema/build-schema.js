@@ -92,7 +92,9 @@ module.exports = function buildSchema(definition) {
       attribute.type = val;
     }
 
-    var type = normalizeType(attribute.autoIncrement ? 'SERIAL' : attribute.type);
+    // Use SERIAL type on auto-increment
+    var computedType = attribute.autoIncrement ? 'SERIAL' : attribute.columnType;
+    var type = normalizeType(computedType || '');
     var nullable = attribute.notNull && 'NOT NULL';
     var unique = attribute.unique && 'UNIQUE';
 
