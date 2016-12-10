@@ -176,7 +176,7 @@ module.exports = require('machine').build({
         // Always release the connection unless a leased connection from outside
         // the adapter was used.
         Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
-          return exits.success({ records: report.result });
+          return exits.success(report.result);
         }); // </ releaseConnection >
       }); // </ runQuery >
     }); // </ spawnConnection >
