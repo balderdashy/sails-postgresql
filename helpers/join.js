@@ -30,22 +30,9 @@ module.exports = require('machine').build({
       example: '==='
     },
 
-    tableName: {
-      description: 'The name of the table to search in.',
+    query: {
+      description: 'A normalized Waterline Stage Three Query.',
       required: true,
-      example: 'users'
-    },
-
-    criteria: {
-      description: 'The Waterline criteria object to use for the query.',
-      required: true,
-      example: {}
-    },
-
-    meta: {
-      friendlyName: 'Meta (custom)',
-      description: 'Additional stuff to pass to the driver.',
-      extendedDescription: 'This is reserved for custom driver-specific extensions.',
       example: '==='
     }
 
@@ -67,16 +54,16 @@ module.exports = require('machine').build({
   },
 
 
-  fn: function drop(inputs, exits) {
+  fn: function join(inputs, exits) {
     var _ = require('@sailshq/lodash');
     var async = require('async');
     var utils = require('waterline-utils');
     var Helpers = require('./private');
 
+    var meta = _.has(inputs.query, 'meta') ? inputs.query.meta : {};
 
     // Set a flag if a leased connection from outside the adapter was used or not.
-    var leased = _.has(inputs.meta, 'leasedConnection');
-
+    var leased = _.has(meta, 'leasedConnection');
 
     //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ┌─┐┌─┐┬─┐  ┌─┐  ┌─┐┌─┐  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
     //  ║  ╠═╣║╣ ║  ╠╩╗  ├┤ │ │├┬┘  ├─┤  ├─┘│ ┬  └─┐│  ├─┤├┤ │││├─┤
@@ -85,8 +72,8 @@ module.exports = require('machine').build({
     // by query basis using the meta input or configured on the datastore. Default
     // to use the "public" schema.
     var schemaName = 'public';
-    if (inputs.meta && inputs.meta.schemaName) {
-      schemaName = inputs.meta.schemaName;
+    if (_.has(meta, 'schemaName')) {
+      schemaName = meta.schemaName;
     } else if (inputs.datastore.config && inputs.datastore.config.schemaName) {
       schemaName = inputs.datastore.config.schemaName;
     }
@@ -96,7 +83,7 @@ module.exports = require('machine').build({
     //  ╠╣ ║║║║ ║║   │ ├─┤├┴┐│  ├┤   ├─┘├┬┘││││├─┤├┬┘└┬┘  ├┴┐├┤ └┬┘
     //  ╚  ╩╝╚╝═╩╝   ┴ ┴ ┴└─┘┴─┘└─┘  ┴  ┴└─┴┴ ┴┴ ┴┴└─ ┴   ┴ ┴└─┘ ┴
     // Find the model definition
-    var model = inputs.models[inputs.tableName];
+    var model = inputs.models[inputs.query.using];
     if (!model) {
       return exits.invalidDatastore();
     }
@@ -111,7 +98,7 @@ module.exports = require('machine').build({
     var statements;
     try {
       statements = utils.joins.convertJoinCriteria({
-        tableName: inputs.tableName,
+        query: inputs.query,
         schemaName: schemaName,
         getPk: function getPk(tableName) {
           var model = inputs.models[tableName];
@@ -120,8 +107,7 @@ module.exports = require('machine').build({
           }
 
           return model.primaryKey;
-        },
-        criteria: inputs.criteria
+        }
       });
     } catch (e) {
       return exits.error(e);
@@ -151,7 +137,7 @@ module.exports = require('machine').build({
     //  │ │├┬┘  │ │└─┐├┤   │  ├┤ ├─┤└─┐├┤  ││  │  │ │││││││├┤ │   │ ││ ││││
     //  └─┘┴└─  └─┘└─┘└─┘  ┴─┘└─┘┴ ┴└─┘└─┘─┴┘  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
     // Spawn a new connection for running queries on.
-    Helpers.connection.spawnOrLeaseConnection(inputs.datastore, inputs.meta, function spawnCb(err, connection) {
+    Helpers.connection.spawnOrLeaseConnection(inputs.datastore, meta, function spawnCb(err, connection) {
       if (err) {
         return exits.error(err);
       }
@@ -171,7 +157,7 @@ module.exports = require('machine').build({
 
         // If there weren't any joins being performed or no parent records were
         // returned, release the connection and return the results.
-        if (!_.has(inputs.criteria, 'instructions') || !parentResults.length) {
+        if (!_.has(inputs.query, 'joins') || !parentResults.length) {
           Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb(err) {
             if (err) {
               return exits.error(err);
@@ -207,7 +193,7 @@ module.exports = require('machine').build({
         var queryCache;
         try {
           queryCache = Helpers.query.initializeQueryCache({
-            instructions: inputs.criteria.instructions,
+            instructions: statements.instructions,
             models: inputs.models,
             sortedResults: sortedResults
           });
