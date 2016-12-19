@@ -135,6 +135,16 @@ module.exports = require('machine').build({
       return exits.error(e);
     }
 
+    // Find the Primary Key and add a "returning" clause to the statement.
+    var primaryKeyField = model.primaryKey;
+
+    // Remove primary key if the value is NULL
+    _.each(statement.insert, function(record) {
+      if (_.isNull(record[primaryKeyField])) {
+        delete record[primaryKeyField];
+      }
+    });
+
 
     //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
     //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
@@ -150,8 +160,6 @@ module.exports = require('machine').build({
 
 
       // Find the Primary Key and add a "returning" clause to the statement.
-      var primaryKeyField = model.primaryKey;
-
       // Return the values of the primary key field
       statement.returning = primaryKeyField;
 
