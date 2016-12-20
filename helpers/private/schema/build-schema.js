@@ -18,69 +18,33 @@ module.exports = function buildSchema(definition) {
   //  ║║║║ ║╠╦╝║║║╠═╣║  ║╔═╝║╣    │ └┬┘├─┘├┤
   //  ╝╚╝╚═╝╩╚═╩ ╩╩ ╩╩═╝╩╚═╝╚═╝   ┴  ┴ ┴  └─┘
   var normalizeType = function normalizeType(type) {
+
     switch (type.toLowerCase()) {
-      case 'serial':
-        return 'SERIAL';
 
-      case 'smallserial':
-        return 'SMALLSERIAL';
-
-      case 'bigserial':
-        return 'BIGSERIAL';
-
-      case 'string':
-      case 'text':
-      case 'mediumtext':
-      case 'longtext':
-        return 'TEXT';
-
-      case 'boolean':
-        return 'BOOLEAN';
-
-      case 'int':
-      case 'integer':
-      case 'number':
-        return 'INT';
-
-      case 'smallint':
-        return 'SMALLINT';
-
-      case 'bigint':
-        return 'BIGINT';
-
-      case 'real':
-      case 'float':
+      // Default types from sails-hook-orm.
+      case '_number':
         return 'REAL';
-
-      case 'double':
-        return 'DOUBLE PRECISION';
-
-      case 'decimal':
-        return 'DECIMAL';
-
-      // Store all time with the time zone
-      case 'time':
-        return 'TIME WITH TIME ZONE';
-
-      // Store all dates as timestamps with the time zone
-      case 'date':
-        return 'DATE';
-      case 'datestamp':
-      case 'datetime':
-        return 'TIMESTAMP WITH TIME ZONE';
-
-      case 'array':
+      case '_numberkey':
+          return 'INTEGER';
+      case '_numbertimestamp':
+          return 'BIGINT';
+      case '_string':
         return 'TEXT';
-
-      case 'json':
+      case '_stringkey':
+          return 'VARCHAR';
+      case '_stringtimestamp':
+          return 'VARCHAR';
+      case '_boolean':
+        return 'BOOLEAN';
+      case '_json':
         return 'JSON';
-
-      case 'binary':
-      case 'bytea':
-        return 'BYTEA';
+      case '_ref':
+        return 'TEXT';
 
       default:
-        return 'TEXT';
+        return type;
+
+
     }
   };
 
