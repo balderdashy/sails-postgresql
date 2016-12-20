@@ -14,8 +14,7 @@ module.exports = {
     initializeQueryCache: require('./query/initialize-query-cache'),
     insertRecord: require('./query/insert-record'),
     runNativeQuery: require('./query/run-native-query'),
-    runQuery: require('./query/run-query'),
-    updateRecord: require('./query/update-record')
+    runQuery: require('./query/run-query')
   },
 
   // Helpers for dealing with underlying database schema
@@ -23,7 +22,6 @@ module.exports = {
     buildIndexes: require('./schema/build-indexes'),
     buildSchema: require('./schema/build-schema'),
     createNamespace: require('./schema/create-namespace'),
-    escapeTableName: require('./schema/escape-table-name'),
-    setSequenceValues: require('./schema/set-sequence-values')
+    escapeTableName: require('./schema/escape-table-name')
   }
 };

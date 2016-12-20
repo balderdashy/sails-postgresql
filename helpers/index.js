@@ -13,6 +13,7 @@ module.exports = {
   registerDataStore: require('./register-data-store'),
   removeAttribute: require('./remove-attribute'),
   select: require('./select'),
+  setSequence: require('./set-sequence'),
   sum: require('./sum'),
   teardown: require('./teardown'),
   update: require('./update')
