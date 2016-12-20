@@ -181,21 +181,28 @@ module.exports = require('machine').build({
       //  ╦═╗╦ ╦╔╗╔  ┬ ┬┌─┐┌┬┐┌─┐┌┬┐┌─┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
       //  ╠╦╝║ ║║║║  │ │├─┘ ││├─┤ │ ├┤   │─┼┐│ │├┤ ├┬┘└┬┘
       //  ╩╚═╚═╝╝╚╝  └─┘┴  ─┴┘┴ ┴ ┴ └─┘  └─┘└└─┘└─┘┴└─ ┴
-      Helpers.query.updateRecord(connection, query, function updateRecordCb(err, updatedRecords) {
+      Helpers.query.runQuery({
+        connection: connection,
+        nativeQuery: query,
+        disconnectOnError: leased ? false : true
+      },
+
+      function runQueryCb(err, report) {
+        // The connection will have been disconnected on error already if needed.
+        if (err) {
+          return exits.error(err);
+        }
+
         // Always release the connection unless a leased connection from outside
         // the adapter was used.
-        Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
-          if (err) {
-            return exits.error(err);
-          }
-
+        Helpers.connection.releaseConnection(connection, leased, function cb() {
           if (fetchRecords) {
-            return exits.success({ records: updatedRecords });
+            return exits.success({ records: report.rows });
           }
 
           return exits.success();
         }); // </ releaseConnection >
-      }); // </ updateRecord >
+      }); // </ runQuery >
     }); // </ spawnConnection >
   }
 });
