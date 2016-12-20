@@ -139,7 +139,7 @@ module.exports = require('machine').build({
     var primaryKeyField = model.primaryKey;
 
     // Remove primary key if the value is NULL
-    _.each(statement.insert, function(record) {
+    _.each(statement.insert, function removeNullPrimaryKey(record) {
       if (_.isNull(record[primaryKeyField])) {
         delete record[primaryKeyField];
       }

@@ -58,9 +58,7 @@ module.exports = require('machine').build({
     success: {
       description: 'The results of the destroy query.',
       outputVariableName: 'records',
-      example: {
-        numRecordsDeleted: 1
-      }
+      example: '==='
     },
 
     invalidDatastore: {
@@ -84,6 +82,9 @@ module.exports = require('machine').build({
 
     // Set a flag if a leased connection from outside the adapter was used or not.
     var leased = _.has(inputs.meta, 'leasedConnection');
+
+    // Set a flag to determine if records are being returned
+    var fetchRecords = false;
 
 
     //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ┌─┐┌─┐┬─┐  ┌─┐  ┌─┐┌─┐  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
@@ -123,6 +124,21 @@ module.exports = require('machine').build({
     }
 
 
+    //  ╔╦╗╔═╗╔╦╗╔═╗╦═╗╔╦╗╦╔╗╔╔═╗  ┬ ┬┬ ┬┬┌─┐┬ ┬  ┬  ┬┌─┐┬  ┬ ┬┌─┐┌─┐
+    //   ║║║╣  ║ ║╣ ╠╦╝║║║║║║║║╣   │││├─┤││  ├─┤  └┐┌┘├─┤│  │ │├┤ └─┐
+    //  ═╩╝╚═╝ ╩ ╚═╝╩╚═╩ ╩╩╝╚╝╚═╝  └┴┘┴ ┴┴└─┘┴ ┴   └┘ ┴ ┴┴─┘└─┘└─┘└─┘
+    //  ┌┬┐┌─┐  ┬─┐┌─┐┌┬┐┬ ┬┬─┐┌┐┌
+    //   │ │ │  ├┬┘├┤  │ │ │├┬┘│││
+    //   ┴ └─┘  ┴└─└─┘ ┴ └─┘┴└─┘└┘
+    if (_.has(inputs.meta, 'fetch') && inputs.meta.fetch) {
+      fetchRecords = true;
+
+      // Add the postgres RETURNING * piece to the statement to prevent the
+      // overhead of running two additional queries.
+      statement.returning = '*';
+    }
+
+
     // Compile the original Waterline Query
     var query;
     try {
@@ -151,7 +167,6 @@ module.exports = require('machine').build({
       Helpers.query.runQuery({
         connection: connection,
         nativeQuery: query,
-        queryType: 'delete',
         disconnectOnError: leased ? false : true
       },
 
@@ -164,9 +179,11 @@ module.exports = require('machine').build({
         // Always release the connection unless a leased connection from outside
         // the adapter was used.
         Helpers.connection.releaseConnection(connection, leased, function cb() {
-          return exits.success({
-            numRecordsDeleted: report.result.numRecordsDeleted
-          });
+          if (fetchRecords) {
+            return exits.success({ records: report.rows });
+          }
+
+          return exits.success();
         }); // </ releaseConnection >
       }); // </ runQuery >
     }); // </ spawnConnection >
