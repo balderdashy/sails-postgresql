@@ -81,7 +81,6 @@ module.exports = require('machine').build({
 
   fn: function update(inputs, exits) {
     // Dependencies
-    var util = require('util');
     var _ = require('@sailshq/lodash');
     var Converter = require('waterline-utils').query.converter;
     var Helpers = require('./private');
@@ -96,6 +95,9 @@ module.exports = require('machine').build({
 
     // Set a flag if a leased connection from outside the adapter was used or not.
     var leased = _.has(inputs.meta, 'leasedConnection');
+
+    // Set a flag to determine if records are being returned
+    var fetchRecords = false;
 
 
     //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ┌─┐┌─┐┬─┐  ┌─┐  ┌─┐┌─┐  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
@@ -131,12 +133,23 @@ module.exports = require('machine').build({
           schema: schemaName
         }
       });
+    } catch (e) {
+      return exits.error(e);
+    }
+
+
+    //  ╔╦╗╔═╗╔╦╗╔═╗╦═╗╔╦╗╦╔╗╔╔═╗  ┬ ┬┬ ┬┬┌─┐┬ ┬  ┬  ┬┌─┐┬  ┬ ┬┌─┐┌─┐
+    //   ║║║╣  ║ ║╣ ╠╦╝║║║║║║║║╣   │││├─┤││  ├─┤  └┐┌┘├─┤│  │ │├┤ └─┐
+    //  ═╩╝╚═╝ ╩ ╚═╝╩╚═╩ ╩╩╝╚╝╚═╝  └┴┘┴ ┴┴└─┘┴ ┴   └┘ ┴ ┴┴─┘└─┘└─┘└─┘
+    //  ┌┬┐┌─┐  ┬─┐┌─┐┌┬┐┬ ┬┬─┐┌┐┌
+    //   │ │ │  ├┬┘├┤  │ │ │├┬┘│││
+    //   ┴ └─┘  ┴└─└─┘ ┴ └─┘┴└─┘└┘
+    if (_.has(inputs.meta, 'fetch') && inputs.meta.fetch) {
+      fetchRecords = true;
 
       // Add the postgres RETURNING * piece to the statement to prevent the
       // overhead of running two additional queries.
       statement.returning = '*';
-    } catch (e) {
-      return exits.error(e);
     }
 
 
@@ -176,7 +189,11 @@ module.exports = require('machine').build({
             return exits.error(err);
           }
 
-          return exits.success({ records: updatedRecords });
+          if (fetchRecords) {
+            return exits.success({ records: updatedRecords });
+          }
+
+          return exits.success();
         }); // </ releaseConnection >
       }); // </ updateRecord >
     }); // </ spawnConnection >
