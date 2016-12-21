@@ -20,32 +20,6 @@ describe('Unit Tests ::', function() {
       Support.Teardown('test_destroy', done);
     });
 
-
-    it('should remove records from the database and return the count', function(done) {
-      var query = {
-        using: 'test_destroy',
-        criteria: {
-          where: {
-            fieldA: 'foo'
-          }
-        }
-      };
-
-      Adapter.destroy('test', query, function(err, result) {
-        if (err) {
-          return done(err);
-        }
-
-        assert(_.isPlainObject(result));
-        assert(_.isNumber(result.numRecordsDeleted));
-        assert(result.numRecordsDeleted);
-        assert.equal(result.numRecordsDeleted, 1);
-
-        return done();
-      });
-    });
-
-
     it('should ensure the record is actually deleted', function(done) {
       var query = {
         using: 'test_destroy',
