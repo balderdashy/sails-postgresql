@@ -31,6 +31,9 @@ describe('Unit Tests ::', function() {
         },
         valuesToSet: {
           fieldA: 'foobar'
+        },
+        meta: {
+          fetch: true
         }
       };
 
@@ -58,6 +61,9 @@ describe('Unit Tests ::', function() {
         },
         valuesToSet: {
           fieldA: 'FooBar'
+        },
+        meta: {
+          fetch: true
         }
       };
 
