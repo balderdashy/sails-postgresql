@@ -18,22 +18,21 @@ module.exports = function buildSchema(definition) {
   //  ║║║║ ║╠╦╝║║║╠═╣║  ║╔═╝║╣    │ └┬┘├─┘├┤
   //  ╝╚╝╚═╝╩╚═╩ ╩╩ ╩╩═╝╩╚═╝╚═╝   ┴  ┴ ┴  └─┘
   var normalizeType = function normalizeType(type) {
-
     switch (type.toLowerCase()) {
 
       // Default types from sails-hook-orm.
       case '_number':
         return 'REAL';
       case '_numberkey':
-          return 'INTEGER';
+        return 'INTEGER';
       case '_numbertimestamp':
-          return 'BIGINT';
+        return 'BIGINT';
       case '_string':
         return 'TEXT';
       case '_stringkey':
-          return 'VARCHAR';
+        return 'VARCHAR';
       case '_stringtimestamp':
-          return 'VARCHAR';
+        return 'VARCHAR';
       case '_boolean':
         return 'BOOLEAN';
       case '_json':
@@ -43,8 +42,6 @@ module.exports = function buildSchema(definition) {
 
       default:
         return type;
-
-
     }
   };
 
