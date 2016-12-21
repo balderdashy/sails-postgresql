@@ -16,7 +16,7 @@ describe('Unit Tests ::', function() {
 
     // Attributes for the test table
     var definition = {
-      type: 'string'
+      columnType: 'text'
     };
 
     it('should add a column to a table', function(done) {

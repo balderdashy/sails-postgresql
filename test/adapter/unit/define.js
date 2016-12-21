@@ -17,22 +17,31 @@ describe('Unit Tests ::', function() {
     // Attributes for the test table
     var definition = {
       id: {
-        type: 'serial',
+        columnType: 'serial',
         autoIncrement: true
       },
       name: {
-        type: 'string',
+        columnType: 'text',
         notNull: true
       },
-      email: 'string',
-      title: 'string',
-      phone: 'string',
-      type: 'string',
-      favoriteFruit: {
-        defaultsTo: 'blueberry',
-        type: 'string'
+      email: {
+        columnType: 'text'
       },
-      age: 'integer'
+      title: {
+        columnType: 'text'
+      },
+      phone: {
+        columnType: 'text'
+      },
+      type: {
+        columnType: 'text'
+      },
+      favoriteFruit: {
+        columnType: 'text'
+      },
+      age: {
+        columnType: 'integer'
+      }
     };
 
     it('should create a table in the database', function(done) {
