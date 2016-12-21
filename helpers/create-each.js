@@ -38,23 +38,9 @@ module.exports = require('machine').build({
       example: '==='
     },
 
-    tableName: {
-      description: 'The name of the table to insert the records into.',
+    query: {
+      description: 'A valid stage three Waterline query.',
       required: true,
-      example: 'users'
-    },
-
-    records: {
-      description: 'The records to insert into the table. It should match the schema used to build the table.',
-      required: true,
-      readOnly: true,
-      example: '==='
-    },
-
-    meta: {
-      friendlyName: 'Meta (custom)',
-      description: 'Additional stuff to pass to the driver.',
-      extendedDescription: 'This is reserved for custom driver-specific extensions.',
       example: '==='
     }
 
@@ -88,15 +74,20 @@ module.exports = require('machine').build({
     var Helpers = require('./private');
 
 
+    // Store the Query input for easier access
+    var query = inputs.query;
+    query.meta = query.meta || {};
+
+
     // Find the model definition
-    var model = inputs.models[inputs.tableName];
+    var model = inputs.models[query.using];
     if (!model) {
       return exits.invalidDatastore();
     }
 
 
     // Set a flag if a leased connection from outside the adapter was used or not.
-    var leased = _.has(inputs.meta, 'leasedConnection');
+    var leased = _.has(query.meta, 'leasedConnection');
 
 
     //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ┌─┐┌─┐┬─┐  ┌─┐  ┌─┐┌─┐  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
@@ -106,8 +97,8 @@ module.exports = require('machine').build({
     // by query basis using the meta input or configured on the datastore. Default
     // to use the public schema.
     var schemaName = 'public';
-    if (inputs.meta && inputs.meta.schemaName) {
-      schemaName = inputs.meta.schemaName;
+    if (_.has(query.meta, 'schemaName')) {
+      schemaName = query.meta.schemaName;
     } else if (inputs.datastore.config && inputs.datastore.config.schemaName) {
       schemaName = inputs.datastore.config.schemaName;
     }
@@ -124,9 +115,9 @@ module.exports = require('machine').build({
     var statement;
     try {
       statement = utils.query.converter({
-        model: inputs.tableName,
+        model: query.using,
         method: 'createEach',
-        values: inputs.records,
+        values: query.newRecords,
         opts: {
           schema: schemaName
         }
@@ -153,7 +144,7 @@ module.exports = require('machine').build({
     //  │ │├┬┘  │ │└─┐├┤   │  ├┤ ├─┤└─┐├┤  ││  │  │ │││││││├┤ │   │ ││ ││││
     //  └─┘┴└─  └─┘└─┘└─┘  ┴─┘└─┘┴ ┴└─┘└─┘─┴┘  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
     // Spawn a new connection for running queries on.
-    Helpers.connection.spawnOrLeaseConnection(inputs.datastore, inputs.meta, function spawnOrLeaseConnectionCb(err, connection) {
+    Helpers.connection.spawnOrLeaseConnection(inputs.datastore, query.meta, function spawnOrLeaseConnectionCb(err, connection) {
       if (err) {
         return exits.badConnection(err);
       }
@@ -168,9 +159,9 @@ module.exports = require('machine').build({
       //  ║  ║ ║║║║╠═╝║║  ║╣   │─┼┐│ │├┤ ├┬┘└┬┘
       //  ╚═╝╚═╝╩ ╩╩  ╩╩═╝╚═╝  └─┘└└─┘└─┘┴└─ ┴
       // Compile the original Waterline Query
-      var query;
+      var compiledQuery;
       try {
-        query = Helpers.query.compileStatement(statement);
+        compiledQuery = Helpers.query.compileStatement(statement);
       } catch (e) {
         // If the statement could not be compiled, release the connection and end
         // the transaction.
@@ -187,10 +178,10 @@ module.exports = require('machine').build({
       // Insert the record and return the new values
       Helpers.query.insertRecord({
         connection: connection,
-        query: query,
+        query: compiledQuery,
         model: model,
         schemaName: schemaName,
-        tableName: inputs.tableName,
+        tableName: query.using,
         leased: leased
       },
 
