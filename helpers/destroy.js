@@ -31,22 +31,9 @@ module.exports = require('machine').build({
       example: '==='
     },
 
-    tableName: {
-      description: 'The name of the table to destroy the record from.',
+    query: {
+      description: 'A valid stage three Waterline query.',
       required: true,
-      example: 'users'
-    },
-
-    criteria: {
-      description: 'The Waterline criteria object to use for the query.',
-      required: true,
-      example: {}
-    },
-
-    meta: {
-      friendlyName: 'Meta (custom)',
-      description: 'Additional stuff to pass to the driver.',
-      extendedDescription: 'This is reserved for custom driver-specific extensions.',
       example: '==='
     }
 
@@ -80,8 +67,13 @@ module.exports = require('machine').build({
     var Helpers = require('./private');
 
 
+    // Store the Query input for easier access
+    var query = inputs.query;
+    query.meta = query.meta || {};
+
+
     // Set a flag if a leased connection from outside the adapter was used or not.
-    var leased = _.has(inputs.meta, 'leasedConnection');
+    var leased = _.has(query.meta, 'leasedConnection');
 
     // Set a flag to determine if records are being returned
     var fetchRecords = false;
@@ -94,8 +86,8 @@ module.exports = require('machine').build({
     // by query basis using the meta input or configured on the datastore. Default
     // to use the public schema.
     var schemaName = 'public';
-    if (inputs.meta && inputs.meta.schemaName) {
-      schemaName = inputs.meta.schemaName;
+    if (_.has(query.meta, 'schemaName')) {
+      schemaName = query.meta.schemaName;
     } else if (inputs.datastore.config && inputs.datastore.config.schemaName) {
       schemaName = inputs.datastore.config.schemaName;
     }
@@ -112,9 +104,9 @@ module.exports = require('machine').build({
     var statement;
     try {
       statement = Converter({
-        model: inputs.tableName,
+        model: query.using,
         method: 'destroy',
-        criteria: inputs.criteria,
+        criteria: query.criteria,
         opts: {
           schema: schemaName
         }
@@ -130,7 +122,7 @@ module.exports = require('machine').build({
     //  ┌┬┐┌─┐  ┬─┐┌─┐┌┬┐┬ ┬┬─┐┌┐┌
     //   │ │ │  ├┬┘├┤  │ │ │├┬┘│││
     //   ┴ └─┘  ┴└─└─┘ ┴ └─┘┴└─┘└┘
-    if (_.has(inputs.meta, 'fetch') && inputs.meta.fetch) {
+    if (_.has(query.meta, 'fetch') && query.meta.fetch) {
       fetchRecords = true;
 
       // Add the postgres RETURNING * piece to the statement to prevent the
@@ -140,9 +132,9 @@ module.exports = require('machine').build({
 
 
     // Compile the original Waterline Query
-    var query;
+    var compiledQuery;
     try {
-      query = Helpers.query.compileStatement(statement);
+      compiledQuery = Helpers.query.compileStatement(statement);
     } catch (e) {
       return exits.error(e);
     }
@@ -155,7 +147,7 @@ module.exports = require('machine').build({
     //  │ │├┬┘  │ │└─┐├┤   │  ├┤ ├─┤└─┐├┤  ││  │  │ │││││││├┤ │   │ ││ ││││
     //  └─┘┴└─  └─┘└─┘└─┘  ┴─┘└─┘┴ ┴└─┘└─┘─┴┘  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
     // Spawn a new connection for running queries on.
-    Helpers.connection.spawnOrLeaseConnection(inputs.datastore, inputs.meta, function spawnConnectionCb(err, connection) {
+    Helpers.connection.spawnOrLeaseConnection(inputs.datastore, query.meta, function spawnConnectionCb(err, connection) {
       if (err) {
         return exits.badConnection(err);
       }
@@ -166,7 +158,7 @@ module.exports = require('machine').build({
       //  ╩╚═╚═╝╝╚╝  ─┴┘└─┘└─┘ ┴ ┴└─└─┘ ┴   └─┘└└─┘└─┘┴└─ ┴
       Helpers.query.runQuery({
         connection: connection,
-        nativeQuery: query,
+        nativeQuery: compiledQuery,
         disconnectOnError: leased ? false : true
       },
 
