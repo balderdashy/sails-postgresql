@@ -90,7 +90,7 @@ module.exports = require('machine').build({
     // to use the public schema.
     var schemaName = 'public';
     if (_.has(query.meta, 'schemaName')) {
-      schemaName = inputs.meta.schemaName;
+      schemaName = query.meta.schemaName;
     } else if (inputs.datastore.config && inputs.datastore.config.schemaName) {
       schemaName = inputs.datastore.config.schemaName;
     }
