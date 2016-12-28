@@ -7,17 +7,24 @@ view the [0.11.x Branch](https://github.com/balderdashy/sails-postgresql/commits
 
 A [Waterline](https://github.com/balderdashy/waterline) adapter for working with the PostgreSQL database.
 
+## Help
+
+If you have further questions or are having trouble, click [here](http://sailsjs.com/support).
+
+
 ## Bugs &nbsp; [![NPM version](https://badge.fury.io/js/sails-postgresql.svg)](http://npmjs.com/package/sails-postgresql)
 
 To report a bug, [click here](http://sailsjs.com/bugs).
 
-## Contributing &nbsp; [![Build Status](https://travis-ci.org/balderdashy/sails-postgresql.svg?branch=master)](https://travis-ci.org/balderdashy/sails-postgresql) &nbsp; [![Build status on Windows](https://ci.appveyor.com/api/projects/status/leqscfrv6y7jv9js/branch/master?svg=true)](https://ci.appveyor.com/project/mikermcneil/sails-postgresql/branch/master)
 
+## Contributing
 
 Please observe the guidelines and conventions laid out in the [Sails project contribution guide](http://sailsjs.com/contribute) when opening issues or submitting pull requests.
 
-[![NPM package info](https://nodei.co/npm/sails-postgresql.png?downloads=true)](http://npmjs.com/package/sails-postgresql)
+[![NPM](https://nodei.co/npm/sails-postgresql.png?downloads=true)](http://npmjs.com/package/sails-postgresql)
+
 
 ## License
 
 The [Sails framework](http://sailsjs.com) is free and open-source under the [MIT License](http://sailsjs.com/license).
+
