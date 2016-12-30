@@ -15,10 +15,9 @@
 // Insert the record and return the values that were inserted.
 
 var _ = require('@sailshq/lodash');
+var PG = require('machinepack-postgresql');
 var runQuery = require('./run-query');
-var compileStatement = require('./compile-statement');
 var releaseConnection = require('../connection/release-connection');
-
 
 module.exports = function insertRecord(options, cb) {
   //  ╦  ╦╔═╗╦  ╦╔╦╗╔═╗╔╦╗╔═╗  ┌─┐┌─┐┌┬┐┬┌─┐┌┐┌┌─┐
@@ -36,21 +35,10 @@ module.exports = function insertRecord(options, cb) {
     throw new Error('Invalid option used in options argument. Missing or invalid query.');
   }
 
-  if (!_.has(options, 'model') || !_.isPlainObject(options.model)) {
-    throw new Error('Invalid option used in options argument. Missing or invalid model.');
-  }
-
-  if (!_.has(options, 'schemaName') || !_.isString(options.schemaName)) {
-    throw new Error('Invalid option used in options argument. Missing or invalid schemaName.');
-  }
-
-  if (!_.has(options, 'tableName') || !_.isString(options.tableName)) {
-    throw new Error('Invalid option used in options argument. Missing or invalid tableName.');
-  }
-
   if (!_.has(options, 'leased') || !_.isBoolean(options.leased)) {
     throw new Error('Invalid option used in options argument. Missing or invalid leased flag.');
   }
+
 
 
   //  ╦╔╗╔╔═╗╔═╗╦═╗╔╦╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
@@ -59,11 +47,11 @@ module.exports = function insertRecord(options, cb) {
   runQuery({
     connection: options.connection,
     nativeQuery: options.query,
-    queryType: 'insert',
     disconnectOnError: false
   },
 
   function runQueryCb(err, insertReport) {
+
     // If the query failed to run, release the connection and return the parsed
     // error footprint.
     if (err) {
@@ -74,66 +62,23 @@ module.exports = function insertRecord(options, cb) {
       return;
     }
 
-    // Hold the results of the insert query
-    var insertResults = insertReport.result;
-
-
-    //  ╔═╗╦╔╗╔╔╦╗  ┬┌┐┌┌─┐┌─┐┬─┐┌┬┐┌─┐┌┬┐  ┬─┐┌─┐┌─┐┌─┐┬─┐┌┬┐┌─┐
-    //  ╠╣ ║║║║ ║║  ││││└─┐├┤ ├┬┘ │ ├┤  ││  ├┬┘├┤ │  │ │├┬┘ ││└─┐
-    //  ╚  ╩╝╚╝═╩╝  ┴┘└┘└─┘└─┘┴└─ ┴ └─┘─┴┘  ┴└─└─┘└─┘└─┘┴└──┴┘└─┘
-
-    // Find the Primary Key field for the model
-    var pk;
-    try {
-      pk = options.model.primaryKey;
-    } catch (e) {
-      throw new Error('Could not determine a Primary Key for the model: ' + options.model.tableName + '.');
-    }
-
-    // Build up a criteria statement to run
-    var criteriaStatement = {
-      select: ['*'],
-      from: options.tableName,
-      where: {},
-      opts: {
-        schema: options.schemaName
-      }
-    };
-
-    // Insert dynamic primary key value into query
-    criteriaStatement.where[pk] = {
-      in: insertResults.inserted
-    };
-
-    // Build an IN query from the results of the insert query
-    var compiledReport;
-    try {
-      compiledReport = compileStatement(criteriaStatement);
-    } catch (e) {
-      return cb(e);
-    }
-
-    // Run the FIND query
-    runQuery({
-      connection: options.connection,
-      nativeQuery: compiledReport,
-      queryType: 'select',
-      disconnectOnError: false
-    },
-
-    function runFindQueryCb(err, findReport) {
-      // If the query failed to run, release the connection and return the parsed
-      // error footprint.
-      if (err) {
-        releaseConnection(options.connection, options.leased, function releaseCb() {
-          return cb(err);
-        });
-
-        return;
+    // If the records were fetched, then pretend this was find and parse the
+    // native query results.
+    if (options.fetchRecords) {
+      var parsedResults;
+      try {
+        parsedResults = PG.parseNativeQueryResult({
+          queryType: 'select',
+          nativeQueryResult: insertReport
+        }).execSync();
+      } catch (e) {
+        return cb(e);
       }
 
-      // Return the FIND results
-      return cb(null, findReport.result);
-    });
+      return cb(undefined, parsedResults.result);
+    }
+
+    // Return the results
+    return cb(undefined, insertReport.result);
   });
 };

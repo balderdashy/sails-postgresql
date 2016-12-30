@@ -81,6 +81,9 @@ module.exports = require('machine').build({
     // Set a flag if a leased connection from outside the adapter was used or not.
     var leased = _.has(query.meta, 'leasedConnection');
 
+    // Set a flag to determine if records are being returned
+    var fetchRecords = false;
+
 
     //  ╔═╗╦ ╦╔═╗╔═╗╦╔═  ┌─┐┌─┐┬─┐  ┌─┐  ┌─┐┌─┐  ┌─┐┌─┐┬ ┬┌─┐┌┬┐┌─┐
     //  ║  ╠═╣║╣ ║  ╠╩╗  ├┤ │ │├┬┘  ├─┤  ├─┘│ ┬  └─┐│  ├─┤├┤ │││├─┤
@@ -118,6 +121,22 @@ module.exports = require('machine').build({
       return exits.error(e);
     }
 
+
+    //  ╔╦╗╔═╗╔╦╗╔═╗╦═╗╔╦╗╦╔╗╔╔═╗  ┬ ┬┬ ┬┬┌─┐┬ ┬  ┬  ┬┌─┐┬  ┬ ┬┌─┐┌─┐
+    //   ║║║╣  ║ ║╣ ╠╦╝║║║║║║║║╣   │││├─┤││  ├─┤  └┐┌┘├─┤│  │ │├┤ └─┐
+    //  ═╩╝╚═╝ ╩ ╚═╝╩╚═╩ ╩╩╝╚╝╚═╝  └┴┘┴ ┴┴└─┘┴ ┴   └┘ ┴ ┴┴─┘└─┘└─┘└─┘
+    //  ┌┬┐┌─┐  ┬─┐┌─┐┌┬┐┬ ┬┬─┐┌┐┌
+    //   │ │ │  ├┬┘├┤  │ │ │├┬┘│││
+    //   ┴ └─┘  ┴└─└─┘ ┴ └─┘┴└─┘└┘
+    if (_.has(query.meta, 'fetch') && query.meta.fetch) {
+      fetchRecords = true;
+
+      // Add the postgres RETURNING * piece to the statement to prevent the
+      // overhead of running two additional queries.
+      statement.returning = '*';
+    }
+
+
     // Find the Primary Key and add a "returning" clause to the statement.
     var primaryKeyField = model.primaryKey;
 
@@ -126,6 +145,7 @@ module.exports = require('machine').build({
     if (_.isNull(statement.insert[primaryKeyField])) {
       delete statement.insert[primaryKeyField];
     }
+
 
 
     //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
@@ -139,10 +159,6 @@ module.exports = require('machine').build({
       if (err) {
         return exits.badConnection(err);
       }
-
-
-      // Return the values of the primary key field
-      statement.returning = primaryKeyField;
 
 
       //  ╔═╗╔═╗╔╦╗╔═╗╦╦  ╔═╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
@@ -169,10 +185,8 @@ module.exports = require('machine').build({
       Helpers.query.insertRecord({
         connection: connection,
         query: compiledQuery,
-        model: model,
-        schemaName: schemaName,
-        tableName: query.using,
-        leased: leased
+        leased: leased,
+        fetchRecords: fetchRecords
       },
 
       function insertRecordCb(err, insertedRecords) {
@@ -184,9 +198,13 @@ module.exports = require('machine').build({
 
         // Release the connection if needed.
         Helpers.connection.releaseConnection(connection, leased, function releaseCb() {
-          // Only return the first record (there should only ever be one)
-          var insertedRecord = _.first(insertedRecords);
-          return exits.success({ record: insertedRecord });
+          if (fetchRecords) {
+            // Only return the first record (there should only ever be one)
+            var insertedRecord = _.first(insertedRecords);
+            return exits.success({ record: insertedRecord });
+          }
+
+          return exits.success();
         }); // </ .releaseConnection(); >
       }); // </ .insertRecord(); >
     }); // </ .spawnOrLeaseConnection(); >
