@@ -65,6 +65,7 @@ module.exports = require('machine').build({
     var _ = require('@sailshq/lodash');
     var utils = require('waterline-utils');
     var Helpers = require('./private');
+    var eachRecordDeep = utils.eachRecordDeep;
 
 
     // Store the Query input for easier access
@@ -199,6 +200,32 @@ module.exports = require('machine').build({
         // Release the connection if needed.
         Helpers.connection.releaseConnection(connection, leased, function releaseCb() {
           if (fetchRecords) {
+            var orm = {
+              collections: inputs.models
+            };
+
+            // Run all the records through the iterator so that they can be normalized.
+            eachRecordDeep(insertedRecords, function iterator(record, WLModel) {
+              // Check if the record and the model contain auto timestamps and make
+              // sure that if they are type number that they are actually numbers and
+              // not strings.
+              _.each(WLModel.definition, function checkAttributes(attrVal, attrName) {
+                var columnName = attrVal.columnName;
+
+                if (_.has(attrVal, 'autoUpdatedAt') && attrVal.autoUpdatedAt === true && attrVal.type === 'number') {
+                  if (_.has(record, columnName) && !_.isUndefined(record[columnName])) {
+                    record[columnName] = Number(record[attrName]);
+                  }
+                }
+
+                if (_.has(attrVal, 'autoCreatedAt') && attrVal.autoCreatedAt === true && attrVal.type === 'number') {
+                  if (_.has(record, columnName) && !_.isUndefined(record[columnName])) {
+                    record[columnName] = Number(record[columnName]);
+                  }
+                }
+              });
+            }, false, model.identity, orm);
+
             // Only return the first record (there should only ever be one)
             var insertedRecord = _.first(insertedRecords);
             return exits.success({ record: insertedRecord });

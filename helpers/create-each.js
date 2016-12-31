@@ -72,7 +72,7 @@ module.exports = require('machine').build({
     var _ = require('@sailshq/lodash');
     var utils = require('waterline-utils');
     var Helpers = require('./private');
-
+    var eachRecordDeep = utils.eachRecordDeep;
 
     // Store the Query input for easier access
     var query = inputs.query;
@@ -189,14 +189,14 @@ module.exports = require('machine').build({
       //  ║║║║╚═╗║╣ ╠╦╝ ║   ├┬┘├┤ │  │ │├┬┘ ││
       //  ╩╝╚╝╚═╝╚═╝╩╚═ ╩   ┴└─└─┘└─┘└─┘┴└──┴┘
       // Insert the record and return the new values
-      Helpers.query.insertRecord({
+      Helpers.query.modifyRecord({
         connection: connection,
         query: compiledQuery,
         leased: leased,
         fetchRecords: fetchRecords
       },
 
-      function insertRecordCb(err, insertedRecords) {
+      function modifyRecordCb(err, insertedRecords) {
         // If there was an error the helper takes care of closing the connection
         // if a connection was spawned internally.
         if (err) {
@@ -206,6 +206,33 @@ module.exports = require('machine').build({
         // Release the connection if needed.
         Helpers.connection.releaseConnection(connection, leased, function releaseCb() {
           if (fetchRecords) {
+            var orm = {
+              collections: inputs.models
+            };
+
+            // Run all the records through the iterator so that they can be normalized.
+            // console.log(model);
+            eachRecordDeep(insertedRecords, function iterator(record, WLModel) {
+              // Check if the record and the model contain auto timestamps and make
+              // sure that if they are type number that they are actually numbers and
+              // not strings.
+              _.each(WLModel.definition, function checkAttributes(attrVal, attrName) {
+                var columnName = attrVal.columnName;
+
+                if (_.has(attrVal, 'autoUpdatedAt') && attrVal.autoUpdatedAt === true && attrVal.type === 'number') {
+                  if (_.has(record, columnName) && !_.isUndefined(record[columnName])) {
+                    record[columnName] = Number(record[attrName]);
+                  }
+                }
+
+                if (_.has(attrVal, 'autoCreatedAt') && attrVal.autoCreatedAt === true && attrVal.type === 'number') {
+                  if (_.has(record, columnName) && !_.isUndefined(record[columnName])) {
+                    record[columnName] = Number(record[columnName]);
+                  }
+                }
+              });
+            }, false, model.identity, orm);
+
             return exits.success({ records: insertedRecords });
           }
 

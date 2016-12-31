@@ -63,8 +63,10 @@ module.exports = require('machine').build({
   fn: function select(inputs, exits) {
     // Dependencies
     var _ = require('@sailshq/lodash');
-    var Converter = require('waterline-utils').query.converter;
+    var WLUtils = require('waterline-utils');
+    var Converter = WLUtils.query.converter;
     var Helpers = require('./private');
+    var eachRecordDeep = WLUtils.eachRecordDeep;
 
 
     // Store the Query input for easier access
@@ -162,7 +164,35 @@ module.exports = require('machine').build({
         // Always release the connection unless a leased connection from outside
         // the adapter was used.
         Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
-          return exits.success({ records: report.result });
+          var selectRecords = report.result;
+          var orm = {
+            collections: inputs.models
+          };
+
+          // Run all the records through the iterator so that they can be normalized.
+          // console.log(model);
+          eachRecordDeep(selectRecords, function iterator(record, WLModel) {
+            // Check if the record and the model contain auto timestamps and make
+            // sure that if they are type number that they are actually numbers and
+            // not strings.
+            _.each(WLModel.definition, function checkAttributes(attrVal, attrName) {
+              var columnName = attrVal.columnName;
+
+              if (_.has(attrVal, 'autoUpdatedAt') && attrVal.autoUpdatedAt === true && attrVal.type === 'number') {
+                if (_.has(record, columnName) && !_.isUndefined(record[columnName])) {
+                  record[columnName] = Number(record[attrName]);
+                }
+              }
+
+              if (_.has(attrVal, 'autoCreatedAt') && attrVal.autoCreatedAt === true && attrVal.type === 'number') {
+                if (_.has(record, columnName) && !_.isUndefined(record[columnName])) {
+                  record[columnName] = Number(record[columnName]);
+                }
+              }
+            });
+          }, false, model.identity, orm);
+
+          return exits.success({ records: selectRecords });
         }); // </ releaseConnection >
       }); // </ runQuery >
     }); // </ spawnConnection >
