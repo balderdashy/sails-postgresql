@@ -182,14 +182,14 @@ module.exports = require('machine').build({
       //  ║║║║╚═╗║╣ ╠╦╝ ║   ├┬┘├┤ │  │ │├┬┘ ││
       //  ╩╝╚╝╚═╝╚═╝╩╚═ ╩   ┴└─└─┘└─┘└─┘┴└──┴┘
       // Insert the record and return the new values
-      Helpers.query.insertRecord({
+      Helpers.query.modifyRecord({
         connection: connection,
         query: compiledQuery,
         leased: leased,
         fetchRecords: fetchRecords
       },
 
-      function insertRecordCb(err, insertedRecords) {
+      function modifyRecordCb(err, insertedRecords) {
         // If there was an error the helper takes care of closing the connection
         // if a connection was spawned internally.
         if (err) {
