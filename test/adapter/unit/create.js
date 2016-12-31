@@ -23,7 +23,10 @@ describe('Unit Tests ::', function() {
     it('should insert a record into the database and return it\'s fields', function(done) {
       var query = {
         using: 'test_create',
-        newRecord: attributes
+        newRecord: attributes,
+        meta: {
+          fetch: true
+        }
       };
 
       Adapter.create('test', query, function(err, result) {
@@ -44,7 +47,10 @@ describe('Unit Tests ::', function() {
     it('should create an auto-incremented id field', function(done) {
       var query = {
         using: 'test_create',
-        newRecord: attributes
+        newRecord: attributes,
+        meta: {
+          fetch: true
+        }
       };
 
       Adapter.create('test', query, function(err, result) {
@@ -65,6 +71,9 @@ describe('Unit Tests ::', function() {
         newRecord: {
           fieldA: 'Foo',
           fieldB: 'bAr'
+        },
+        meta: {
+          fetch: true
         }
       };
 
@@ -88,7 +97,10 @@ describe('Unit Tests ::', function() {
 
       var query = {
         using: 'test_create',
-        newRecord: attributes
+        newRecord: attributes,
+        meta: {
+          fetch: true
+        }
       };
 
       Adapter.create('test', query, function(err) {
