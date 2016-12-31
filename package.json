@@ -18,15 +18,15 @@
     "@sailshq/lodash": "^3.10.2",
     "async": "2.0.1",
     "machine": "^13.0.0-17",
-    "machinepack-postgresql": "treelinehq/machinepack-postgresql",
-    "waterline-utils": "treelinehq/waterline-utils"
+    "machinepack-postgresql": "^1.0.0-1",
+    "waterline-utils": "^1.0.0-1"
   },
   "devDependencies": {
     "benchmark": "2.1.1",
     "eslint": "3.5.0",
     "espree": "3.3.0",
     "mocha": "3.0.2",
-    "waterline-adapter-tests": "balderdashy/waterline-adapter-tests"
+    "waterline-adapter-tests": "^1.0.0-1"
   },
   "scripts": {
     "test": "NODE_ENV=test node ./node_modules/mocha/bin/mocha test/adapter/unit --recursive && NODE_ENV=test node test/adapter/integration/runner",
