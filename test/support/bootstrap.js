@@ -85,7 +85,7 @@ Support.Setup = function setup(tableName, cb) {
   }
 
 
-  adapter.registerConnection(connection, collections, function registerCb(err) {
+  adapter.registerDatastore(connection, collections, function registerCb(err) {
     if (err) {
       return cb(err);
     }
@@ -106,7 +106,7 @@ Support.registerConnection = function registerConnection(tableNames, cb) {
   var connection = _.cloneDeep(Support.Config);
   connection.identity = 'test';
 
-  adapter.registerConnection(connection, collections, cb);
+  adapter.registerDatastore(connection, collections, cb);
 };
 
 // Remove a table and destroy the manager
