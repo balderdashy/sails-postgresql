@@ -1,9 +1,9 @@
-//  ██╗███╗   ██╗███████╗███████╗██████╗ ████████╗
-//  ██║████╗  ██║██╔════╝██╔════╝██╔══██╗╚══██╔══╝
-//  ██║██╔██╗ ██║███████╗█████╗  ██████╔╝   ██║
-//  ██║██║╚██╗██║╚════██║██╔══╝  ██╔══██╗   ██║
-//  ██║██║ ╚████║███████║███████╗██║  ██║   ██║
-//  ╚═╝╚═╝  ╚═══╝╚══════╝╚══════╝╚═╝  ╚═╝   ╚═╝
+//  ███╗   ███╗ ██████╗ ██████╗ ██╗███████╗██╗   ██╗
+//  ████╗ ████║██╔═══██╗██╔══██╗██║██╔════╝╚██╗ ██╔╝
+//  ██╔████╔██║██║   ██║██║  ██║██║█████╗   ╚████╔╝
+//  ██║╚██╔╝██║██║   ██║██║  ██║██║██╔══╝    ╚██╔╝
+//  ██║ ╚═╝ ██║╚██████╔╝██████╔╝██║██║        ██║
+//  ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ╚═╝╚═╝        ╚═╝
 //
 //  ██████╗ ███████╗ ██████╗ ██████╗ ██████╗ ██████╗
 //  ██╔══██╗██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔══██╗
@@ -12,14 +12,14 @@
 //  ██║  ██║███████╗╚██████╗╚██████╔╝██║  ██║██████╔╝
 //  ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚═════╝
 //
-// Insert the record and return the values that were inserted.
+// Modify the record(s) and return the values that were modified.
 
 var _ = require('@sailshq/lodash');
 var PG = require('machinepack-postgresql');
 var runQuery = require('./run-query');
 var releaseConnection = require('../connection/release-connection');
 
-module.exports = function insertRecord(options, cb) {
+module.exports = function modifyRecord(options, cb) {
   //  ╦  ╦╔═╗╦  ╦╔╦╗╔═╗╔╦╗╔═╗  ┌─┐┌─┐┌┬┐┬┌─┐┌┐┌┌─┐
   //  ╚╗╔╝╠═╣║  ║ ║║╠═╣ ║ ║╣   │ │├─┘ │ ││ ││││└─┐
   //   ╚╝ ╩ ╩╩═╝╩═╩╝╩ ╩ ╩ ╚═╝  └─┘┴   ┴ ┴└─┘┘└┘└─┘
@@ -41,16 +41,16 @@ module.exports = function insertRecord(options, cb) {
 
 
 
-  //  ╦╔╗╔╔═╗╔═╗╦═╗╔╦╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
-  //  ║║║║╚═╗║╣ ╠╦╝ ║   │─┼┐│ │├┤ ├┬┘└┬┘
-  //  ╩╝╚╝╚═╝╚═╝╩╚═ ╩   └─┘└└─┘└─┘┴└─ ┴
+  //  ╦═╗╦ ╦╔╗╔  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
+  //  ╠╦╝║ ║║║║  │─┼┐│ │├┤ ├┬┘└┬┘
+  //  ╩╚═╚═╝╝╚╝  └─┘└└─┘└─┘┴└─ ┴
   runQuery({
     connection: options.connection,
     nativeQuery: options.query,
     disconnectOnError: false
   },
 
-  function runQueryCb(err, insertReport) {
+  function runQueryCb(err, report) {
 
     // If the query failed to run, release the connection and return the parsed
     // error footprint.
@@ -69,7 +69,7 @@ module.exports = function insertRecord(options, cb) {
       try {
         parsedResults = PG.parseNativeQueryResult({
           queryType: 'select',
-          nativeQueryResult: insertReport
+          nativeQueryResult: report
         }).execSync();
       } catch (e) {
         return cb(e);
@@ -79,6 +79,6 @@ module.exports = function insertRecord(options, cb) {
     }
 
     // Return the results
-    return cb(undefined, insertReport.result);
+    return cb(undefined, report.result);
   });
 };

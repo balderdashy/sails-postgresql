@@ -12,7 +12,7 @@ module.exports = {
   query: {
     compileStatement: require('./query/compile-statement'),
     initializeQueryCache: require('./query/initialize-query-cache'),
-    insertRecord: require('./query/insert-record'),
+    modifyRecord: require('./query/modify-record'),
     runNativeQuery: require('./query/run-native-query'),
     runQuery: require('./query/run-query')
   },
