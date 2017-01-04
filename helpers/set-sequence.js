@@ -96,7 +96,7 @@ module.exports = require('machine').build({
         return exits.badConnection(err);
       }
 
-      var sequenceQuery = 'SELECT setval(' + '\'' + schemaName + '.' + inputs.sequenceName + '\', ' + inputs.sequenceValue + ', true)';
+      var sequenceQuery = 'SELECT setval(' + '\'"' + schemaName + '"."' + inputs.sequenceName + '"\', ' + inputs.sequenceValue + ', true)';
 
       // Run Sequence Query
       Helpers.query.runQuery({
