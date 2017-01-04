@@ -90,6 +90,7 @@ module.exports = require('machine').build({
 
     // Grab the primary key attribute for the main table name
     var primaryKeyAttr = model.primaryKey;
+    var primaryKeyColumnName = model.definition[primaryKeyAttr].columnName;
 
     //  ╔╗ ╦ ╦╦╦  ╔╦╗  ┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┐┌┌┬┐┌─┐
     //  ╠╩╗║ ║║║   ║║  └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │ └─┐
@@ -259,7 +260,7 @@ module.exports = require('machine').build({
         // There is more work to be done now. Go through the parent records and
         // build up an array of the primary keys.
         var parentKeys = _.map(queryCache.getParents(), function pluckPk(record) {
-          return record[primaryKeyAttr];
+          return record[primaryKeyColumnName];
         });
 
 

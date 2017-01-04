@@ -137,13 +137,14 @@ module.exports = require('machine').build({
     }
 
 
-    // Find the Primary Key and add a "returning" clause to the statement.
+    // Find the Primary Key
     var primaryKeyField = model.primaryKey;
+    var primaryKeyColumnName = model.definition[primaryKeyField].columnName;
 
     // Remove primary key if the value is NULL. This allows the auto-increment
     // to work properly if set.
-    if (_.isNull(statement.insert[primaryKeyField])) {
-      delete statement.insert[primaryKeyField];
+    if (_.isNull(statement.insert[primaryKeyColumnName])) {
+      delete statement.insert[primaryKeyColumnName];
     }
 
 

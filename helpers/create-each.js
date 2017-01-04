@@ -143,13 +143,14 @@ module.exports = require('machine').build({
       statement.returning = '*';
     }
 
-    // Find the Primary Key and add a "returning" clause to the statement.
+    // Find the Primary Key
     var primaryKeyField = model.primaryKey;
+    var primaryKeyColumnName = model.definition[primaryKeyField].columnName;
 
     // Remove primary key if the value is NULL
     _.each(statement.insert, function removeNullPrimaryKey(record) {
-      if (_.isNull(record[primaryKeyField])) {
-        delete record[primaryKeyField];
+      if (_.isNull(record[primaryKeyColumnName])) {
+        delete record[primaryKeyColumnName];
       }
     });
 
