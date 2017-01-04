@@ -51,7 +51,6 @@ module.exports = function modifyRecord(options, cb) {
   },
 
   function runQueryCb(err, report) {
-
     // If the query failed to run, release the connection and return the parsed
     // error footprint.
     if (err) {
