@@ -19,7 +19,7 @@
     "async": "2.0.1",
     "machine": "^13.0.0-17",
     "machinepack-postgresql": "^1.0.0-1",
-    "waterline-utils": "^1.0.0-1"
+    "waterline-utils": "^1.1.0"
   },
   "devDependencies": {
     "benchmark": "2.1.1",
