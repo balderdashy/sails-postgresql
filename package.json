@@ -28,7 +28,7 @@
     "waterline-adapter-tests": "^1.0.0-2"
   },
   "scripts": {
-    "test": "NODE_ENV=test node ./node_modules/mocha/bin/mocha test/adapter/unit --recursive && NODE_ENV=test node test/adapter/integration/runner",
+    "test": "NODE_ENV=test node --harmony ./node_modules/mocha/bin/mocha test/adapter/unit --recursive && NODE_ENV=test node test/adapter/integration/runner",
     "fasttest": "NODE_ENV=test node ./node_modules/mocha/bin/mocha test/adapter/unit --recursive && NODE_ENV=test node test/adapter/integration/runner",
     "pretest": "npm run lint",
     "lint": "eslint machines test",
