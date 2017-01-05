@@ -165,6 +165,7 @@ module.exports = require('machine').build({
       //  ╠╦╝║ ║║║║   ││├┤ └─┐ │ ├┬┘│ │└┬┘  │─┼┐│ │├┤ ├┬┘└┬┘
       //  ╩╚═╚═╝╝╚╝  ─┴┘└─┘└─┘ ┴ ┴└─└─┘ ┴   └─┘└└─┘└─┘┴└─ ┴
       Helpers.query.runQuery({
+        queryType: 'select',
         connection: connection,
         nativeQuery: compiledQuery,
         disconnectOnError: leased ? false : true
