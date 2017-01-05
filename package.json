@@ -28,9 +28,9 @@
     "waterline-adapter-tests": "^1.0.0-2"
   },
   "scripts": {
-    "test": "NODE_ENV=test node --harmony ./node_modules/mocha/bin/mocha test/adapter/unit --recursive && NODE_ENV=test node test/adapter/integration/runner",
+    "test": "NODE_ENV=test node ./node_modules/mocha/bin/mocha test/adapter/unit --recursive && NODE_ENV=test node test/adapter/integration/runner",
     "fasttest": "NODE_ENV=test node ./node_modules/mocha/bin/mocha test/adapter/unit --recursive && NODE_ENV=test node test/adapter/integration/runner",
-    "pretest": "npm run lint",
+    "pretest": "nodever=`node -v` && if [ ${nodever:1:1} != \"0\" ]; then npm run lint; fi",
     "lint": "eslint machines test",
     "docker": "docker-compose run adapter bash",
     "benchmark": "node ./node_modules/mocha/bin/mocha test/benchmarks --recursive"
