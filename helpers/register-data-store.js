@@ -70,7 +70,8 @@ module.exports = require('machine').build({
     },
 
     badConfiguration: {
-      description: 'The configuration was invalid.'
+      description: 'The configuration was invalid.',
+      outputExample: '==='
     }
 
   },
