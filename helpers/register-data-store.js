@@ -103,6 +103,16 @@ module.exports = require('machine').build({
       return exits.badConfiguration(new Error('Connection config is missing a database value.'));
     }
 
+    // Loop through every model assigned to the datastore we're registering,
+    // and ensure that each one's primary key is either required or auto-incrementing.
+    _.each(inputs.modelDefinitions[inputs.identity], function(modelDef) {
+      var primaryKeyAttr = modelDef.definition[modelDef.primaryKey];
+
+      // Ensure that the model's primary key has either `autoIncrement` or `required`
+      if (primaryKeyAttr.required !== true && (!primaryKeyAttr.autoMigrations || primaryKeyAttr.autoMigrations.autoIncrement !== true)) {
+        return next(new Error('In model `' + modelIdentity + '`, primary key `' + modelDef.primaryKey + '` must have either `required` or `autoIncrement` set.'));
+      }
+    });
 
     //  ╔═╗╔═╗╔╗╔╔═╗╦═╗╔═╗╔╦╗╔═╗  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
     //  ║ ╦║╣ ║║║║╣ ╠╦╝╠═╣ ║ ║╣   │  │ │││││││├┤ │   │ ││ ││││
