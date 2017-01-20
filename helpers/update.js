@@ -55,6 +55,11 @@ module.exports = require('machine').build({
     badConnection: {
       friendlyName: 'Bad connection',
       description: 'A connection either could not be obtained or there was an error using the connection.'
+    },
+
+    notUnique: {
+      friendlyName: 'Not Unique',
+      example: '==='
     }
 
   },
@@ -180,6 +185,10 @@ module.exports = require('machine').build({
         // If there was an error the helper takes care of closing the connection
         // if a connection was spawned internally.
         if (err) {
+          if (err.footprint && err.footprint.identity === 'notUnique') {
+            return exits.notUnique(err);
+          }
+
           return exits.error(err);
         }
 
