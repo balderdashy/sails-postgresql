@@ -82,6 +82,10 @@ module.exports = require('machine').build({
       return exits.invalidDatastore();
     }
 
+    // Build up a faux ORM instance for processing records
+    var orm = {
+      collections: inputs.models
+    };
 
     // Set a flag if a leased connection from outside the adapter was used or not.
     var leased = _.has(query.meta, 'leasedConnection');
@@ -101,6 +105,20 @@ module.exports = require('machine').build({
       schemaName = query.meta.schemaName;
     } else if (inputs.datastore.config && inputs.datastore.config.schemaName) {
       schemaName = inputs.datastore.config.schemaName;
+    }
+
+
+    //  ┌─┐┬─┐┌─┐  ┌─┐┬─┐┌─┐┌─┐┌─┐┌─┐┌─┐  ┌─┐┌─┐┌─┐┬ ┬  ┬─┐┌─┐┌─┐┌─┐┬─┐┌┬┐
+    //  ├─┘├┬┘├┤───├─┘├┬┘│ ││  ├┤ └─┐└─┐  ├┤ ├─┤│  ├─┤  ├┬┘├┤ │  │ │├┬┘ ││
+    //  ┴  ┴└─└─┘  ┴  ┴└─└─┘└─┘└─┘└─┘└─┘  └─┘┴ ┴└─┘┴ ┴  ┴└─└─┘└─┘└─┘┴└──┴┘
+    try {
+      Helpers.query.preProcessEachRecord({
+        records: [query.newRecord],
+        identity: model.identity,
+        orm: orm
+      });
+    } catch (e) {
+      return exits.error(e);
     }
 
 
@@ -209,10 +227,6 @@ module.exports = require('machine').build({
         // Release the connection if needed.
         Helpers.connection.releaseConnection(connection, leased, function releaseCb() {
           if (fetchRecords) {
-            var orm = {
-              collections: inputs.models
-            };
-
             // Process each record to normalize output
             try {
               Helpers.query.processEachRecord({
