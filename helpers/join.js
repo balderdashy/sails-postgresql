@@ -107,7 +107,9 @@ module.exports = require('machine').build({
             throw new Error('Invalid parent table name used when caching query results. Perhaps the join criteria is invalid?');
           }
 
-          return model.primaryKey;
+          var pkAttrName = model.primaryKey;
+          var pkColumnName = model.definition[pkAttrName].columnName;
+          return pkColumnName;
         }
       });
     } catch (e) {
