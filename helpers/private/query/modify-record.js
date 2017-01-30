@@ -40,7 +40,6 @@ module.exports = function modifyRecord(options, cb) {
   }
 
 
-
   //  ╦═╗╦ ╦╔╗╔  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
   //  ╠╦╝║ ║║║║  │─┼┐│ │├┤ ├┬┘└┬┘
   //  ╩╚═╚═╝╝╚╝  └─┘└└─┘└─┘┴└─ ┴
