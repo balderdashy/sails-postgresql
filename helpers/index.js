@@ -1,5 +1,4 @@
 module.exports = {
-  addAttribute: require('./add-attribute'),
   avg: require('./avg'),
   count: require('./count'),
   createSchema: require('./create-schema'),
@@ -11,7 +10,6 @@ module.exports = {
   drop: require('./drop'),
   join: require('./join'),
   registerDataStore: require('./register-data-store'),
-  removeAttribute: require('./remove-attribute'),
   select: require('./select'),
   setSequence: require('./set-sequence'),
   sum: require('./sum'),
