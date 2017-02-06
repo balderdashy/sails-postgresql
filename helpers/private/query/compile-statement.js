@@ -21,5 +21,5 @@ module.exports = function compileStatement(statement) {
     statement: statement
   }).execSync();
 
-  return report.nativeQuery;
+  return report;
 };
