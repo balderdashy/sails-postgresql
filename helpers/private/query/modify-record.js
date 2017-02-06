@@ -46,6 +46,7 @@ module.exports = function modifyRecord(options, cb) {
   runQuery({
     connection: options.connection,
     nativeQuery: options.query,
+    valuesToEscape: options.valuesToEscape,
     disconnectOnError: false
   },
 

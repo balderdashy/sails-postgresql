@@ -17,10 +17,11 @@
 var _ = require('@sailshq/lodash');
 var PG = require('machinepack-postgresql');
 
-module.exports = function runNativeQuery(connection, query, cb) {
+module.exports = function runNativeQuery(connection, query, valuesToEscape, cb) {
   PG.sendNativeQuery({
     connection: connection,
-    nativeQuery: query
+    nativeQuery: query,
+    valuesToEscape: valuesToEscape,
   })
   .exec({
     error: function error(err) {
