@@ -167,7 +167,8 @@ module.exports = require('machine').build({
       Helpers.query.runQuery({
         queryType: 'select',
         connection: connection,
-        nativeQuery: compiledQuery,
+        nativeQuery: compiledQuery.sql,
+        valuesToEscape: compiledQuery.bindings,
         disconnectOnError: leased ? false : true
       },
 

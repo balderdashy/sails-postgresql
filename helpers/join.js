@@ -149,7 +149,7 @@ module.exports = require('machine').build({
       //  ╦═╗╦ ╦╔╗╔  ┌┬┐┬ ┬┌─┐  ┌┐┌┌─┐┌┬┐┬┬  ┬┌─┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
       //  ╠╦╝║ ║║║║   │ ├─┤├┤   │││├─┤ │ │└┐┌┘├┤   │─┼┐│ │├┤ ├┬┘└┬┘
       //  ╩╚═╚═╝╝╚╝   ┴ ┴ ┴└─┘  ┘└┘┴ ┴ ┴ ┴ └┘ └─┘  └─┘└└─┘└─┘┴└─ ┴
-      Helpers.query.runNativeQuery(connection, nativeQuery, function parentQueryCb(err, parentResults) {
+      Helpers.query.runNativeQuery(connection, nativeQuery.sql, nativeQuery.bindings, function parentQueryCb(err, parentResults) {
         if (err) {
           // Release the connection on error
           Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
@@ -352,7 +352,7 @@ module.exports = require('machine').build({
           //  ╠╦╝║ ║║║║  │  ├─┤││   ││  │─┼┐│ │├┤ ├┬┘└┬┘
           //  ╩╚═╚═╝╝╚╝  └─┘┴ ┴┴┴─┘─┴┘  └─┘└└─┘└─┘┴└─ ┴
           // Run the native query
-          Helpers.query.runNativeQuery(connection, nativeQuery, function parentQueryCb(err, queryResults) {
+          Helpers.query.runNativeQuery(connection, nativeQuery.sql, nativeQuery.bindings, function parentQueryCb(err, queryResults) {
             if (err) {
               return next(err);
             }

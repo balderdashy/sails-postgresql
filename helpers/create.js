@@ -207,7 +207,8 @@ module.exports = require('machine').build({
       // Insert the record and return the new values
       Helpers.query.modifyRecord({
         connection: connection,
-        query: compiledQuery,
+        query: compiledQuery.sql,
+        valuesToEscape: compiledQuery.bindings,
         leased: leased,
         fetchRecords: fetchRecords
       },
