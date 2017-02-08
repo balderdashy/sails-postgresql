@@ -31,6 +31,11 @@ install:
 
 # Post-install test scripts.
 test_script:
+  - SET PGUSER=postgres
+  - SET PGPASSWORD=Password12!
+  - PATH=C:\Program Files\PostgreSQL\9.4\bin\;%PATH%
+  - createdb adapter-tests
+
   # Output Node and NPM version info.
   # (Presumably just in case Appveyor decides to try any funny business?
   #  But seriously, always good to audit this kind of stuff for debugging.)
@@ -38,6 +43,10 @@ test_script:
   - npm --version
   # Run the actual tests.
   - npm test
+
+# Setup PG Database
+services:
+  - postgresql94
 
 
 # Don't actually build.
