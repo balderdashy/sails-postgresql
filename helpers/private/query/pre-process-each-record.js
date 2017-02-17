@@ -38,7 +38,12 @@ module.exports = function processEachRecord(options) {
   }
 
   // Run all the records through the iterator so that they can be normalized.
-  eachRecordDeep(options.records, function iterator(record, WLModel) {
+  // > (This should *never* go more than one level deep!)
+  eachRecordDeep(options.records, function iterator(record, WLModel, depth) {
+    if (depth !== 1) {
+      throw new Error('Consistency violation: Incoming new records in a s3q should never necessitate deep iteration!  If you are seeing this error, it is probably because of a bug in this adapter, or in Waterline core.');
+    }
+
     // JSON stringify any type of JSON attributes that have array values because
     // the queries won't be generated correctly otherwise.
     _.each(WLModel.definition, function checkAttributes(attrDef, attrName) {
