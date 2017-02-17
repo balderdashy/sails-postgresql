@@ -56,5 +56,5 @@ module.exports = function processEachRecord(options) {
         }
       }
     });
-  }, false, options.identity, options.orm);
+  }, true, options.identity, options.orm);
 };
