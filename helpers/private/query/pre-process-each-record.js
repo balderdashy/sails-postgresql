@@ -37,8 +37,21 @@ module.exports = function processEachRecord(options) {
     throw new Error('Invalid option used in options argument. Missing or invalid orm.');
   }
 
+  // Key the collections by identity instead of column name
+  var collections = _.reduce(options.orm.collections, function(memo, val) {
+    memo[val.identity] = val;
+    return memo;
+  }, {});
+
+  options.orm.collections = collections;
+
   // Run all the records through the iterator so that they can be normalized.
-  eachRecordDeep(options.records, function iterator(record, WLModel) {
+  // > (This should *never* go more than one level deep!)
+  eachRecordDeep(options.records, function iterator(record, WLModel, depth) {
+    if (depth !== 1) {
+      throw new Error('Consistency violation: Incoming new records in a s3q should never necessitate deep iteration!  If you are seeing this error, it is probably because of a bug in this adapter, or in Waterline core.');
+    }
+
     // JSON stringify any type of JSON attributes that have array values because
     // the queries won't be generated correctly otherwise.
     _.each(WLModel.definition, function checkAttributes(attrDef, attrName) {
@@ -56,5 +69,5 @@ module.exports = function processEachRecord(options) {
         }
       }
     });
-  }, false, options.identity, options.orm);
+  }, true, options.identity, options.orm);
 };
