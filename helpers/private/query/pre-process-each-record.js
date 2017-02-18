@@ -37,6 +37,14 @@ module.exports = function processEachRecord(options) {
     throw new Error('Invalid option used in options argument. Missing or invalid orm.');
   }
 
+  // Key the collections by identity instead of column name
+  var collections = _.reduce(options.orm.collections, function(memo, val) {
+    memo[val.identity] = val;
+    return memo;
+  }, {});
+
+  options.orm.collections = collections;
+
   // Run all the records through the iterator so that they can be normalized.
   // > (This should *never* go more than one level deep!)
   eachRecordDeep(options.records, function iterator(record, WLModel, depth) {
