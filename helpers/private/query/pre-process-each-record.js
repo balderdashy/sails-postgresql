@@ -54,16 +54,18 @@ module.exports = function processEachRecord(options) {
 
     // JSON stringify any type of JSON attributes that have array values because
     // the queries won't be generated correctly otherwise.
-    _.each(WLModel.definition, function checkAttributes(attrDef, attrName) {
-      if (attrDef.type === 'json' && _.has(record, attrName)) {
-        if (_.isArray(record[attrName])) {
-          record[attrName] = JSON.stringify(record[attrName]);
+    _.each(WLModel.definition, function checkAttributes(attrDef) {
+      var columnName = attrDef.columnName;
+
+      if (attrDef.type === 'json' && _.has(record, columnName)) {
+        if (_.isArray(record[columnName])) {
+          record[columnName] = JSON.stringify(record[columnName]);
         }
       }
 
       // If the attribute is type ref and not a Buffer then don't allow it.
-      if (attrDef.type === 'ref' && _.has(record, attrName) && !_.isNull(record[attrName])) {
-        var isBuffer = record[attrName] instanceof Buffer;
+      if (attrDef.type === 'ref' && _.has(record, columnName) && !_.isNull(record[columnName])) {
+        var isBuffer = record[columnName] instanceof Buffer;
         if (!isBuffer) {
           throw new Error('One of the values being set has an attribute type of `ref` but the value is not a Buffer. This adapter only accepts buffers for type `ref`. If you would like to store other types of data perhaps use type `json`.');
         }

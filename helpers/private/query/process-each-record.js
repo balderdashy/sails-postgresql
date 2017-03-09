@@ -50,12 +50,12 @@ module.exports = function processEachRecord(options) {
     // Check if the record and the model contain auto timestamps and make
     // sure that if they are type number that they are actually numbers and
     // not strings.
-    _.each(WLModel.definition, function checkAttributes(attrVal, attrName) {
+    _.each(WLModel.definition, function checkAttributes(attrVal) {
       var columnName = attrVal.columnName;
 
       if (_.has(attrVal, 'autoUpdatedAt') && attrVal.autoUpdatedAt === true && attrVal.type === 'number') {
         if (_.has(record, columnName) && !_.isUndefined(record[columnName])) {
-          record[columnName] = Number(record[attrName]);
+          record[columnName] = Number(record[columnName]);
         }
       }
 
