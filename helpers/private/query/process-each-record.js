@@ -47,9 +47,10 @@ module.exports = function processEachRecord(options) {
 
   // Run all the records through the iterator so that they can be normalized.
   eachRecordDeep(options.records, function iterator(record, WLModel) {
-    // Check if the record and the model contain auto timestamps and make
-    // sure that if they are type number that they are actually numbers and
-    // not strings.
+    // We're forced to store JS timestamps in BIGINT columns b/c they are too big for
+    // regular INT columns, but BIGINT can potentially be larger than the JS
+    // max int so Postgresql automatically transforms it to a string.  If the user
+    // declared them with `type: 'number'`, we'll transform them back to numbers here.
     _.each(WLModel.definition, function checkAttributes(attrVal) {
       var columnName = attrVal.columnName;
 
