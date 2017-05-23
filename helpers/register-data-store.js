@@ -120,6 +120,7 @@ module.exports = require('machine').build({
           // and the attribute type is not 'string', log a warning.  The Postgresql
           // driver will always return data from these columns as strings because
           // they may be too big to fit in a JavaScript integer.
+          if (!attribute.autoMigrations || attribute.autoCreatedAt || attribute.autoUpdatedAt) { return; }
           if (_.contains(['bigint', 'decimal', 'numeric', 'bigserial'], attribute.autoMigrations.columnType) && attribute.type !== 'string') {
             console.log('In attribute `' + attributeName + '` of model `' + modelIdentity + '`:');
             console.log('When `columnType` is set to `' + attribute.autoMigrations.columnType + '`, `type` should be set to `string` in order to avoid a loss in precision.');
