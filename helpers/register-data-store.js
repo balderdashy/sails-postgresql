@@ -108,7 +108,7 @@ module.exports = require('machine').build({
     try {
       _.each(inputs.models, function checkModel(modelDef, modelIdentity) {
 
-        // Ensure that each the primary key is either required or auto-incrementing.
+        // Ensure that the primary key is either required or auto-incrementing.
         var primaryKeyAttr = modelDef.definition[modelDef.primaryKey];
         if (primaryKeyAttr.required !== true && (!primaryKeyAttr.autoMigrations || primaryKeyAttr.autoMigrations.autoIncrement !== true)) {
           throw new Error('In model `' + modelIdentity + '`, primary key `' + modelDef.primaryKey + '` must have either `required` or `autoIncrement` set.');
@@ -120,8 +120,11 @@ module.exports = require('machine').build({
           // and the attribute type is not 'string', log a warning.  The Postgresql
           // driver will always return data from these columns as strings because
           // they may be too big to fit in a JavaScript integer.
-          if (!attribute.autoMigrations || attribute.autoCreatedAt || attribute.autoUpdatedAt) { return; }
-          if (_.contains(['bigint', 'decimal', 'numeric', 'bigserial'], attribute.autoMigrations.columnType) && attribute.type !== 'string') {
+          //
+          // Skip this check for `autoCreatedAt` and `autoUpdatedAt` attributes, which are transformed
+          // into numbers internally if the `type` is 'number'.
+          if (attribute.autoCreatedAt || attribute.autoUpdatedAt) { return; }
+          if (attribute.autoMigrations && _.contains(['bigint', 'decimal', 'numeric', 'bigserial'], attribute.autoMigrations.columnType) && attribute.type !== 'string') {
             console.log('In attribute `' + attributeName + '` of model `' + modelIdentity + '`:');
             console.log('When `columnType` is set to `' + attribute.autoMigrations.columnType + '`, `type` should be set to `string` in order to avoid a loss in precision.');
             console.log();
