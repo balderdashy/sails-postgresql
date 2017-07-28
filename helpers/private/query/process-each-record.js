@@ -64,6 +64,14 @@ module.exports = function processEachRecord(options) {
           record[columnName] = Number(record[columnName]);
         }
       }
+
+      // Check if the attribute is a string and the value contains a Date object,
+      // then convert the Date object into an ISO 8601 string to pass validations
+      if (attrVal.type === 'string') {
+        if (_.has(record, columnName) && _.isDate(record[columnName])) {
+          record[columnName] = record[columnName].toISOString();
+        }
+      }
     });
   }, true, options.identity, options.orm);
 };
