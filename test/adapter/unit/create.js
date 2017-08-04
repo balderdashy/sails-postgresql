@@ -93,6 +93,48 @@ describe('Unit Tests ::', function() {
       });
     });
 
+    it('should pass through buffers for `ref` type attributes', function(done) {
+      var query = {
+        using: 'test_create',
+        newRecord: {
+          fieldC: new Buffer([1, 2, 3])
+        },
+        meta: {
+          fetch: true
+        }
+      };
+
+      Adapter.create('test', query, function(err, record) {
+        if (err) {
+          return done(err);
+        }
+        assert(record.fieldC instanceof Buffer);
+        assert.equal(record.fieldC.length, 3);
+        return done();
+      });
+    });
+
+    it('should pass through date objects for `ref` type attributes', function(done) {
+      var query = {
+        using: 'test_create',
+        newRecord: {
+          fieldD: new Date('2001-06-15 12:00:00')
+        },
+        meta: {
+          fetch: true
+        }
+      };
+
+      Adapter.create('test', query, function(err, record) {
+        if (err) {
+          return done(err);
+        }
+        assert(record.fieldD instanceof Date);
+        assert.equal(record.fieldD.getFullYear(), '2001');
+        return done();
+      });
+    });
+
     // Look into the bowels of the PG Driver and ensure the Create function handles
     // it's connections properly.
     it('should release it\'s connection when completed', function(done) {
