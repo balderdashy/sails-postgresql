@@ -58,7 +58,7 @@ module.exports = function processEachRecord(options) {
       var columnName = attrDef.columnName;
 
       if (attrDef.type === 'json' && _.has(record, columnName)) {
-        if (_.isArray(record[columnName])) {
+        if (_.isArray(record[columnName]) || _.isString(record[columnName])) {
           record[columnName] = JSON.stringify(record[columnName]);
         }
       }
