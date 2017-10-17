@@ -104,16 +104,33 @@ module.exports = require('machine').build({
       return exits.badConfiguration(new Error('Datastore  `' + inputs.identity + '` config is missing a value for the database name.'));
     }
 
-    // Loop through every model assigned to the datastore we're registering,
-    // and ensure that each one's primary key is either required or auto-incrementing.
+    // Loop through every model assigned to the datastore we're registering.
     try {
-      _.each(inputs.models, function checkPrimaryKey(modelDef, modelIdentity) {
-        var primaryKeyAttr = modelDef.definition[modelDef.primaryKey];
+      _.each(inputs.models, function checkModel(modelDef, modelIdentity) {
 
-        // Ensure that the model's primary key has either `autoIncrement` or `required`
+        // Ensure that the primary key is either required or auto-incrementing.
+        var primaryKeyAttr = modelDef.definition[modelDef.primaryKey];
         if (primaryKeyAttr.required !== true && (!primaryKeyAttr.autoMigrations || primaryKeyAttr.autoMigrations.autoIncrement !== true)) {
           throw new Error('In model `' + modelIdentity + '`, primary key `' + modelDef.primaryKey + '` must have either `required` or `autoIncrement` set.');
         }
+
+        // Loop through each attribute in the model.
+        _.each(modelDef.definition, function(attribute, attributeName) {
+          // If the column type is 'bigint', 'decimal', 'numeric' or 'bigserial',
+          // and the attribute type is not 'string', log a warning.  The Postgresql
+          // driver will always return data from these columns as strings because
+          // they may be too big to fit in a JavaScript integer.
+          //
+          // Skip this check for `autoCreatedAt` and `autoUpdatedAt` attributes, which are transformed
+          // into numbers internally if the `type` is 'number'.
+          if (attribute.autoCreatedAt || attribute.autoUpdatedAt) { return; }
+          if (attribute.autoMigrations && _.contains(['bigint', 'decimal', 'numeric', 'bigserial'], attribute.autoMigrations.columnType) && attribute.type !== 'string') {
+            console.log('In attribute `' + attributeName + '` of model `' + modelIdentity + '`:');
+            console.log('When `columnType` is set to `' + attribute.autoMigrations.columnType + '`, `type` should be set to `string` in order to avoid a loss in precision.');
+            console.log();
+          }
+        });
+
       });
     } catch (e) {
       return exits.badConfiguration(e);
