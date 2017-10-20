@@ -81,6 +81,7 @@ module.exports = require('machine').build({
     // Dependencies
     var _ = require('@sailshq/lodash');
     var PG = require('machinepack-postgresql');
+    var flaverr = require('flaverr');
     var Helpers = require('./private');
 
     // Validate that the datastore isn't already initialized
@@ -97,11 +98,11 @@ module.exports = require('machine').build({
 
     // Validate that the connection has a host and database property
     if (!hasURL && !inputs.config.host) {
-      return exits.badConfiguration(new Error('Datastore  `' + inputs.identity + '` config is missing a host value.'));
+      return exits.badConfiguration(flaverr('E_MISSING_HOST', new Error('Datastore  `' + inputs.identity + '` config is missing a host value.')));
     }
 
     if (!hasURL && !inputs.config.database) {
-      return exits.badConfiguration(new Error('Datastore  `' + inputs.identity + '` config is missing a value for the database name.'));
+      return exits.badConfiguration(flaverr('E_MISSING_DB_NAME', new Error('Datastore  `' + inputs.identity + '` config is missing a value for the database name.')));
     }
 
     // Loop through every model assigned to the datastore we're registering,
@@ -113,20 +114,28 @@ module.exports = require('machine').build({
 
         // Ensure that the model's primary key has either `autoIncrement` or `required`
         if (primaryKeyAttr.required !== true && (!primaryKeyAttr.autoMigrations || primaryKeyAttr.autoMigrations.autoIncrement !== true)) {
-          throw new Error('In model `' + modelIdentity + '`, primary key `' + modelDef.primaryKey + '` must have either `required` or `autoIncrement` set.');
+          throw flaverr('E_INVALID_PK', new Error('In model `' + modelIdentity + '`, primary key `' + modelDef.primaryKey + '` must have either `required` or `autoIncrement` set.'));
         }
 
         _.each(modelDef.definition, function checkAttributes(attribute, attributeName) {
 
           if (attribute.type === 'number' && attribute.autoMigrations.columnType === 'bigint') {
-            throw new Error('\nIn attribute `' + attributeName + '` of model `' + modelIdentity + '`:\nThe `bigint` column type cannot be used with the `number` attribute type.\nSince `bigint` values may be larger than the maximum JavaScript integer size, PostgreSQL will return them as strings.\nTherefore, attributes using this column type must be declared as type `string`, `ref` or `json`.\n');
+            throw flaverr('E_BIGINT_TYPE_MISMATCH', new Error('\nIn attribute `' + attributeName + '` of model `' + modelIdentity + '`:\nThe `bigint` column type cannot be used with the `number` attribute type.\nSince `bigint` values may be larger than the maximum JavaScript integer size, PostgreSQL will return them as strings.\nTherefore, attributes using this column type must be declared as type `string`, `ref` or `json`.\n'));
           }
 
         });
 
       });
     } catch (e) {
-      return exits.badConfiguration(e);
+      switch (e.code) {
+        case 'E_MISSING_HOST':
+        case 'E_MISSING_DB_NAME':
+        case 'E_INVALID_PK':
+        case 'E_BIGINT_TYPE_MISMATCH':
+          return exits.badConfiguration(e.message);
+        default:
+          return exits.error(e);
+      }
     }
 
     //  ╔═╗╔═╗╔╗╔╔═╗╦═╗╔═╗╔╦╗╔═╗  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌

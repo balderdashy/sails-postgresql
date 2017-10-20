@@ -17,6 +17,7 @@
   "dependencies": {
     "@sailshq/lodash": "^3.10.2",
     "async": "2.0.1",
+    "flaverr": "^1.2.5",
     "machine": "^13.0.0-17",
     "machinepack-postgresql": "^1.0.0-9",
     "waterline-utils": "^1.3.10"
