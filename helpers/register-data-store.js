@@ -106,6 +106,7 @@ module.exports = require('machine').build({
 
     // Loop through every model assigned to the datastore we're registering,
     // and ensure that each one's primary key is either required or auto-incrementing.
+    // Also check for attribute type / column type mismatches.
     try {
       _.each(inputs.models, function checkPrimaryKey(modelDef, modelIdentity) {
         var primaryKeyAttr = modelDef.definition[modelDef.primaryKey];
@@ -114,6 +115,15 @@ module.exports = require('machine').build({
         if (primaryKeyAttr.required !== true && (!primaryKeyAttr.autoMigrations || primaryKeyAttr.autoMigrations.autoIncrement !== true)) {
           throw new Error('In model `' + modelIdentity + '`, primary key `' + modelDef.primaryKey + '` must have either `required` or `autoIncrement` set.');
         }
+
+        _.each(modelDef.definition, function checkAttributes(attribute, attributeName) {
+
+          if (attribute.type === 'number' && attribute.autoMigrations.columnType === 'bigint') {
+            throw new Error('\nIn attribute `' + attributeName + '` of model `' + modelIdentity + '`:\nThe `bigint` column type cannot be used with the `number` attribute type.\nSince `bigint` values may be larger than the maximum JavaScript integer size, PostgreSQL will return them as strings.\nTherefore, attributes using this column type must be declared as type `string`, `ref` or `json`.\n');
+          }
+
+        });
+
       });
     } catch (e) {
       return exits.badConfiguration(e);
