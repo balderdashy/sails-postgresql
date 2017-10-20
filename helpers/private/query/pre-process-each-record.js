@@ -52,15 +52,23 @@ module.exports = function processEachRecord(options) {
       throw new Error('Consistency violation: Incoming new records in a s3q should never necessitate deep iteration!  If you are seeing this error, it is probably because of a bug in this adapter, or in Waterline core.');
     }
 
-    // JSON stringify any type of JSON attributes that have array values because
-    // the queries won't be generated correctly otherwise.
     _.each(WLModel.definition, function checkAttributes(attrDef) {
       var columnName = attrDef.columnName;
 
+      // JSON stringify any type of JSON attributes that have array values because
+      // the queries won't be generated correctly otherwise.
       if (attrDef.type === 'json' && _.has(record, columnName)) {
         if (_.isArray(record[columnName]) || _.isString(record[columnName])) {
           record[columnName] = JSON.stringify(record[columnName]);
         }
+      }
+
+      // For attributes using the `bigint` column type, coerce empty string to zero.
+      // This allows use of `type: 'string'` with bigint, which we want because the pg driver
+      // returns bigints as strings.  And since the regular `int` field in postgres is too small
+      // to hold JS timestamps, users are forced to use `bigint` to hold them.
+      if (_.get(attrDef, 'autoMigrations.columnType') === 'bigint' && record[columnName] === '') {
+        record[columnName] = 0;
       }
 
     });
