@@ -21,7 +21,7 @@ module.exports = require('machine').build({
       description: 'The datastore to use for connections.',
       extendedDescription: 'Datastores represent the config and manager required to obtain an active database connection.',
       required: true,
-      example: '==='
+      type: 'ref'
     },
 
     tableName: {
@@ -34,7 +34,7 @@ module.exports = require('machine').build({
       friendlyName: 'Meta (custom)',
       description: 'Additional stuff to pass to the driver.',
       extendedDescription: 'This is reserved for custom driver-specific extensions.',
-      example: '==='
+      type: 'ref'
     }
 
   },

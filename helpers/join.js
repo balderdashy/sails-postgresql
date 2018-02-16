@@ -21,19 +21,19 @@ module.exports = require('machine').build({
       extendedDescription: 'Datastores represent the config and manager required to obtain an active database connection.',
       required: true,
       readOnly: true,
-      example: '==='
+      type: 'ref'
     },
 
     models: {
       description: 'An object containing all of the model definitions that have been registered.',
       required: true,
-      example: '==='
+      type: 'ref'
     },
 
     query: {
       description: 'A normalized Waterline Stage Three Query.',
       required: true,
-      example: '==='
+      type: 'ref'
     }
 
   },
@@ -43,7 +43,7 @@ module.exports = require('machine').build({
 
     success: {
       description: 'The query was run successfully.',
-      example: '==='
+      outputType: 'ref'
     },
 
     badConnection: {

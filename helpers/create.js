@@ -22,19 +22,19 @@ module.exports = require('machine').build({
       extendedDescription: 'Datastores represent the config and manager required to obtain an active database connection.',
       required: true,
       readOnly: true,
-      example: '==='
+      type: 'ref'
     },
 
     models: {
       description: 'An object containing all of the model definitions that have been registered.',
       required: true,
-      example: '==='
+      type: 'ref'
     },
 
     query: {
       description: 'A valid stage three Waterline query.',
       required: true,
-      example: '==='
+      type: 'ref'
     }
 
   },
@@ -45,7 +45,7 @@ module.exports = require('machine').build({
     success: {
       description: 'The record was successfully inserted.',
       outputVariableName: 'record',
-      example: '==='
+      outputType: 'ref'
     },
 
     invalidDatastore: {
@@ -59,7 +59,7 @@ module.exports = require('machine').build({
 
     notUnique: {
       friendlyName: 'Not Unique',
-      example: '==='
+      outputType: 'ref'
     }
 
   },

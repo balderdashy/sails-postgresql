@@ -20,19 +20,19 @@ module.exports = require('machine').build({
     identity: {
       description: 'The datastore identity to teardown.',
       required: true,
-      example: '==='
+      type: 'ref'
     },
 
     datastores: {
       description: 'An object containing all of the data stores that have been registered.',
       required: true,
-      example: '==='
+      type: 'ref'
     },
 
     modelDefinitions: {
       description: 'An object containing all of the model definitions that have been registered.',
       required: true,
-      example: '==='
+      type: 'ref'
     }
 
   },

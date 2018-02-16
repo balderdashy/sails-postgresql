@@ -22,9 +22,6 @@ module.exports = require('machine').build({
   description: 'Register a new datastore for making connections.',
 
 
-  cacheable: false,
-
-
   sync: true,
 
 
@@ -39,25 +36,25 @@ module.exports = require('machine').build({
     config: {
       description: 'The configuration to use for the data store.',
       required: true,
-      example: '==='
+      type: 'ref'
     },
 
     models: {
       description: 'The Waterline models that will be used with this data store.',
       required: true,
-      example: '==='
+      type: 'ref'
     },
 
     datastores: {
       description: 'An object containing all of the data stores that have been registered.',
       required: true,
-      example: '==='
+      type: 'ref'
     },
 
     modelDefinitions: {
       description: 'An object containing all of the model definitions that have been registered.',
       required: true,
-      example: '==='
+      type: 'ref'
     }
 
   },
@@ -71,7 +68,7 @@ module.exports = require('machine').build({
 
     badConfiguration: {
       description: 'The configuration was invalid.',
-      outputExample: '==='
+      outputoutputType: 'ref'
     }
 
   },
