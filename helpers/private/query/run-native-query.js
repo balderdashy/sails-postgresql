@@ -23,7 +23,7 @@ module.exports = function runNativeQuery(connection, query, valuesToEscape, cb) 
     nativeQuery: query,
     valuesToEscape: valuesToEscape,
   })
-  .exec({
+  .switch({
     error: function error(err) {
       return cb(err);
     },

@@ -36,7 +36,7 @@ module.exports = function runQuery(options, cb) {
     nativeQuery: options.nativeQuery,
     valuesToEscape: options.valuesToEscape,
   })
-  .exec({
+  .switch({
     // If there was an error, check if the connection should be
     // released back into the pool automatically.
     error: function error(err) {
