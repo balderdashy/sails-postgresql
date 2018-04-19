@@ -1,11 +1,6 @@
 # Sails PostgreSQL
 
-**NOTE:** This is the unpublished work in progress branch. To see the current recommended version of the adapter
-view the [0.11.x Branch](https://github.com/balderdashy/sails-postgresql/commits/0.11.x).
-
-===============================================================================
-
-A [Waterline](https://github.com/balderdashy/waterline) adapter for working with the PostgreSQL database.
+A [Waterline](http://waterlinejs.org) adapter for working with the PostgreSQL database.
 
 ## Help
 
