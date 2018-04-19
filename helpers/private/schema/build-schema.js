@@ -53,8 +53,9 @@ module.exports = function buildSchema(definition) {
       attribute.type = val;
     }
 
-    // Use SERIAL type on auto-increment
-    var computedType = attribute.autoIncrement ? 'SERIAL' : attribute.columnType;
+    // Use SERIAL type on auto-increment, but only if type is number. Allows for UUID autoincrement
+	  // columnType: "UUID DEFAULT uuid_generate_v4()"  
+    var computedType = attribute.autoIncrement && attribute.type === "number" ? 'SERIAL' : attribute.columnType;
     var type = normalizeType(computedType || '');
     var nullable = attribute.notNull && 'NOT NULL';
     var unique = attribute.unique && 'UNIQUE';
