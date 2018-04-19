@@ -11,12 +11,12 @@ var _ = require('@sailshq/lodash');
 
 module.exports = function buildSchema(definition) {
   if (!definition) {
-    throw new Error('Build Schema requires a valid definition.');
+    throw new Error('`buildSchema()` requires a valid definition be passed in, but no argument was provided.');
   }
-
-  //  ╔╗╔╔═╗╦═╗╔╦╗╔═╗╦  ╦╔═╗╔═╗  ┌┬┐┬ ┬┌─┐┌─┐
-  //  ║║║║ ║╠╦╝║║║╠═╣║  ║╔═╝║╣    │ └┬┘├─┘├┤
-  //  ╝╚╝╚═╝╩╚═╩ ╩╩ ╩╩═╝╩╚═╝╚═╝   ┴  ┴ ┴  └─┘
+  
+  //  ╔╗╔╔═╗╦═╗╔╦╗╔═╗╦  ╦╔═╗╔═╗  ┌─┐┌─┐┬  ┬ ┬┌┬┐┌┐┌  ┌┬┐┬ ┬┌─┐┌─┐
+  //  ║║║║ ║╠╦╝║║║╠═╣║  ║╔═╝║╣   │  │ ││  │ │││││││   │ └┬┘├─┘├┤ 
+  //  ╝╚╝╚═╝╩╚═╩ ╩╩ ╩╩═╝╩╚═╝╚═╝  └─┘└─┘┴─┘└─┘┴ ┴┘└┘   ┴  ┴ ┴  └─┘
   var normalizeType = function normalizeType(type) {
     switch (type.toLowerCase()) {
 
@@ -53,13 +53,15 @@ module.exports = function buildSchema(definition) {
       attribute.type = val;
     }
 
-    // Use SERIAL type on auto-increment
-    var computedType = attribute.autoIncrement ? 'SERIAL' : attribute.columnType;
-    var type = normalizeType(computedType || '');
+    // Use SERIAL column type on auto-increment, but only if the logical type is number.
+    // > This allows for UUID autoincrement:
+	  // >    columnType: 'UUID DEFAULT uuid_generate_v4()'
+    var computedColumnType = attribute.autoIncrement && attribute.type === 'number' ? 'SERIAL' : attribute.columnType;
+    var columnType = normalizeType(computedColumnType || '');
     var nullable = attribute.notNull && 'NOT NULL';
     var unique = attribute.unique && 'UNIQUE';
 
-    return _.compact(['"' + name + '"', type, nullable, unique]).join(' ');
+    return _.compact(['"' + name + '"', columnType, nullable, unique]).join(' ');
   }).join(',');
 
   // Grab the Primary Key
