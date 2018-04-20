@@ -53,10 +53,12 @@ module.exports = function buildSchema(definition) {
       attribute.type = val;
     }
 
-    // Use SERIAL column type on auto-increment, but only if the logical type is number.
-    // > This allows for UUID autoincrement:
-	  // >    columnType: 'UUID DEFAULT uuid_generate_v4()'
-    var computedColumnType = attribute.autoIncrement && attribute.type === 'number' ? 'SERIAL' : attribute.columnType;
+    // Note:  For auto-increment columns, in the general case (i.e. when logical
+    // type is number + no specific physical column type set), always use SERIAL
+    // as the columnType.  Otherwise, usethe specific column type that was set.
+    // For example, this allows for UUID autoincrement:
+	  //     columnType: 'UUID DEFAULT uuid_generate_v4()'
+    var computedColumnType = attribute.autoIncrement && attribute.columnType === '_number' ? 'SERIAL' : attribute.columnType;
     var columnType = normalizeType(computedColumnType || '');
     var nullable = attribute.notNull && 'NOT NULL';
     var unique = attribute.unique && 'UNIQUE';
