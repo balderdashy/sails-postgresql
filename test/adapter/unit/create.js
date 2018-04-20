@@ -20,7 +20,7 @@ describe('Unit Tests ::', function() {
       fieldB: 'bar'
     };
 
-    it('should insert a record into the database and return it\'s fields', function(done) {
+    it('should insert a record into the database and return its fields', function(done) {
       var query = {
         using: 'test_create',
         newRecord: attributes,
