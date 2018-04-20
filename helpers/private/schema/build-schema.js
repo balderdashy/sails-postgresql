@@ -5,7 +5,7 @@
 //  ██████╔╝╚██████╔╝██║███████╗██████╔╝    ███████║╚██████╗██║  ██║███████╗██║ ╚═╝ ██║██║  ██║
 //  ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝     ╚══════╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝╚═╝  ╚═╝
 //
-// Build a schema object that is suitable for using in a Create Table query.
+// Build data that is suitable for use in a Create Table query.
 
 var _ = require('@sailshq/lodash');
 
@@ -14,36 +14,9 @@ module.exports = function buildSchema(definition) {
     throw new Error('`buildSchema()` requires a valid definition be passed in, but no argument was provided.');
   }
 
-  //  ╔╗╔╔═╗╦═╗╔╦╗╔═╗╦  ╦╔═╗╔═╗  ┌─┐┌─┐┬  ┬ ┬┌┬┐┌┐┌  ┌┬┐┬ ┬┌─┐┌─┐
-  //  ║║║║ ║╠╦╝║║║╠═╣║  ║╔═╝║╣   │  │ ││  │ │││││││   │ └┬┘├─┘├┤
-  //  ╝╚╝╚═╝╩╚═╩ ╩╩ ╩╩═╝╩╚═╝╚═╝  └─┘└─┘┴─┘└─┘┴ ┴┘└┘   ┴  ┴ ┴  └─┘
-  var normalizeType = function normalizeType(type) {
-    switch (type.toLowerCase()) {
-
-      // Default column types from sails-hook-orm.
-      case '_number':
-        return 'REAL';
-      case '_numberkey':
-        return 'INTEGER';
-      case '_numbertimestamp':
-        return 'BIGINT';
-      case '_string':
-        return 'TEXT';
-      case '_stringkey':
-        return 'VARCHAR';
-      case '_stringtimestamp':
-        return 'VARCHAR';
-      case '_boolean':
-        return 'BOOLEAN';
-      case '_json':
-        return 'JSON';
-      case '_ref':
-        return 'TEXT';
-
-      default:
-        return type;
-    }
-  };
+  //  ╔╗╔╔═╗╦═╗╔╦╗╔═╗╦  ╦╔═╗╔═╗  ┌─┐┌─┐┬  ┬ ┬┌┬┐┌┐┌  ┌┬┐┬ ┬┌─┐┌─┐   ┌─┐┌┬┐┌─┐
+  //  ║║║║ ║╠╦╝║║║╠═╣║  ║╔═╝║╣   │  │ ││  │ │││││││   │ └┬┘├─┘├┤    ├┤  │ │
+  //  ╝╚╝╚═╝╩╚═╩ ╩╩ ╩╩═╝╩╚═╝╚═╝  └─┘└─┘┴─┘└─┘┴ ┴┘└┘   ┴  ┴ ┴  └─┘┘  └─┘ ┴ └─┘
 
   // Build up a string of column attributes
   var columns = _.map(definition, function map(attribute, name) {
@@ -58,12 +31,35 @@ module.exports = function buildSchema(definition) {
     // as the columnType.  Otherwise, usethe specific column type that was set.
     // For example, this allows for UUID autoincrement:
 	  //     columnType: 'UUID DEFAULT uuid_generate_v4()'
-    var computedColumnType = (attribute.autoIncrement && attribute.columnType === '_number') ? 'SERIAL' : attribute.columnType;
-    var columnType = normalizeType(computedColumnType || '');
+    var computedColumnType = ((attribute.autoIncrement && attribute.columnType === '_number') ? 'SERIAL' : attribute.columnType) || '';
+
+    // Handle default column types from sails-hook-orm.
+    switch (computedColumnType.toLowerCase()) {
+      case '_number':
+        computedColumnType = 'REAL';
+      case '_numberkey':
+        computedColumnType = 'INTEGER';
+      case '_numbertimestamp':
+        computedColumnType = 'BIGINT';
+      case '_string':
+        computedColumnType = 'TEXT';
+      case '_stringkey':
+        computedColumnType = 'VARCHAR';
+      case '_stringtimestamp':
+        computedColumnType = 'VARCHAR';
+      case '_boolean':
+        computedColumnType = 'BOOLEAN';
+      case '_json':
+        computedColumnType = 'JSON';
+      case '_ref':
+        computedColumnType = 'TEXT';
+    }
+
+    // Mix in other auto-migration directives to get the PostgreSQL-ready SQL
+    // we'll use to declare this column's physical data type.
     var nullable = attribute.notNull && 'NOT NULL';
     var unique = attribute.unique && 'UNIQUE';
-
-    return _.compact(['"' + name + '"', columnType, nullable, unique]).join(' ');
+    return _.compact(['"' + name + '"', computedColumnType, nullable, unique]).join(' ');
   }).join(',');
 
   // Grab the Primary Key
