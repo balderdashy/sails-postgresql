@@ -32,7 +32,7 @@ Support.Definition = {
   id: {
     type: 'number',
     autoMigrations: {
-      columnType: 'integer',
+      columnType: '_numberkey',
       autoIncrement: true,
       unique: true
     }
@@ -104,7 +104,7 @@ Support.Setup = function setup(tableName, cb) {
       return cb(err);
     }
 
-    console.log('Calling `define` with:', require('util').inspect(schema));
+    // console.log('Calling `define` with:', require('util').inspect(schema));
 
     adapter.define('test', tableName, schema, cb);
   });
