@@ -20,7 +20,7 @@ module.exports = function buildSchema(definition) {
   var normalizeType = function normalizeType(type) {
     switch (type.toLowerCase()) {
 
-      // Default types from sails-hook-orm.
+      // Default column types from sails-hook-orm.
       case '_number':
         return 'REAL';
       case '_numberkey':
@@ -58,7 +58,7 @@ module.exports = function buildSchema(definition) {
     // as the columnType.  Otherwise, usethe specific column type that was set.
     // For example, this allows for UUID autoincrement:
 	  //     columnType: 'UUID DEFAULT uuid_generate_v4()'
-    var computedColumnType = attribute.autoIncrement && attribute.columnType === '_number' ? 'SERIAL' : attribute.columnType;
+    var computedColumnType = (attribute.autoIncrement && attribute.columnType === '_number') ? 'SERIAL' : attribute.columnType;
     var columnType = normalizeType(computedColumnType || '');
     var nullable = attribute.notNull && 'NOT NULL';
     var unique = attribute.unique && 'UNIQUE';
