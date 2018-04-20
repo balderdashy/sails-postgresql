@@ -104,6 +104,8 @@ Support.Setup = function setup(tableName, cb) {
       return cb(err);
     }
 
+    console.log('Calling `define` with:', require('util').inspect(schema));
+
     adapter.define('test', tableName, schema, cb);
   });
 };
