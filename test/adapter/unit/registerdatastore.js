@@ -55,6 +55,9 @@ describe('Unit Tests ::', function() {
           autoMigrations: {
             columnType: 'bigint'
           }
+        },
+        anotherGood: {
+          type: 'number'
         }
       };
       var collections = {};
