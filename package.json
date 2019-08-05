@@ -1,9 +1,9 @@
 {
-  "name": "sails-postgresql",
-  "description": "a PostgreSQL adapter for Waterline and Sails.js",
-  "version": "1.0.2",
+  "name": "sails-postgresql-redacted",
+  "description": "a PostgreSQL adapter for Waterline and Sails.js.  Tracking upstream, but with passwords redacted from error messages",
+  "version": "1.0.2-1",
   "author": "Cody Stoltman <particlebanana@gmail.com>",
-  "url": "http://github.com/balderdashy/sails-postgresql",
+  "url": "http://github.com/alxndrsn/sails-postgresql",
   "keywords": [
     "postgresql",
     "orm",
@@ -12,7 +12,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/balderdashy/sails-postgresql.git"
+    "url": "git://github.com/alxndrsn/sails-postgresql.git"
   },
   "dependencies": {
     "@sailshq/lodash": "^3.10.2",
@@ -41,7 +41,7 @@
     "lib": "./lib"
   },
   "license": "MIT",
-  "bugs": "https://github.com/balderdashy/sails-postgresql/issues",
+  "bugs": "https://github.com/alxndrsn/sails-postgresql/issues",
   "waterlineAdapter": {
     "waterlineVersion": "~0.13.0",
     "interfaces": [

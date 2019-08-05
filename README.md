@@ -1,6 +1,11 @@
-# Sails PostgreSQL
+# Sails PostgreSQL Redacted
 
 A [Waterline](http://waterlinejs.org) adapter for working with the PostgreSQL database.
+
+This tracks [Sails PostgreSQL](https://github.com/balderdashy/sails-postgresql), with the following changes:
+
+* `-{increment}` is appended to the upstream version number that this was forked from
+* leaking of database passwords into logs is fixed (https://github.com/balderdashy/sails/issues/4595, https://github.com/balderdashy/sails/issues/4606)
 
 ## Help
 
