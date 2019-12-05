@@ -14,7 +14,7 @@
 //
 // Instantiate a new connection from the connection manager.
 
-var PG = require('machinepack-postgresql');
+var PG = require('machinepack-postgresql-sails-postgresql-redacted');
 
 module.exports = function spawnConnection(datastore, cb) {
   // Validate datastore

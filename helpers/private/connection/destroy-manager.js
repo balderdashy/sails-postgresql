@@ -14,7 +14,7 @@
 //
 // Destroys a connection manager.
 
-var PG = require('machinepack-postgresql');
+var PG = require('machinepack-postgresql-sails-postgresql-redacted');
 
 module.exports = function destroyManager(manager, cb) {
   PG.destroyManager({

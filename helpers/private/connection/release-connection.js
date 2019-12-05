@@ -14,7 +14,7 @@
 //
 // Release an open database connection.
 
-var PG = require('machinepack-postgresql');
+var PG = require('machinepack-postgresql-sails-postgresql-redacted');
 
 module.exports = function releaseConnection(connection, leased, cb) {
   // If this connection was leased outside of the Adapter, don't release it.

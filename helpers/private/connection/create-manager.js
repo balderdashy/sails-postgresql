@@ -14,7 +14,7 @@
 //
 // Create a new connection manager to use.
 
-var PG = require('machinepack-postgresql');
+var PG = require('machinepack-postgresql-sails-postgresql-redacted');
 
 module.exports = function createManager(url, config) {
   var report = PG.createManager({

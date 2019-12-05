@@ -15,7 +15,7 @@
 // Run a native SQL query on an open connection and return the raw results.
 
 var _ = require('@sailshq/lodash');
-var PG = require('machinepack-postgresql');
+var PG = require('machinepack-postgresql-sails-postgresql-redacted');
 
 module.exports = function runNativeQuery(connection, query, valuesToEscape, cb) {
   PG.sendNativeQuery({

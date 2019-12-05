@@ -14,7 +14,7 @@
 //
 // Transform a Waterline Query Statement into a SQL query.
 
-var PG = require('machinepack-postgresql');
+var PG = require('machinepack-postgresql-sails-postgresql-redacted');
 
 module.exports = function compileStatement(statement) {
   var report = PG.compileStatement({
