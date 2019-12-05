@@ -135,27 +135,6 @@ module.exports = require('machine').build({
       }
     }
 
-    //  ╔═╗╔═╗╔╗╔╔═╗╦═╗╔═╗╔╦╗╔═╗  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
-    //  ║ ╦║╣ ║║║║╣ ╠╦╝╠═╣ ║ ║╣   │  │ │││││││├┤ │   │ ││ ││││
-    //  ╚═╝╚═╝╝╚╝╚═╝╩╚═╩ ╩ ╩ ╚═╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-    //  ┌─┐┌┬┐┬─┐┬┌┐┌┌─┐  ┬ ┬┬─┐┬
-    //  └─┐ │ ├┬┘│││││ ┬  │ │├┬┘│
-    //  └─┘ ┴ ┴└─┴┘└┘└─┘  └─┘┴└─┴─┘
-    // If the connection details were not supplied as a URL, make them into one.
-    // This is required for the underlying driver in use.
-    if (!_.has(inputs.config, 'url')) {
-      var url = 'postgres://';
-      var port = inputs.config.port || '5432';
-
-      // If authentication is used, add it to the connection string
-      if (inputs.config.user && inputs.config.password) {
-        url += inputs.config.user + ':' + inputs.config.password + '@';
-      }
-
-      url += inputs.config.host + ':' + port + '/' + inputs.config.database;
-      inputs.config.url = url;
-    }
-
 
     //  ╔═╗╦═╗╔═╗╔═╗╔╦╗╔═╗  ┌┬┐┌─┐┌┐┌┌─┐┌─┐┌─┐┬─┐
     //  ║  ╠╦╝║╣ ╠═╣ ║ ║╣   │││├─┤│││├─┤│ ┬├┤ ├┬┘
