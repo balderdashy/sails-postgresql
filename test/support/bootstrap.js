@@ -3,7 +3,7 @@
  */
 
 var _ = require('@sailshq/lodash');
-var PG = require('machinepack-postgresql');
+var PG = require('machinepack-postgresql-sails-postgresql-redacted');
 var adapter = require('../../lib/adapter');
 
 var Support = module.exports = {};
