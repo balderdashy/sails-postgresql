@@ -13,7 +13,7 @@
 //  ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚═════╝
 //
 
-var _ = require('@sailshq/lodash');
+var _ = require('lodash');
 var utils = require('waterline-utils');
 var eachRecordDeep = utils.eachRecordDeep;
 

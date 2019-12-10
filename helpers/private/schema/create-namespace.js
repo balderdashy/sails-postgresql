@@ -15,7 +15,7 @@
 // This is a Postgres Schema but because the name is so overloaded use namespace
 // internally.
 
-var _ = require('@sailshq/lodash');
+var _ = require('lodash');
 var spawnOrLeaseConnection = require('../connection/spawn-or-lease-connection');
 var runQuery = require('../query/run-query');
 

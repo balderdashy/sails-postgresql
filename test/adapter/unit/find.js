@@ -1,5 +1,5 @@
 var assert = require('assert');
-var _ = require('@sailshq/lodash');
+var _ = require('lodash');
 var Adapter = require('../../../lib/adapter');
 var Support = require('../../support/bootstrap');
 
@@ -39,8 +39,8 @@ describe('Unit Tests ::', function() {
 
         assert(_.isArray(results));
         assert.equal(results.length, 1);
-        assert.equal(_.first(results).fieldA, 'foo');
-        assert.equal(_.first(results).fieldB, 'bar');
+        assert.equal(_.head(results).fieldA, 'foo');
+        assert.equal(_.head(results).fieldB, 'bar');
 
         return done();
       });
@@ -81,8 +81,8 @@ describe('Unit Tests ::', function() {
 
         assert(_.isArray(results));
         assert.equal(results.length, 1);
-        assert.equal(_.first(results).fieldA, 'foo_2');
-        assert.equal(_.first(results).fieldB, 'bAr_2');
+        assert.equal(_.head(results).fieldA, 'foo_2');
+        assert.equal(_.head(results).fieldB, 'bAr_2');
 
         return done();
       });
@@ -116,7 +116,7 @@ describe('Unit Tests ::', function() {
     // it's connections properly.
     it('should release it\'s connection when completed', function(done) {
       var manager = Adapter.datastores.test.manager;
-      var preConnectionsAvailable = manager.pool.pool.availableObjectsCount();
+      var preConnectionsAvailable = manager.pool.idleCount;
 
       var query = {
         using: 'test_find',
@@ -128,7 +128,7 @@ describe('Unit Tests ::', function() {
           return done(err);
         }
 
-        var postConnectionsAvailable = manager.pool.pool.availableObjectsCount();
+        var postConnectionsAvailable = manager.pool.idleCount;
         assert.equal(preConnectionsAvailable, postConnectionsAvailable);
 
         return done();

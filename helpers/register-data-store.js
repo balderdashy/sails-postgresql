@@ -76,7 +76,7 @@ module.exports = require('machine').build({
 
   fn: function registerDataStore(inputs, exits) {
     // Dependencies
-    var _ = require('@sailshq/lodash');
+    var _ = require('lodash');
     var PG = require('machinepack-postgresql-sails-postgresql-redacted');
     var flaverr = require('flaverr');
     var Helpers = require('./private');

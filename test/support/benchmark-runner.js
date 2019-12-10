@@ -1,4 +1,4 @@
-var _ = require('@sailshq/lodash');
+var _ = require('lodash');
 var Benchmark = require('benchmark');
 
 module.exports = function runBenchmarks(name, testFns, done) {
@@ -23,8 +23,8 @@ module.exports = function runBenchmarks(name, testFns, done) {
   })
   .on('complete', function() {
     // Time is measured in microseconds so 1000 = 1ms
-    var fastestMean = _.first(this.filter('fastest')).stats.mean * 1000;
-    var slowestMean = _.first(this.filter('slowest')).stats.mean * 1000;
+    var fastestMean = _.head(this.filter('fastest')).stats.mean * 1000;
+    var slowestMean = _.head(this.filter('slowest')).stats.mean * 1000;
 
     var mean = {
       fastest: Benchmark.formatNumber(fastestMean < 1 ? fastestMean.toFixed(2) : Math.round(fastestMean)),

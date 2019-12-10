@@ -15,17 +15,17 @@
     "url": "git://github.com/alxndrsn/sails-postgresql.git"
   },
   "dependencies": {
-    "@sailshq/lodash": "^3.10.2",
-    "async": "2.0.1",
-    "flaverr": "^1.2.5",
-    "machine": "^15.0.0-21",
-    "machinepack-postgresql-sails-postgresql-redacted": "1.0.2-1",
-    "waterline-utils": "^1.3.10"
+    "async": "^3.1.0",
+    "flaverr": "^1.10.0",
+    "lodash": "^4.17.15",
+    "machine": "^15.2.2",
+    "machinepack-postgresql-sails-postgresql-redacted": "^1.0.2-2",
+    "waterline-utils": "^1.4.2"
   },
   "devDependencies": {
-    "benchmark": "2.1.1",
+    "benchmark": "^2.1.4",
     "eslint": "3.5.0",
-    "mocha": "3.0.2",
+    "mocha": "^7.0.0",
     "waterline-adapter-tests": "^1.0.0-2"
   },
   "scripts": {

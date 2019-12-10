@@ -67,7 +67,7 @@ module.exports = require('machine').build({
 
   fn: function create(inputs, exits) {
     // Dependencies
-    var _ = require('@sailshq/lodash');
+    var _ = require('lodash');
     var utils = require('waterline-utils');
     var Helpers = require('./private');
 
@@ -239,7 +239,7 @@ module.exports = require('machine').build({
             }
 
             // Only return the first record (there should only ever be one)
-            var insertedRecord = _.first(insertedRecords);
+            var insertedRecord = _.head(insertedRecords);
             return exits.success({ record: insertedRecord });
           }
 

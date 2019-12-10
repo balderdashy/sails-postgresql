@@ -57,7 +57,7 @@ module.exports = require('machine').build({
 
   fn: function createSchema(inputs, exits) {
     // Dependencies
-    var _ = require('@sailshq/lodash');
+    var _ = require('lodash');
     var Helpers = require('./private');
 
 

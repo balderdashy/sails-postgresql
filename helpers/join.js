@@ -55,7 +55,7 @@ module.exports = require('machine').build({
 
 
   fn: function join(inputs, exits) {
-    var _ = require('@sailshq/lodash');
+    var _ = require('lodash');
     var async = require('async');
     var WLUtils = require('waterline-utils');
     var Helpers = require('./private');
@@ -301,7 +301,7 @@ module.exports = require('machine').build({
             var inClause = _.pullAt(template.statement.where.and, template.statement.where.and.length - 1);
 
             // Grab the object inside the array that comes back
-            inClause = _.first(inClause);
+            inClause = _.head(inClause);
 
             // Modify the inClause using the actual parent key values
             _.each(inClause, function modifyInClause(val) {
@@ -331,12 +331,12 @@ module.exports = require('machine').build({
               // Replace the placeholder `?` values with the primary key of the
               // parent record.
               var andClause = _.pullAt(unionStatement.where.and, unionStatement.where.and.length - 1);
-              _.each(_.first(andClause), function replaceValue(val, key) {
-                _.first(andClause)[key] = parentPk;
+              _.each(_.head(andClause), function replaceValue(val, key) {
+                _.head(andClause)[key] = parentPk;
               });
 
               // Add the UNION statement to the array of other statements
-              unionStatement.where.and.push(_.first(andClause));
+              unionStatement.where.and.push(_.head(andClause));
               unionStatements.push(unionStatement);
             });
 
