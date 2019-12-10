@@ -1,0 +1,102 @@
+#!/bin/bash -eu
+
+log() {
+  echo "[release] $@"
+}
+
+errorTrap() {
+  log "failed."
+}
+trap errorTrap ERR
+
+log "starting..."
+
+./scripts/dirty-repo-check
+
+tagPrefix="redacted-"
+repoRoot="."
+changelogPath="./CHANGELOG.md"
+
+yarn
+
+if [[ "$(jq '.scripts."test:docker"' package.json)" = "null" ]]; then
+  yarn test
+else
+  yarn test:docker
+fi
+
+
+previousVersion="$(jq -r .version package.json)"
+log "previous version: ${previousVersion}"
+
+vLeft="${previousVersion%.*}"
+vRight="${previousVersion##*.}"
+# when guessing next version, check for version branches (e.g. v1.19.x)
+if [[ "$vRight" =~ "-rc" ]]; then
+  vMid="${vRight%-rc*}"
+  vRc="${vRight##*-rc}"
+  newVersionGuess="${vLeft}.${vMid}-rc$((1 + ${vRc}))"
+  previousReleaseVersionGuess="${vLeft}.$((${vMid} - 1))"
+else
+  newVersionGuess="${vLeft}.$((1 + ${vRight}))-rc1"
+  previousReleaseVersionGuess="${previousVersion}"
+fi
+
+read -p "Previous release [${previousReleaseVersionGuess}]: " previousReleaseVersion
+previousReleaseVersion="${previousReleaseVersion:-${previousReleaseVersionGuess}}"
+log "previous release: ${previousReleaseVersion}"
+
+read -p "Version to release [${newVersionGuess}]: " newVersion
+newVersion="${newVersion:-${newVersionGuess}}"
+log "version to release: ${newVersion}"
+
+currentBranch="$(git rev-parse --abbrev-ref HEAD)"
+expectedPatchBranch="${tagPrefix}v${vLeft}.x"
+if  ! [[ "${currentBranch}" = "master" ]] &&
+    ! [[ "${currentBranch}" = "${expectedPatchBranch}" ]]; then
+  log "Unexpected branch name - release of v${newVersion} should be done from either 'master' or '${expectedPatchBranch}', but found '${currentBranch}'"
+  exit 1
+fi
+
+jq ".version = \"${newVersion}\"" package.json > package.json.tmp
+mv package.json.tmp package.json
+git add package.json
+
+if [[ "${newVersion}" =~ "-rc" ]]; then
+  echo "Proposed changelog:"
+  echo
+  "${repoRoot}/scripts/changelog" "HEAD" "${tagPrefix}v${previousReleaseVersion}"
+  echo
+else
+  cat <("${repoRoot}/scripts/changelog" "HEAD" "v${previousReleaseVersion}") <(echo) $changelogPath |
+      sed "s/HEAD/v${newVersion}/" > CHANGELOG.md.tmp
+  mv CHANGELOG.md.tmp $changelogPath
+  ${EDITOR:-vi} $changelogPath
+  git add $changelogPath
+fi
+
+git --no-pager diff --cached
+log "Changes above will be committed to ${currentBranch}, and then tagged."
+read -p "Press ctrl-c to cancel the release, or enter to continue..."
+
+git commit --no-verify -m "Bump version to v${newVersion}"
+git tag "${tagPrefix}v${newVersion}"
+git push --no-verify --tags
+git push --no-verify
+
+if ! [[ "${currentBranch}" = "master" ]] && ! [[ "${newVersion}" =~ "-rc" ]]; then
+  log "Porting ${changelogPath} changes to master..."
+  git checkout master
+  git --no-pager show ${currentBranch}:$changelogPath > $changelogPath
+  git add -p $changelogPath
+  log "If you're happy with the changes to $changelogPath, please commit with:"
+  log
+  log "    git commit -m'Import $changelogPath changes from ${currentBranch}"
+  log
+  log "To return to your previous branch:"
+  log
+  log "    git checkout ${currentBranch}"
+  log
+fi
+
+log "Release ${newVersion} complete."
