@@ -1,0 +1,18 @@
+#!/bin/bash -eu
+git update-index -q --refresh
+if ! git diff-files --quiet --; then
+	git --no-pager diff
+	git status
+	echo '!!!'
+	echo '!!! ERROR uncommitted files in local repo'
+	echo '!!!'
+	exit 1
+fi
+if ! git diff-index --quiet HEAD --; then
+	git --no-pager diff
+	git status
+	echo '!!!'
+	echo '!!! ERROR local git repo has changes'
+	echo '!!!'
+	exit 1
+fi

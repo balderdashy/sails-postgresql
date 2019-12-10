@@ -1,0 +1,25 @@
+#!/bin/bash -eu
+versions() {
+	git tag | grep '^v' | sort --field-separator=. --key=1,1nr --key=2,2nr --key=3,3nr
+}
+
+if [[ $# > 0 ]]; then
+	current="$1"
+else
+	current="$(versions | head -n1)"
+fi
+if [[ $# > 1 ]]; then
+	previous="$2"
+else
+	previous="$(versions | head -n2 | tail -n1)"
+fi
+
+datestamp="$(date '+%Y-%m-%d')"
+
+title="${datestamp} | $previous -> $current"
+echo "${title}"
+
+underline="$(head -c ${#title} /dev/zero | tr '\0' '=')"
+echo "${underline}"
+
+git log "${previous}..${current}" --pretty=oneline | cut -d' ' -f2- | sed -E -e 's/^/* /'
