@@ -18,7 +18,7 @@
 // the operations are completed. The records can then be nested together and
 // returned as a single array of nested values.
 
-var _ = require('@sailshq/lodash');
+var _ = require('lodash');
 var utils = require('waterline-utils');
 
 module.exports = function initializeQueryCache(options) {
@@ -60,7 +60,7 @@ module.exports = function initializeQueryCache(options) {
     var strategy = val.strategy.strategy;
 
     // Find the Primary Key of the parent used in the join
-    var model = options.models[_.first(popInstructions).parent];
+    var model = options.models[_.head(popInstructions).parent];
     if (!model) {
       throw new Error('Invalid parent table name used when caching query results. Perhaps the join criteria is invalid?');
     }
@@ -82,13 +82,13 @@ module.exports = function initializeQueryCache(options) {
     // the value being populated - i.e. populating a model record. Therefore
     // the keyName is the name of the attribute on the parent record.
     if (val.strategy && val.strategy.strategy === 1) {
-      alias = _.first(popInstructions).alias;
-      keyName = _.first(popInstructions).parentKey;
+      alias = _.head(popInstructions).alias;
+      keyName = _.head(popInstructions).parentKey;
 
     // Otherwise this must be a collection populating so just grab the alias
     // directly off the instructions.
     } else {
-      alias = _.first(popInstructions).alias;
+      alias = _.head(popInstructions).alias;
     }
 
 
@@ -104,8 +104,8 @@ module.exports = function initializeQueryCache(options) {
       };
 
       // Grab the join keys used in the query
-      var childKey = _.first(popInstructions).childKey;
-      var parentKey = _.first(popInstructions).parentKey;
+      var childKey = _.head(popInstructions).childKey;
+      var parentKey = _.head(popInstructions).parentKey;
 
       // Find any records in the children that match up to the join keys
       var records = _.filter(options.sortedResults.children[alias], function findChildren(child) {

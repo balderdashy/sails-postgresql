@@ -7,7 +7,7 @@
 //
 // Send a Native Query to the datastore and gracefully handle errors.
 
-var _ = require('@sailshq/lodash');
+var _ = require('lodash');
 var PG = require('machinepack-postgresql-sails-postgresql-redacted');
 var releaseConnection = require('../connection/release-connection');
 

@@ -14,7 +14,7 @@
 //
 // Modify the record(s) and return the values that were modified.
 
-var _ = require('@sailshq/lodash');
+var _ = require('lodash');
 var PG = require('machinepack-postgresql-sails-postgresql-redacted');
 var runQuery = require('./run-query');
 var releaseConnection = require('../connection/release-connection');

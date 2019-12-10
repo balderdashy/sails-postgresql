@@ -7,7 +7,7 @@
 //
 // Build database indexes as needed.
 
-var _ = require('@sailshq/lodash');
+var _ = require('lodash');
 var async = require('async');
 var escapeTableName = require('./escape-table-name');
 var runNativeQuery = require('../query/run-native-query');

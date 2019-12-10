@@ -63,7 +63,7 @@ module.exports = require('machine').build({
 
   fn: function select(inputs, exits) {
     // Dependencies
-    var _ = require('@sailshq/lodash');
+    var _ = require('lodash');
     var Helpers = require('./private');
 
     // Set a flag if a leased connection from outside the adapter was used or not.

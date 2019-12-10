@@ -2,7 +2,7 @@
  * Support functions for helping with Postgres tests
  */
 
-var _ = require('@sailshq/lodash');
+var _ = require('lodash');
 var PG = require('machinepack-postgresql-sails-postgresql-redacted');
 var adapter = require('../../lib/adapter');
 
@@ -127,7 +127,7 @@ Support.registerConnection = function registerConnection(tableNames, cb) {
 
 // Remove a table and destroy the manager
 Support.Teardown = function teardown(tableName, cb) {
-  var manager = adapter.datastores[_.first(_.keys(adapter.datastores))].manager;
+  var manager = adapter.datastores[_.head(_.keys(adapter.datastores))].manager;
   PG.getConnection({
     manager: manager,
     meta: Support.Config
@@ -152,7 +152,7 @@ Support.Teardown = function teardown(tableName, cb) {
           return cb(err);
         }
 
-        delete adapter.datastores[_.first(_.keys(adapter.datastores))];
+        delete adapter.datastores[_.head(_.keys(adapter.datastores))];
         return cb();
       });
     });
@@ -161,7 +161,7 @@ Support.Teardown = function teardown(tableName, cb) {
 
 // Seed a record to use for testing
 Support.Seed = function seed(tableName, cb) {
-  var manager = adapter.datastores[_.first(_.keys(adapter.datastores))].manager;
+  var manager = adapter.datastores[_.head(_.keys(adapter.datastores))].manager;
   PG.getConnection({
     manager: manager,
     meta: Support.Config

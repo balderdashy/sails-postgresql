@@ -62,7 +62,7 @@ module.exports = require('machine').build({
 
   fn: function sum(inputs, exits) {
     // Dependencies
-    var _ = require('@sailshq/lodash');
+    var _ = require('lodash');
     var Converter = require('waterline-utils').query.converter;
     var Helpers = require('./private');
 

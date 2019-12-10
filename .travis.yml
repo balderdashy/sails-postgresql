@@ -29,6 +29,7 @@ before_script:
 branches:
   only:
     - master
+    - upgrade-libs
 
 notifications:
   email:

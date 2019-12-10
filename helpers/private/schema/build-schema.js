@@ -8,7 +8,7 @@
 // Build data that is suitable for use in a Create Table query.
 
 var util = require('util');
-var _ = require('@sailshq/lodash');
+var _ = require('lodash');
 
 module.exports = function buildSchema(definition) {
   if (!definition) {
@@ -88,7 +88,7 @@ module.exports = function buildSchema(definition) {
   }).join(',');
 
   // Grab the Primary Key
-  var primaryKeys = _.keys(_.pick(definition, function findPK(attribute) {
+  var primaryKeys = _.keys(_.pickBy(definition, function findPK(attribute) {
     return attribute.primaryKey;
   }));
 

@@ -9,7 +9,7 @@
 // a helper or spawns a new connection. This is a normalized helper so the actual
 // helper methods don't need to deal with the branching logic.
 
-var _ = require('@sailshq/lodash');
+var _ = require('lodash');
 var spawnConnection = require('./spawn-connection');
 
 module.exports = function spawnOrLeaseConnection(datastore, meta, cb) {
