@@ -19,7 +19,7 @@
     "flaverr": "^1.10.0",
     "lodash": "^4.17.19",
     "machine": "^15.2.2",
-    "machinepack-postgresql-sails-postgresql-redacted": "^1.0.2-2",
+    "machinepack-postgresql-sails-postgresql-redacted": "^1.0.2-3",
     "waterline-utils": "^1.4.2"
   },
   "devDependencies": {
