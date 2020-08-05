@@ -15,9 +15,9 @@
     "url": "git://github.com/alxndrsn/sails-postgresql.git"
   },
   "dependencies": {
-    "async": "^3.1.0",
+    "async": "^3.2.0",
     "flaverr": "^1.10.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "machine": "^15.2.2",
     "machinepack-postgresql-sails-postgresql-redacted": "^1.0.2-2",
     "waterline-utils": "^1.4.2"
