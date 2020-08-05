@@ -1,3 +1,11 @@
+2020-08-05 | v1.0.2-4 -> v1.0.2-5
+=================================
+* Update dependency: machinepack-postgresql-sails-postgresql-redacted
+* Update dev dependency: mocha
+* update dependencies: lodash, async
+* test: only install yarn if not available
+* Add usage section to README
+
 2020-01-22 | v1.0.2-3 -> v1.0.2-4
 =================================
 * Update dependencies
