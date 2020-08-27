@@ -35,7 +35,10 @@
     "pretest": "nodever=`node -e \"console.log('\\`node -v\\`'[1]);\"` && if [ $nodever != \"0\" ]; then npm run lint; fi",
     "lint": "eslint lib helpers test",
     "docker": "docker-compose run adapter bash",
-    "benchmark": "node ./node_modules/mocha/bin/mocha test/benchmarks --recursive"
+    "benchmark": "node ./node_modules/mocha/bin/mocha test/benchmarks --recursive",
+    "deps:cleanup": "rm yarn.lock && yarn install",
+    "deps:update:prod": "jq -r '.dependencies    | keys | .[]' package.json | sed 's/$/@latest/' | xargs yarn add       && yarn deps:cleanup",
+    "deps:update:dev": " jq -r '.devDependencies | keys | .[]' package.json | sed 's/$/@latest/' | xargs yarn add --dev && yarn deps:cleanup"
   },
   "main": "lib/adapter",
   "directories": {
