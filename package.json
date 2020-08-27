@@ -17,7 +17,7 @@
   "dependencies": {
     "async": "^3.2.0",
     "flaverr": "^1.10.0",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.20",
     "machine": "^15.2.2",
     "machinepack-postgresql-sails-postgresql-redacted": "^1.0.2-5",
     "waterline-utils": "^1.4.2"
