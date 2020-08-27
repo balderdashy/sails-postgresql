@@ -1,3 +1,8 @@
+2020-08-27 | v1.0.2-6 -> v1.0.2-7
+=================================
+* Bump dependency: lodash
+* Bump machinepack-postgresql version
+
 2020-08-27 | v1.0.2-5 -> v1.0.2-6
 =================================
 * Allow passing pre-existing PG pool
