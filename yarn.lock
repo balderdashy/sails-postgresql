@@ -1450,6 +1450,11 @@ lodash@^4.17.19, lodash@^4.6.0:
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.19.tgz#e48ddedbe30b3321783c5b4301fbd353bc1e4a4b"
   integrity sha512-JNvd8XER9GQX0v2qJgsaN/mzFCNA5BRe/j8JN9d+tWyGLSodKQHKFicdwNYzWwI3wjRnaKPsGj1XkBjx/F96DQ==
 
+lodash@^4.17.20:
+  version "4.17.20"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.20.tgz#b44a9b6297bcb698f1c51a3545a2b3b368d59c52"
+  integrity sha512-PlhdFcillOINfeV7Ni6oF1TAEayyZBoZ8bcshTHqOYJYlrqzRK5hagpagky5o4HfCzzd1TRkXPMFq6cKk9rGmA==
+
 log-symbols@3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/log-symbols/-/log-symbols-3.0.0.tgz#f3a08516a5dea893336a7dee14d18a1cfdab77c4"
@@ -1468,13 +1473,13 @@ machine@^15.2.2:
     parley "^3.8.0"
     rttc "^10.0.0-3"
 
-machinepack-postgresql-sails-postgresql-redacted@^1.0.2-3:
-  version "1.0.2-3"
-  resolved "https://registry.yarnpkg.com/machinepack-postgresql-sails-postgresql-redacted/-/machinepack-postgresql-sails-postgresql-redacted-1.0.2-3.tgz#201d126e31251983a8103aa00c999cd27548fe85"
-  integrity sha512-pEvh8L+u912NGGFpPL0KISQSYAWj7vUJQHs/s/7LUycwy7wpIwjx69tHKIU5K3Wt+kL6i5W+cyCxcssam6atSA==
+machinepack-postgresql-sails-postgresql-redacted@^1.0.2-4:
+  version "1.0.2-4"
+  resolved "https://registry.yarnpkg.com/machinepack-postgresql-sails-postgresql-redacted/-/machinepack-postgresql-sails-postgresql-redacted-1.0.2-4.tgz#cb7bfaec5a46d42bce1bebf45601b9d31c51e268"
+  integrity sha512-5fHIT0CNt0d2VOwv3vb0sWC+SWuY1GITHug8vLJWjdszQMt9Iv2IHRxG8uIH75Rdux/gxhYn/2guvTqq7ShkRA==
   dependencies:
     debug "^4.1.1"
-    lodash "^4.17.19"
+    lodash "^4.17.20"
     machine "^15.2.2"
     pg "^8.3.0"
     waterline-sql-builder "^1.0.0"
