@@ -21,7 +21,7 @@
     "eqeqeq":                       [1, "smart"],
     "func-style":                   [2, "expression"],
     "handle-callback-err":          [2],
-    "indent":                       [2, 2, {"SwitchCase": 1}],
+    "indent":                       [2, 2, {"SwitchCase": 1, "MemberExpression": 0}],
     "key-spacing":                  [2, {"beforeColon": false, "afterColon": true}],
     "keyword-spacing":              [2, {"before": true, "after": true}],
     "linebreak-style":              [2, "unix"],

@@ -12,7 +12,7 @@
     "eqeqeq":                       [1, "smart"],
     "eol-last":                     [2],
     "handle-callback-err":          [2],
-    "indent":                       [2, 2, {"SwitchCase": 1}],
+    "indent":                       [2, 2, {"SwitchCase": 1, "MemberExpression": 0, "CallExpression": {"arguments": 0}}],
     "linebreak-style":              [2, "unix"],
     "no-mixed-spaces-and-tabs":     [2, "smart-tabs"],
     "no-return-assign":             [2, "always"],

@@ -136,7 +136,7 @@ Support.Teardown = function teardown(tableName, cb) {
       return cb(err);
     }
 
-    var query = 'DROP TABLE IF EXISTS \"' + tableName + '";';
+    var query = 'DROP TABLE IF EXISTS "' + tableName + '";';
     PG.sendNativeQuery({
       connection: report.connection,
       nativeQuery: query
