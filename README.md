@@ -4,8 +4,17 @@ This tracks [Sails PostgreSQL](https://github.com/balderdashy/sails-postgresql),
 
 * leaking of database passwords into logs is fixed (https://github.com/balderdashy/sails/issues/4595, https://github.com/balderdashy/sails/issues/4606)
 * connecting to databases via unix socket is fixed (https://github.com/balderdashy/sails/issues/6888)
+* connecting to databases with a pre-initialised `pool` object
 
 Versions track upstream, with an extra `-{increment}`.
+
+# Usage with a pre-defined `PG.pool`
+
+	module.exports.datastores = {
+	  default: {
+	    pool: yourPoolHere,
+	  },
+	};
 
 # Usage with Unix Sockets
 

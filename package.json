@@ -1,7 +1,7 @@
 {
   "name": "sails-postgresql-redacted",
   "description": "a PostgreSQL adapter for Waterline and Sails.js.  Tracking upstream, but with passwords redacted from error messages",
-  "version": "1.0.2-5",
+  "version": "1.0.2-6",
   "author": "Cody Stoltman <particlebanana@gmail.com>",
   "url": "http://github.com/alxndrsn/sails-postgresql",
   "keywords": [

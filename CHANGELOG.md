@@ -1,3 +1,11 @@
+2020-08-27 | v1.0.2-5 -> v1.0.2-6
+=================================
+* Allow passing pre-existing PG pool
+* Make eslint version flexible
+* Update yarn.lock for eslint version bump
+* Add dependency update scripts
+* Bump machinepack-postgresql dependency
+
 2020-08-05 | v1.0.2-4 -> v1.0.2-5
 =================================
 * Update dependency: machinepack-postgresql-sails-postgresql-redacted
