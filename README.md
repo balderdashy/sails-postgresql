@@ -12,6 +12,7 @@ Versions track upstream, with an extra `-{increment}`.
 
 	module.exports.datastores = {
 	  default: {
+	    adapter: 'sails-postgresql-redacted',
 	    pool: yourPoolHere,
 	  },
 	};
