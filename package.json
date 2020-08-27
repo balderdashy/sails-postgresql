@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "benchmark": "^2.1.4",
-    "eslint": "7.7.0",
+    "eslint": "^7.7.0",
     "mocha": "^8.1.1",
     "waterline-adapter-tests": "^1.0.0-2"
   },
