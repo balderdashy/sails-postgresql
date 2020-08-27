@@ -19,7 +19,8 @@ var PG = require('machinepack-postgresql-sails-postgresql-redacted');
 module.exports = function createManager(url, config) {
   var report = PG.createManager({
     connectionString: url,
-    meta: config
+    meta: config,
+    pool: config.pool,
   }).execSync();
 
   return report;
