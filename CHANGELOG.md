@@ -1,3 +1,7 @@
+2020-08-31 | v1.0.2-7 -> v1.0.2-8
+=================================
+* registerDataStore(): update config checks for provided pool
+
 2020-08-27 | v1.0.2-6 -> v1.0.2-7
 =================================
 * Bump dependency: lodash
