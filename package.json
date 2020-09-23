@@ -19,7 +19,7 @@
     "async": "2.0.1",
     "flaverr": "^1.2.5",
     "machine": "^15.0.0-21",
-    "machinepack-postgresql": "^1.0.1-0",
+    "machinepack-postgresql": "^2.0.0",
     "waterline-utils": "^1.3.10"
   },
   "devDependencies": {
