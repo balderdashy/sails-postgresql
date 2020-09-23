@@ -49,7 +49,7 @@ describe('Unit Tests ::', function() {
 
     // Look into the bowels of the PG Driver and ensure the Create function handles
     // it's connections properly.
-    it('should release it\'s connection when completed', function(done) {
+    it('should release its connection when completed', function(done) {
       var manager = Adapter.datastores.test.manager;
       var preConnectionsAvailable = manager.pool.pool.availableObjectsCount();
 
