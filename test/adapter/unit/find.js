@@ -116,7 +116,7 @@ describe('Unit Tests ::', function() {
     // it's connections properly.
     it('should release its connection when completed', function(done) {
       var manager = Adapter.datastores.test.manager;
-      var preConnectionsAvailable = manager.pool.pool.availableObjectsCount();
+      var preConnectionsAvailable = manager.pool.idleCount;
 
       var query = {
         using: 'test_find',
@@ -128,7 +128,7 @@ describe('Unit Tests ::', function() {
           return done(err);
         }
 
-        var postConnectionsAvailable = manager.pool.pool.availableObjectsCount();
+        var postConnectionsAvailable = manager.pool.idleCount;
         assert.equal(preConnectionsAvailable, postConnectionsAvailable);
 
         return done();
