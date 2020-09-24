@@ -98,12 +98,12 @@ describe('Unit Tests ::', function() {
           return done(err);
         }
 
-        console.log('SANITY CHECK:');
-        console.log('preConnectionsAvailable: ', preConnectionsAvailable);
-        console.log('postConnectionsAvailable: ', postConnectionsAvailable);
 
         var postConnectionsAvailable = manager.pool.idleCount;
         assert.equal(preConnectionsAvailable, postConnectionsAvailable);
+        console.log('SANITY CHECK:');
+        console.log('preConnectionsAvailable: ', preConnectionsAvailable);
+        console.log('postConnectionsAvailable: ', postConnectionsAvailable);
 
         return done();
       });
