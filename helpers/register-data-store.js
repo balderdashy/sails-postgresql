@@ -22,9 +22,6 @@ module.exports = require('machine').build({
   description: 'Register a new datastore for making connections.',
 
 
-  sync: true,
-
-
   inputs: {
 
     identity: {
@@ -199,16 +196,42 @@ module.exports = require('machine').build({
       };
     });
 
-    // Store the connection
-    inputs.datastores[inputs.identity] = {
+    var dataStore = {
       manager: report.manager,
       config: inputs.config,
       driver: PG
     };
 
-    // Store the db schema for the connection
-    inputs.modelDefinitions[inputs.identity] = dbSchema;
+    // Test datastore config by trying to acquire and release a connection.
+    PG.getConnection(report)
+      .switch({
+        failed: function (e) {
+          return exits.error(new Error('There was an error creating a connection for Datastore `' + inputs.identity + '` ' + 'with a url of: ' + inputs.config.url  + '\n\n' + e.error.stack));
+        },
+        error: function (e) {
+          return exits.error(new Error('There was an error creating a connection for Datastore `' + inputs.identity + '` ' + ' with a url of: ' + inputs.config.url + '\n\n' + e.stack));
+        },
+        success: function (connection) {
+          // release the connection.
+          PG.releaseConnection(connection)
+            .switch({
+              badConnection: function () {
+                return exits.error(new Error('There was an error releasing connection for Datastore `' + inputs.identity + '` ' + ' with a url of: ' + inputs.config.url));
+              },
+              error: function (e) {
+                return exits.error(new Error('There was an error releasing connection for Datastore `' + inputs.identity + '` ' + ' with a url of: ' + inputs.config.url + '\n\n' + e.stack));
+              },
+              success: function () {
+                // Store the datastore
+                inputs.datastores[inputs.identity] = dataStore;
 
-    return exits.success();
+                // Store the db schema for the connection
+                inputs.modelDefinitions[inputs.identity] = dbSchema;
+
+                return exits.success();
+              }
+            });
+        },
+      });
   }
 });
