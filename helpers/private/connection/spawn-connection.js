@@ -103,7 +103,7 @@ module.exports = function spawnConnection(datastore, cb) {
       var isSSLRelated = !usingLocalhost;
       if (isSSLRelated) {
         console.error(' -> Are you using an SSL-enabled Postgresql host like Heroku?',
-        'Make sure to set `ssl` to `true` (see http://stackoverflow.com/a/22177218/486547)'
+        'Make sure to provide an `ssl` object with `sslmode` and `rejectUnauthorized` options (see http://stackoverflow.com/a/66913689/14159178)'
         );
         console.error('');
       }
