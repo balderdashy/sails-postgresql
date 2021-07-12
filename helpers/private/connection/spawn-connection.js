@@ -54,8 +54,8 @@ module.exports = function spawnConnection(datastore, cb) {
 
       if (usingLocalhost) {
         console.error(
-          ' -> You appear to be trying to use a Postgresql install on localhost.',
-          'Maybe the database server isn\'t running, or is not installed?'
+        ' -> You appear to be trying to use a Postgresql install on localhost.',
+        'Maybe the database server isn\'t running, or is not installed?'
         );
         console.error('');
       }
