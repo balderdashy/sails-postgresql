@@ -1,4 +1,5 @@
 //  ██████╗ ██╗   ██╗██╗██╗     ██████╗     ███████╗ ██████╗██╗  ██╗███████╗███╗   ███╗ █████╗
+//  ██████╗ ██╗   ██╗██╗██╗     ██████╗     ███████╗ ██████╗██╗  ██╗███████╗███╗   ███╗ █████╗
 //  ██╔══██╗██║   ██║██║██║     ██╔══██╗    ██╔════╝██╔════╝██║  ██║██╔════╝████╗ ████║██╔══██╗
 //  ██████╔╝██║   ██║██║██║     ██║  ██║    ███████╗██║     ███████║█████╗  ██╔████╔██║███████║
 //  ██╔══██╗██║   ██║██║██║     ██║  ██║    ╚════██║██║     ██╔══██║██╔══╝  ██║╚██╔╝██║██╔══██║
@@ -34,6 +35,10 @@ module.exports = function buildSchema(definition) {
     // - - - - - - - - - - - - - - - - - - - - -
     if (!_.isObject(attribute) || _.isArray(attribute) || _.isFunction(attribute)) {
       throw new Error('Invalid attribute ("'+columnName+'") in DDL definition in `build-schema` utility: '+util.inspect(attribute, {depth:5}));
+    }//•
+
+    if(_.endsWith(columnName, '__c')){
+      throw new Error('Invalid column name specified ("'+columnName+'"). Please do not use `__c` in attribute and column names.');
     }//•
 
     if (!_.isString(attribute.columnType) || attribute.columnType === '') {
