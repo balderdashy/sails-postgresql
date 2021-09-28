@@ -14,5 +14,6 @@ module.exports = {
   setSequence: require('./set-sequence'),
   sum: require('./sum'),
   teardown: require('./teardown'),
-  update: require('./update')
+  update: require('./update'),
+  validateConnection: require('./validate-connection')
 };
