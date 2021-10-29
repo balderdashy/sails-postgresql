@@ -36,6 +36,10 @@ module.exports = function buildSchema(definition) {
       throw new Error('Invalid attribute ("'+columnName+'") in DDL definition in `build-schema` utility: '+util.inspect(attribute, {depth:5}));
     }//•
 
+    if(_.contains(columnName, '__')){
+      throw new Error('Invalid attribute ("'+columnName+'"). Please do not use `__` in attribute or column names.');
+    }//•
+
     if (!_.isString(attribute.columnType) || attribute.columnType === '') {
       throw new Error('Invalid column type `'+util.inspect(attribute.columnType,{depth:5})+'` for attribute ("'+columnName+'") in DDL definition in `build-schema` utility: '+util.inspect(attribute, {depth:5}));
     }//•
