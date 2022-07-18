@@ -22,9 +22,13 @@ addons:
   postgresql: "9.4"
 sudo: false
 env:
-  - DB_USER=postgres DB_PASS=''
-env:
-  - WATERLINE_ADAPTER_TESTS_HOST=127.0.0.1 WATERLINE_ADAPTER_TESTS_USER=postgres WATERLINE_ADAPTER_TESTS_PASSWORD='' WATERLINE_ADAPTER_TESTS_DATABASE=adapter-tests
+  - DB_USER=postgres
+  - DB_PASS=''
+  - WATERLINE_ADAPTER_TESTS_HOST=127.0.0.1
+  - WATERLINE_ADAPTER_TESTS_USER=postgres
+  - WATERLINE_ADAPTER_TESTS_PASSWORD=''
+  - WATERLINE_ADAPTER_TESTS_DATABASE=adapter-tests
+
 before_script:
   - psql -c 'create database "adapter-tests";' -U postgres
 
