@@ -8,14 +8,16 @@
 #                                                       #
 # https://docs.travis-ci.com/user/customizing-the-build #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+os: linux
+dist: dist: bionic
 
 language: node_js
 
 node_js:
   - "10"
-  - "12"
-  - "14"
-  - "16"
+  # - "12"
+  # - "14"
+  # - "16"
 
 services: postgresql
 addons:
@@ -24,8 +26,6 @@ env:
   - WATERLINE_ADAPTER_TESTS_HOST=127.0.0.1 WATERLINE_ADAPTER_TESTS_USER=postgres WATERLINE_ADAPTER_TESTS_PASSWORD='' WATERLINE_ADAPTER_TESTS_DATABASE=adapter-tests
 before_script:
   - psql -c 'create database "adapter-tests";' -U postgres
-install:
-  - npm install --no-audit
 
 branches:
   only:
