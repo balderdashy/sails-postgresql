@@ -25,7 +25,7 @@ env:
 before_script:
   - psql -c 'create database "adapter-tests";' -U postgres
 install:
-  - npm install -verbose
+  - npm ci
 
 branches:
   only:
