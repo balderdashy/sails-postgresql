@@ -11,7 +11,6 @@
 language: node_js
 
 node_js:
-  - "10"
   - "12"
   - "14"
   - "16"
@@ -25,9 +24,10 @@ addons:
   postgresql: "9.4"
 env:
   - WATERLINE_ADAPTER_TESTS_HOST=127.0.0.1 WATERLINE_ADAPTER_TESTS_USER=postgres WATERLINE_ADAPTER_TESTS_PASSWORD='' WATERLINE_ADAPTER_TESTS_DATABASE=adapter-tests
+before install:
+  - npm i -g npm@8.11.0
 before_script:
   - psql -c 'create database "adapter-tests";' -U postgres
-  - npm install
 
 branches:
   only:
