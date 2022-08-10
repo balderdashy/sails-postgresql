@@ -27,6 +27,7 @@ env:
   - WATERLINE_ADAPTER_TESTS_HOST=127.0.0.1 WATERLINE_ADAPTER_TESTS_USER=postgres WATERLINE_ADAPTER_TESTS_PASSWORD='' WATERLINE_ADAPTER_TESTS_DATABASE=adapter-tests
 before_script:
   - psql -c 'create database "adapter-tests";' -U postgres
+  - npm install
 
 branches:
   only:
