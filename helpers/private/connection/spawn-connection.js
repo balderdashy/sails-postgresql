@@ -31,6 +31,38 @@ module.exports = function spawnConnection(datastore, cb) {
       return cb(err);
     },
     failed: function failedToConnect(err) {
+
+      function isTransientError(err) {
+        var errorMessage = err.message || (err.error || {}).message || "";
+        var errorCode = err.code || (err.error || {}).code || "";
+        return errorMessage.indexOf("Client has encountered a connection error") >= 0 ||
+          errorMessage.indexOf("terminating connection") >= 0 ||
+          errorMessage.indexOf("Connection terminated") >= 0 ||
+          ["ECONNRESET", "ECONNREFUSED"].indexOf(errorCode) >= 0;
+      }
+
+      if (datastore.config.attemptRetries && 
+          isTransientError(err) && 
+          (datastore.retryCount || 0) < datastore.config.attemptRetries) {
+        console.error("Error is transient, trying again in " + 2 * 4 ** (datastore.retryCount || 0) + " seconds.");
+        try {
+          setTimeout(() => {
+            var newFirstParam = Object.assign({}, datastore, { retryCount: (datastore.retryCount || 0) + 1 });
+            spawnConnection(newFirstParam, (cbErr, cbResult) => {
+              if (cbErr) {
+                cb(cbErr);
+                return;
+              }
+              cb(null, cbResult);
+            });
+          }, 2000 * 4 ** (datastore.retryCount || 0));
+        } catch (retryError) {
+          console.error("Error during retry regimen");
+          cb(err);
+        }
+        return;
+      }
+
       // Setup some basic troubleshooting tips
       console.error('Troubleshooting tips:');
       console.error('');
